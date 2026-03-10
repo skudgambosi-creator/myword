@@ -172,7 +172,7 @@ export default function DashboardPage() {
                     Get Amongst
                   </button>
                   <p style={{ fontSize: 12, color: '#999', marginTop: 12 }}>
-                    Joining is free. You'll start with the current letter.
+                    Surely.
                   </p>
                 </>
               )}
