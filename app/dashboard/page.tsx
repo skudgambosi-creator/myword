@@ -1,184 +1,159 @@
-'use client'
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import Nav from '@/components/layout/Nav'
+import type { Group, Week, Submission } from '@/types'
 
-const ALPHABET_PROJECT_ID = '00000000-0000-0000-0000-000000000001'
-
-export default function DashboardPage() {
-  const router = useRouter()
+export default async function DashboardPage() {
   const supabase = createClient()
-  const [loading, setLoading] = useState(true)
-  const [profile, setProfile] = useState<any>(null)
-  const [inGroup, setInGroup] = useState(false)
-  const [group, setGroup] = useState<any>(null)
-  const [registrationClosed, setRegistrationClosed] = useState(false)
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
-  useEffect(() => {
-    const init = async (session: any) => {
-      if (!session) { router.push('/login'); return }
+  const { data: profile } = await supabase
+    .from('users').select('*').eq('id', user.id).single()
 
-      const { data: prof } = await supabase
-        .from('users').select('*').eq('id', session.user.id).single()
-      setProfile(prof)
+  const { data: memberships } = await supabase
+    .from('group_members')
+    .select('group_id')
+    .eq('user_id', user.id)
 
-      const { data: grp } = await supabase
-        .from('groups').select('*').eq('id', ALPHABET_PROJECT_ID).single()
-      setGroup(grp)
+  const groupIds = memberships?.map(m => m.group_id) || []
 
-      const { data: membership, error: membershipError } = await supabase
-        .from('group_members')
-        .select('*')
-        .eq('group_id', ALPHABET_PROJECT_ID)
-        .eq('user_id', session.user.id)
-        .maybeSingle()
-      setInGroup(!!membership && !membershipError)
-
-      // Registration closes after Week C's window
-      const { data: weekC } = await supabase
-        .from('weeks').select('closes_at')
-        .eq('group_id', ALPHABET_PROJECT_ID).eq('letter', 'C').single()
-      if (weekC && new Date(weekC.closes_at) < new Date()) {
-        setRegistrationClosed(true)
-      }
-
-      setLoading(false)
-    }
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      init(session)
-    })
-    return () => subscription.unsubscribe()
-  }, [])
-
-  const handleJoin = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
-
-    // Re-check cutoff at time of click
-    const { data: weekC } = await supabase
-      .from('weeks').select('closes_at')
-      .eq('group_id', ALPHABET_PROJECT_ID).eq('letter', 'C').single()
-    if (weekC && new Date(weekC.closes_at) < new Date()) {
-      setRegistrationClosed(true)
-      return
-    }
-
-    const { error: joinError } = await supabase.from('group_members').insert({
-      group_id: ALPHABET_PROJECT_ID,
-      user_id: session.user.id,
-    })
-    // 23505 = duplicate key (already a member) — treat as success
-    if (!joinError || joinError.code === '23505') {
-      setInGroup(true)
-    }
+  let groups: Group[] = []
+  if (groupIds.length > 0) {
+    const { data } = await supabase
+      .from('groups').select('*').in('id', groupIds)
+    groups = data || []
   }
 
-  if (loading) return (
-    <div style={{ minHeight: '100vh' }}>
-      <nav className="nav"><span className="nav-brand">[ MY WORD ]</span></nav>
-      <div className="page-container" style={{ paddingTop: 40 }}>Loading...</div>
-    </div>
-  )
-
   const displayName = profile?.identity_mode === 'anonymous'
-    ? `No-name ${profile.noname_number}` : profile?.display_name
+    ? `No-name ${profile.noname_number}`
+    : profile?.display_name
 
   return (
     <div style={{ minHeight: '100vh' }}>
-      <nav className="nav">
-        <Link href="/dashboard" className="nav-brand">[ MY WORD ]</Link>
-        <Link href="/dashboard" className="nav-link active">Dashboard</Link>
-        <Link href="/profile" className="nav-link">Profile</Link>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
-          <span style={{ padding: '10px 16px', fontSize: 12, color: '#666', borderLeft: '1px solid #aaa' }}>
-            {displayName}
-          </span>
-          <button onClick={async () => {
-            await supabase.auth.signOut()
-            window.location.href = '/'
-          }} className="nav-link" style={{ border: 'none', cursor: 'pointer', background: 'none' }}>
-            Sign Out
-          </button>
+      <Nav userName={displayName} />
+
+      <div className="page-container" style={{ paddingTop: 40, paddingBottom: 60 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 32 }}>
+          <h1 className="page-title" style={{ marginBottom: 0 }}>Dashboard</h1>
+          <Link href="/groups/new" className="btn btn-accent">+ New Group</Link>
         </div>
-      </nav>
 
-      <div className="page-container" style={{ paddingTop: 48, paddingBottom: 60 }}>
-
-        {inGroup ? (
-          /* Already a member — show the project card */
-          <div>
-            <h1 className="page-title">Dashboard</h1>
-            <div className="box" style={{ borderLeft: '4px solid #CC0000' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-                <div>
-                  <div style={{ fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.12em', color: '#CC0000', marginBottom: 6 }}>
-                    Season 1 — Now Playing
-                  </div>
-                  <h2 style={{ fontSize: 22, fontWeight: 'bold', marginBottom: 4 }}>The Alphabet Project</h2>
-                  <p style={{ fontSize: 13, color: '#666' }}>26 letters · 26 weeks · one piece each</p>
-                </div>
-                <Link href={`/groups/${ALPHABET_PROJECT_ID}`} className="btn btn-accent" style={{ fontSize: 15, padding: '10px 28px' }}>
-                  Open →
-                </Link>
-              </div>
-            </div>
+        {groups.length === 0 ? (
+          <div className="box" style={{ textAlign: 'center', padding: 48 }}>
+            <p style={{ fontSize: 14, color: '#666', marginBottom: 20 }}>
+              You haven't joined any groups yet.
+            </p>
+            <Link href="/groups/new" className="btn btn-accent">Create a Group</Link>
           </div>
         ) : (
-          /* Not yet a member — present the project */
-          <div style={{ maxWidth: 640, margin: '0 auto' }}>
-            <div style={{ textAlign: 'center', marginBottom: 40 }}>
-              <div style={{ fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.12em', color: '#CC0000', marginBottom: 12 }}>
-                Season 1
-              </div>
-              <h1 style={{ fontSize: 48, fontWeight: 'bold', marginBottom: 8 }}>The Alphabet Project</h1>
-              <p style={{ fontSize: 14, color: '#666' }}>A — Z · 26 weeks · one piece each</p>
-            </div>
-
-            <hr className="rule" />
-
-            <div style={{ marginBottom: 40 }}>
-              {[
-                ['A letter, every week', 'Each Wednesday a new letter drops — A through Z over 26 weeks. You have until Tuesday night to submit.'],
-                ['Pick a word', 'Choose any word or phrase that starts with that letter. That\'s your title. No other rules.'],
-                ['Write whatever it brings up', 'A memory. A rant. A story. A list. A poem. Style, subject, length — entirely up to you. Min 5 words, max 1,000.'],
-                ['Hidden until Wednesday', 'No one sees anyone else\'s submission until the week closes. Then everything unlocks at once.'],
-                ['26 weeks later', 'You\'ll have written 26 pieces — and so will everyone else. A complete collection, A to Z.'],
-              ].map(([title, desc], i) => (
-                <div key={i} style={{ display: 'flex', gap: 20, padding: '20px 0', borderBottom: '1px solid #eee' }}>
-                  <div style={{ fontSize: 28, fontWeight: 'bold', color: '#CC0000', minWidth: 40, lineHeight: 1 }}>
-                    {String.fromCharCode(65 + i)}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 'bold', fontSize: 14, marginBottom: 4 }}>{title}</div>
-                    <div style={{ fontSize: 13, color: '#555', lineHeight: 1.7 }}>{desc}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div style={{ textAlign: 'center' }}>
-              {registrationClosed ? (
-                <div style={{ border: '2px solid #eee', padding: '20px 32px', display: 'inline-block' }}>
-                  <div style={{ fontWeight: 'bold', fontSize: 14, marginBottom: 6 }}>Registration closed</div>
-                  <p style={{ fontSize: 13, color: '#666', margin: 0 }}>
-                    The Alphabet Project is now underway and no longer accepting new members.
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <button className="btn btn-accent" style={{ fontSize: 16, padding: '14px 48px' }}
-                    onClick={handleJoin}>
-                    Get Amongst
-                  </button>
-                  <p style={{ fontSize: 12, color: '#999', marginTop: 12 }}>
-                    Surely.
-                  </p>
-                </>
-              )}
-            </div>
+          <div style={{ display: 'grid', gap: 16 }}>
+            {groups.map(group => (
+              <GroupCard key={group.id} group={group} userId={user.id} />
+            ))}
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+async function GroupCard({ group, userId }: { group: Group; userId: string }) {
+  const supabase = createClient()
+
+  // Get current/most recent week
+  const now = new Date().toISOString()
+  const { data: currentWeek } = await supabase
+    .from('weeks')
+    .select('*')
+    .eq('group_id', group.id)
+    .lte('opens_at', now)
+    .order('week_num', { ascending: false })
+    .limit(1)
+    .single()
+
+  // Check if user has submitted this week
+  let hasSubmitted = false
+  if (currentWeek) {
+    const { data: sub } = await supabase
+      .from('submissions')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('week_id', currentWeek.id)
+      .eq('is_late_catchup', false)
+      .single()
+    hasSubmitted = !!sub
+  }
+
+  // Get member count
+  const { count: memberCount } = await supabase
+    .from('group_members')
+    .select('*', { count: 'exact', head: true })
+    .eq('group_id', group.id)
+
+  // Get submission count for current week
+  let submissionCount = 0
+  if (currentWeek) {
+    const { count } = await supabase
+      .from('submissions')
+      .select('*', { count: 'exact', head: true })
+      .eq('week_id', currentWeek.id)
+      .eq('is_late_catchup', false)
+    submissionCount = count || 0
+  }
+
+  const isCompleted = !!group.completed_at
+  const weekClosed = currentWeek ? new Date(currentWeek.closes_at) < new Date() : false
+
+  return (
+    <div className="box">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 'bold' }}>{group.name}</h2>
+            {isCompleted && <span className="tag tag-complete">COMPLETED</span>}
+            {!isCompleted && group.locked && <span className="tag" style={{ color: '#555', borderColor: '#999' }}>ACTIVE</span>}
+            {!group.locked && <span className="tag" style={{ color: '#CC0000', borderColor: '#CC0000' }}>AWAITING START</span>}
+          </div>
+
+          {currentWeek && !isCompleted && (
+            <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center' }}>
+              <div>
+                <span className="section-header" style={{ display: 'block', marginBottom: 2 }}>This Week</span>
+                <span style={{ fontSize: 32, fontWeight: 'bold' }}>{currentWeek.letter}</span>
+                <span style={{ fontSize: 12, color: '#666', marginLeft: 8 }}>Week {currentWeek.week_num} of 26</span>
+              </div>
+              <div>
+                <span className="section-header" style={{ display: 'block', marginBottom: 2 }}>Submissions</span>
+                <span className="submission-counter">
+                  <strong>{submissionCount}</strong> / {memberCount}
+                </span>
+              </div>
+              <div>
+                <span className="section-header" style={{ display: 'block', marginBottom: 2 }}>Your Status</span>
+                {hasSubmitted
+                  ? <span className="tag tag-complete">✓ Submitted</span>
+                  : weekClosed
+                  ? <span className="tag tag-late">Window Closed</span>
+                  : <span className="tag" style={{ color: '#CC0000', borderColor: '#CC0000' }}>Not submitted</span>
+                }
+              </div>
+            </div>
+          )}
+
+          {!currentWeek && !isCompleted && (
+            <p style={{ fontSize: 13, color: '#666' }}>
+              Starts {new Date(group.start_date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            </p>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Link href={`/groups/${group.id}`} className="btn">
+            {isCompleted ? 'View Archive' : 'Open →'}
+          </Link>
+        </div>
       </div>
     </div>
   )

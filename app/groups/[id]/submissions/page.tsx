@@ -59,8 +59,7 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
     </div>
   )
 
-  const displayName = profile?.identity_mode === 'anonymous'
-    ? `No-name ${profile.noname_number}` : profile?.display_name
+  const memberNumber = profile?.member_number
 
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
 
@@ -71,7 +70,7 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
         <Link href={`/groups/${params.id}`} className="nav-link">← Project</Link>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
           <span style={{ padding: '10px 16px', fontSize: 12, color: '#666', borderLeft: '1px solid #aaa' }}>
-            {displayName}
+            #{memberNumber}
           </span>
           <button onClick={async () => {
             await supabase.auth.signOut()
@@ -152,8 +151,8 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
                 ) : (
                   <div style={{ display: 'grid', gap: 16 }}>
                     {submissions.map(sub => {
-                      const name = sub.users?.identity_mode === 'anonymous'
-                        ? `No-name ${sub.users?.noname_number}` : sub.users?.display_name
+                      const name = sub.is_signed
+                        ? `Member #${sub.users?.member_number}` : 'Anonymous'
                       return (
                         <div key={sub.id} className="submission-card">
                           <div className="submission-card-header">

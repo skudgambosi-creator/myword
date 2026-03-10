@@ -22,17 +22,23 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [showSignScreen, setShowSignScreen] = useState(false)
 
   const [letter, setLetter] = useState('')
   const [weekId, setWeekId] = useState('')
   const [wordTitle, setWordTitle] = useState('')
   const [content, setContent] = useState('')
   const [existingSubmissionId, setExistingSubmissionId] = useState('')
+  const [existingIsSigned, setExistingIsSigned] = useState(false)
+  const [memberNumber, setMemberNumber] = useState<number | null>(null)
 
   useEffect(() => {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
+
+      const { data: prof } = await supabase.from('users').select('member_number').eq('id', user.id).single()
+      setMemberNumber(prof?.member_number || null)
 
       const now = new Date().toISOString()
 
@@ -59,6 +65,7 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
               setWordTitle(sub.word_title)
               setContent(sub.body_html)
               setExistingSubmissionId(sub.id)
+              setExistingIsSigned(sub.is_signed || false)
             }
           }
         }
@@ -70,16 +77,23 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
 
   const wordCount = countWords(content)
 
-  const handleSubmit = async () => {
+  const handleContinue = () => {
     setError('')
-
     if (!wordTitle.trim()) return setError('Please enter a word title.')
     if (wordTitle.trim()[0].toUpperCase() !== letter.toUpperCase()) {
       return setError(`Your word title must begin with the letter ${letter}.`)
     }
     if (wordCount < 5) return setError('Minimum 5 words required.')
     if (wordCount > 1000) return setError('Maximum 1,000 words.')
+    // Edits go straight through — signing choice already made
+    if (isEdit) {
+      handleSave(existingIsSigned)
+    } else {
+      setShowSignScreen(true)
+    }
+  }
 
+  const handleSave = async (isSigned: boolean) => {
     setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
@@ -90,6 +104,7 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
           word_title: wordTitle.trim(),
           body_html: content,
           word_count: wordCount,
+          is_signed: isSigned,
           updated_at: new Date().toISOString(),
         }).eq('id', existingSubmissionId)
         if (error) throw error
@@ -102,20 +117,80 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
           body_html: content,
           word_count: wordCount,
           is_late_catchup: isCatchup,
+          is_signed: isSigned,
         })
         if (error) throw error
       }
-
       router.push(`/groups/${params.id}`)
       router.refresh()
     } catch (e: any) {
       setError(e.message || 'Failed to save submission.')
       setSaving(false)
+      setShowSignScreen(false)
     }
   }
 
   if (loading) return <div className="page-container" style={{ paddingTop: 40 }}>Loading...</div>
 
+  // ── SIGN SCREEN ──────────────────────────────────────────────
+  if (showSignScreen) {
+    return (
+      <div style={{ minHeight: '100vh' }}>
+        <nav className="nav">
+          <a href={`/groups/${params.id}`} className="nav-brand">[ MY WORD ]</a>
+          <span className="nav-link" style={{ color: '#666' }}>Submit — Letter {letter}</span>
+        </nav>
+
+        <div className="page-container" style={{ paddingTop: 60, paddingBottom: 60, maxWidth: 520 }}>
+
+          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+            <div style={{ fontSize: 80, fontWeight: 'bold', color: '#CC0000', lineHeight: 1, marginBottom: 16 }}>
+              {letter}
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 6 }}>{wordTitle}</div>
+            <div style={{ fontSize: 13, color: '#999' }}>{wordCount} words</div>
+          </div>
+
+          <div style={{ borderTop: '2px solid #000', borderBottom: '2px solid #000', padding: '24px 0', marginBottom: 32, textAlign: 'center' }}>
+            <p style={{ fontSize: 15, marginBottom: 6 }}>Sign your piece or submit anonymously?</p>
+            <p style={{ fontSize: 12, color: '#999' }}>This cannot be undone after the window closes.</p>
+          </div>
+
+          {error && (
+            <div style={{ border: '2px solid #CC0000', padding: '8px 12px', marginBottom: 16, fontSize: 13, color: '#CC0000' }}>
+              {error}
+            </div>
+          )}
+
+          <div style={{ display: 'grid', gap: 12 }}>
+            <button
+              className="btn btn-accent"
+              style={{ padding: '16px', fontSize: 15, width: '100%' }}
+              disabled={saving}
+              onClick={() => handleSave(true)}>
+              {saving ? 'Submitting...' : `Sign it — Member #${memberNumber}`}
+            </button>
+            <button
+              className="btn"
+              style={{ padding: '16px', fontSize: 15, width: '100%' }}
+              disabled={saving}
+              onClick={() => handleSave(false)}>
+              {saving ? 'Submitting...' : 'Submit anonymously'}
+            </button>
+            <button
+              className="btn btn-ghost"
+              style={{ width: '100%' }}
+              disabled={saving}
+              onClick={() => setShowSignScreen(false)}>
+              ← Go back and edit
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ── EDITOR SCREEN ────────────────────────────────────────────
   return (
     <div style={{ minHeight: '100vh' }}>
       <nav className="nav">
@@ -145,7 +220,6 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
           </div>
         )}
 
-        {/* Word title */}
         <div style={{ marginBottom: 20 }}>
           <label className="field-label">
             Word Title <span style={{ color: '#CC0000' }}>*</span>
@@ -163,13 +237,11 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
           />
         </div>
 
-        {/* Editor */}
         <div style={{ marginBottom: 16 }}>
           <label className="field-label">Your Piece</label>
           <Editor content={content} onChange={setContent} groupId={params.id} />
         </div>
 
-        {/* Word count */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <span style={{ fontSize: 12, color: wordCount < 5 ? '#CC0000' : wordCount > 1000 ? '#CC0000' : '#666' }}>
             {wordCount} / 1,000 words
@@ -181,18 +253,17 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
           )}
         </div>
 
-        {/* Submit */}
         <div style={{ display: 'flex', gap: 12 }}>
           <a href={`/groups/${params.id}`} className="btn btn-ghost">Cancel</a>
           <button className="btn btn-accent" style={{ flex: 1 }}
-            onClick={handleSubmit} disabled={saving}>
-            {saving ? 'Saving...' : isEdit ? 'Save Changes' : 'Submit'}
+            onClick={handleContinue} disabled={saving}>
+            {saving ? 'Saving...' : isEdit ? 'Save Changes' : 'Continue →'}
           </button>
         </div>
 
         <p style={{ fontSize: 12, color: '#999', marginTop: 12, textAlign: 'center' }}>
           Your word title is private until the Wednesday reveal.
-          {!isCatchup && ' You can edit this until Tuesday 23:59.'}
+          {!isCatchup && ' You can edit this until the window closes.'}
         </p>
       </div>
     </div>

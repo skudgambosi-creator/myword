@@ -7,8 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 export default function ProfilePage() {
   const router = useRouter()
   const supabase = createClient()
-  const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const init = async () => {
@@ -28,9 +28,6 @@ export default function ProfilePage() {
     </div>
   )
 
-  const displayName = profile?.identity_mode === 'anonymous'
-    ? `No-name ${profile.noname_number}` : profile?.display_name
-
   return (
     <div style={{ minHeight: '100vh' }}>
       <nav className="nav">
@@ -38,9 +35,6 @@ export default function ProfilePage() {
         <Link href="/dashboard" className="nav-link">Dashboard</Link>
         <Link href="/profile" className="nav-link active">Profile</Link>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
-          <span style={{ padding: '10px 16px', fontSize: 12, color: '#666', borderLeft: '1px solid #aaa' }}>
-            {displayName}
-          </span>
           <button onClick={async () => {
             await supabase.auth.signOut()
             window.location.href = '/'
@@ -50,39 +44,35 @@ export default function ProfilePage() {
         </div>
       </nav>
 
-      <div className="page-container" style={{ paddingTop: 40, paddingBottom: 60, maxWidth: 580 }}>
+      <div className="page-container" style={{ paddingTop: 48, maxWidth: 600 }}>
         <h1 className="page-title">Profile</h1>
 
-        <div className="box" style={{ marginBottom: 20 }}>
-          <div className="box-header">YOUR IDENTITY</div>
+        <div className="box" style={{ marginBottom: 24 }}>
+          <div className="box-header">YOUR DETAILS</div>
           <div style={{ padding: '20px 0 0' }}>
-            <table className="grid-table">
-              <tbody>
-                <tr>
-                  <td style={{ fontWeight: 'bold', width: '40%' }}>Display name</td>
-                  <td>{displayName}</td>
-                </tr>
-                <tr>
-                  <td style={{ fontWeight: 'bold' }}>Identity mode</td>
-                  <td style={{ textTransform: 'capitalize' }}>{profile?.identity_mode}</td>
-                </tr>
-                <tr>
-                  <td style={{ fontWeight: 'bold' }}>Email</td>
-                  <td>{profile?.email}</td>
-                </tr>
-                <tr>
-                  <td style={{ fontWeight: 'bold' }}>Member since</td>
-                  <td>{new Date(profile?.created_at).toLocaleDateString('en-GB', {
-                    day: 'numeric', month: 'long', year: 'numeric'
-                  })}</td>
-                </tr>
-              </tbody>
-            </table>
+            {[
+              ['Member', `#${profile?.member_number}`],
+              ['Email', profile?.email],
+              ['Member since', profile?.created_at ? new Date(profile.created_at).toLocaleDateString('en-GB', {
+                day: 'numeric', month: 'long', year: 'numeric'
+              }) : '—'],
+            ].map(([label, value]) => (
+              <div key={label} style={{ display: 'flex', gap: 16, padding: '10px 0', borderBottom: '1px solid #eee' }}>
+                <div style={{ fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#666', minWidth: 120 }}>{label}</div>
+                <div style={{ fontSize: 14 }}>{value}</div>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div className="box-shaded" style={{ fontSize: 13, color: '#666' }}>
-          <strong>Note:</strong> Your display name and identity mode are permanent choices made at registration. They cannot be changed.
+        <div className="box">
+          <div className="box-header">PASSWORD</div>
+          <div style={{ padding: '20px 0 0' }}>
+            <p style={{ fontSize: 13, color: '#555', marginBottom: 16 }}>
+              Need to change your password? We'll send a reset link to your email.
+            </p>
+            <Link href="/forgot-password" className="btn">Reset Password</Link>
+          </div>
         </div>
       </div>
     </div>

@@ -71,7 +71,7 @@ export default function LoginPage() {
         </div>
 
         <p style={{ marginTop: 20, fontSize: 13, textAlign: 'center' }}>
-          No account? <Link href="/register">Create one</Link>
+          No account? <Link href="/register">Create one</Link> · <Link href="/forgot-password">Forgot password?</Link>
         </p>
       </div>
     </div>

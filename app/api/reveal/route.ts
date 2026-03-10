@@ -73,15 +73,44 @@ async function revealWeek(supabase: any, week: any, group: any, resend: any) {
   await sendRevealEmail(week, group, submissions || [], members || [], resend)
 }
 
+const REVEAL_BODIES: Record<number, string> = {
+  1:  'Easy right? Enjoy yourselves:',
+  2:  'Scrumptious. Give us another one:',
+  3:  'Little time and little commitments innit:',
+  4:  'Some of yous need to settle down writing outrageous oi:',
+  5:  'Lovely. Just good ae. Mm:',
+  6:  'Quarters, fractions, bits. You\'ve cut up a fourth of 2026 and my FUCK does it read well:',
+  7:  'Well done. Have a zonk to your odd shapes for a minute:',
+  8:  'WELL. WELL. WELL. Mischief, trouble, and misc.',
+  9:  'Whoever wrote about the royal fuck chair deserves more points. Risky positions and that. Barely fucking English.',
+  10: 'SILLY!!!!!!',
+  11: 'Steely Dan, do it again.',
+  12: 'Oh. My. Word.',
+  13: 'I had a drug dealer once called Roibos. He sold me bags of "permanent marker." Now I sell bags, and you can\'t unsay shit. Good fun becomes memorable in good terms, you don\'t need to fuss with the linguistics. Love.',
+  14: 'BINTERESTAX.',
+  15: 'Seriously pungent this week, all sorts of deep and real good lingo.',
+  16: 'Fuuuuuuuuuuuck mate say less. Absolute victory streak.',
+  17: 'Some of this shit sticky and wet like a couple dudes.',
+  18: 'Memories don\'t need rumination, you gave them good gloss. And got saucy with the gossip. Naughty.',
+  19: 'What\'s the riskiest thing coming out of your mouth these days? Yes.',
+  20: '2 + 0 + 2 + 6 = 10/10. Good year blimps.',
+  21: 'You can\'t say you never made a mark, it\'s all smeared.',
+  22: 'Mins awae bo. Neale dea like bradda ben.',
+  23: 'I didn\'t expect you to make it honest fun. You\'re nearly done even.',
+  24: 'Would you have done it differently?',
+  25: 'Leave the queen in the wallet. No wolliez.',
+  26: 'Take part in your becoming. You shine through each other. You can write another one down and get down with another run of the funnies. Until next time. Well done. x',
+}
+
 async function sendRevealEmail(week: any, group: any, submissions: any[], members: any[], resend: any) {
   const onTimeSubmissions = submissions.filter(s => !s.is_late_catchup)
   const notSubmitted = members.filter(m => !onTimeSubmissions.find(s => s.user_id === m.user_id))
 
   const archiveUrl = `${process.env.NEXT_PUBLIC_APP_URL}/groups/${group.id}/submissions`
+  const body = REVEAL_BODIES[week.week_num] || 'Here are this week\'s submissions:'
 
   const submissionsHtml = onTimeSubmissions.map(s => {
-    const name = s.users?.identity_mode === 'anonymous'
-      ? `No-name ${s.users?.noname_number}` : s.users?.display_name
+    const name = s.is_signed ? `Member #${s.users?.member_number}` : 'Anonymous'
     const preview = s.body_html.replace(/<[^>]+>/g, '').slice(0, 300)
     return `
       <div style="border-top: 2px solid #000; padding: 24px 0;">
@@ -99,7 +128,7 @@ async function sendRevealEmail(week: any, group: any, submissions: any[], member
     <p style="font-size: 12px; color: #999; margin-top: 24px;">
       Didn't submit this week: ${notSubmitted.map((m: any) => {
         const u = m.users as any
-        return u?.identity_mode === 'anonymous' ? `No-name ${u?.noname_number}` : u?.display_name
+        return `Member #${u?.member_number}`
       }).join(', ')}
     </p>
   ` : ''
@@ -110,7 +139,7 @@ async function sendRevealEmail(week: any, group: any, submissions: any[], member
     await resend.emails.send({
       from: 'My Word <hello@my-word.co.uk>',
       to: email,
-      subject: `MY WORD — Week ${week.letter}`,
+      subject: `The Alphabet Project — ${week.letter}`,
       html: `
         <div style="font-family: 'Courier New', monospace; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #000;">
           <h1 style="font-size: 32px; font-weight: bold; margin-bottom: 4px;">[ MY WORD ]</h1>
@@ -118,10 +147,7 @@ async function sendRevealEmail(week: any, group: any, submissions: any[], member
             Week ${week.week_num} of 26 · Letter ${week.letter}
           </p>
 
-          <p style="font-size: 15px; line-height: 1.8; margin-bottom: 8px;">Wagwan and Yoza,</p>
-          <p style="font-size: 15px; line-height: 1.8; margin-bottom: 32px;">
-            Well done. Here are your words for Letter ${week.letter}:
-          </p>
+          <p style="font-size: 15px; line-height: 1.8; margin-bottom: 32px;">${body}</p>
 
           ${submissionsHtml}
 
@@ -133,9 +159,8 @@ async function sendRevealEmail(week: any, group: any, submissions: any[], member
             </a>
           </div>
 
-          <p style="font-size: 13px; color: #555; margin-top: 32px;">See you next week x</p>
-          <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
-          <p style="font-size: 11px; color: #999;">— My Word</p>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 40px 0 24px;" />
+          <p style="font-size: 11px; color: #999;">— My Word · <a href="https://www.my-word.co.uk" style="color: #999;">my-word.co.uk</a></p>
         </div>
       `
     })
@@ -150,7 +175,7 @@ async function sendFinalEmail(supabase: any, week: any, group: any, members: any
     const user = m.users as any
     const total = (allScores || []).filter((s: any) => s.user_id === m.user_id)
       .reduce((sum: number, s: any) => sum + s.score, 0)
-    const name = user?.identity_mode === 'anonymous' ? `No-name ${user?.noname_number}` : user?.display_name
+    const name = `Member #${user?.member_number}`
     return { name, total, email: user?.email }
   }).sort((a: any, b: any) => b.total - a.total)
 

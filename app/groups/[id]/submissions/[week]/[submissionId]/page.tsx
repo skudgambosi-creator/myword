@@ -1,83 +1,55 @@
-'use client'
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import Nav from '@/components/layout/Nav'
 
-export default function SubmissionReadPage({
+export default async function SubmissionReadPage({
   params
 }: { params: { id: string; week: string; submissionId: string } }) {
-  const router = useRouter()
   const supabase = createClient()
-  const [loading, setLoading] = useState(true)
-  const [profile, setProfile] = useState<any>(null)
-  const [sub, setSub] = useState<any>(null)
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
-  useEffect(() => {
-    const init = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { router.push('/login'); return }
-
-      const [{ data: prof }, { data: membership }, { data: submission }] = await Promise.all([
-        supabase.from('users').select('*').eq('id', session.user.id).single(),
-        supabase.from('group_members').select('*').eq('group_id', params.id).eq('user_id', session.user.id).single(),
-        supabase.from('submissions').select('*, users(*), weeks(*)').eq('id', params.submissionId).single(),
-      ])
-
-      if (!membership) { router.push('/dashboard'); return }
-      if (!submission) { router.push(`/groups/${params.id}/submissions`); return }
-
-      const isOwn = submission.user_id === session.user.id
-      const isRevealed = submission.weeks?.revealed_at && new Date(submission.weeks.revealed_at) < new Date()
-      if (!isOwn && !isRevealed) { router.push(`/groups/${params.id}/submissions`); return }
-
-      setProfile(prof)
-      setSub(submission)
-      setLoading(false)
-    }
-    init()
-  }, [params.submissionId])
-
-  if (loading || !sub) return (
-    <div style={{ minHeight: '100vh' }}>
-      <nav className="nav"><Link href="/dashboard" className="nav-brand">[ MY WORD ]</Link></nav>
-      <div className="page-container" style={{ paddingTop: 40 }}>Loading...</div>
-    </div>
-  )
-
+  const { data: profile } = await supabase.from('users').select('*').eq('id', user.id).single()
   const displayName = profile?.identity_mode === 'anonymous'
     ? `No-name ${profile.noname_number}` : profile?.display_name
 
+  const { data: sub } = await supabase
+    .from('submissions')
+    .select('*, users(*), weeks(*)')
+    .eq('id', params.submissionId)
+    .single()
+
+  if (!sub) redirect(`/groups/${params.id}/submissions`)
+
+  const { data: membership } = await supabase
+    .from('group_members').select('*').eq('group_id', params.id).eq('user_id', user.id).single()
+  if (!membership) redirect('/dashboard')
+
+  const isOwn = sub.user_id === user.id
+  const isRevealed = sub.weeks?.revealed_at && new Date(sub.weeks.revealed_at) < new Date()
+  if (!isOwn && !isRevealed) redirect(`/groups/${params.id}/submissions`)
+
   const authorName = sub.users?.identity_mode === 'anonymous'
     ? `No-name ${sub.users?.noname_number}` : sub.users?.display_name
+  const avatarUrl = sub.users?.avatar_storage_path
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${sub.users.avatar_storage_path}`
+    : null
 
   return (
     <div style={{ minHeight: '100vh' }}>
-      <nav className="nav">
-        <Link href="/dashboard" className="nav-brand">[ MY WORD ]</Link>
-        <Link href={`/groups/${params.id}`} className="nav-link">← Project</Link>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
-          <span style={{ padding: '10px 16px', fontSize: 12, color: '#666', borderLeft: '1px solid #aaa' }}>
-            {displayName}
-          </span>
-          <button onClick={async () => {
-            await supabase.auth.signOut()
-            window.location.href = '/'
-          }} className="nav-link" style={{ border: 'none', cursor: 'pointer', background: 'none' }}>
-            Sign Out
-          </button>
-        </div>
-      </nav>
+      <Nav userName={displayName} />
 
       <div className="page-container" style={{ paddingTop: 40, paddingBottom: 80, maxWidth: 720 }}>
         <div style={{ marginBottom: 24, fontSize: 11, color: '#999', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
           <Link href="/dashboard" style={{ color: '#999', textDecoration: 'none' }}>Dashboard</Link>
           {' / '}
-          <Link href={`/groups/${params.id}`} style={{ color: '#999', textDecoration: 'none' }}>Project</Link>
+          <Link href={`/groups/${params.id}`} style={{ color: '#999', textDecoration: 'none' }}>Group</Link>
           {' / '}
           <Link href={`/groups/${params.id}/submissions`} style={{ color: '#999', textDecoration: 'none' }}>Submissions</Link>
         </div>
 
+        {/* Piece header */}
         <div style={{ borderBottom: '3px solid #000', paddingBottom: 20, marginBottom: 32 }}>
           <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
             <span style={{ fontSize: 72, fontWeight: 'bold', color: '#CC0000', lineHeight: 1 }}>
@@ -88,9 +60,15 @@ export default function SubmissionReadPage({
                 {sub.word_title}
               </h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                {avatarUrl && (
+                  <img src={avatarUrl} alt={authorName}
+                    style={{ width: 30, height: 40, objectFit: 'cover', border: '2px solid #000' }} />
+                )}
                 <span style={{ fontSize: 13, fontWeight: 'bold' }}>{authorName}</span>
                 <span style={{ fontSize: 11, color: '#999' }}>·</span>
-                <span style={{ fontSize: 11, color: '#666' }}>Week {sub.weeks?.week_num} of 26</span>
+                <span style={{ fontSize: 11, color: '#666' }}>
+                  Week {sub.weeks?.week_num} of 26
+                </span>
                 <span style={{ fontSize: 11, color: '#999' }}>·</span>
                 <span style={{ fontSize: 11, color: '#666' }}>{sub.word_count} words</span>
                 {sub.is_late_catchup && <span className="tag tag-late">LATE</span>}
@@ -99,13 +77,15 @@ export default function SubmissionReadPage({
           </div>
         </div>
 
+        {/* Piece body */}
         <div
+          className="submission-card-body"
           style={{ fontSize: 15, lineHeight: 1.9 }}
           dangerouslySetInnerHTML={{ __html: sub.body_html }}
         />
 
         <hr className="rule" />
-        <Link href={`/groups/${params.id}/submissions`} className="btn">
+        <Link href={`/groups/${params.id}/submissions`} className="btn btn-ghost">
           ← Back to submissions
         </Link>
       </div>

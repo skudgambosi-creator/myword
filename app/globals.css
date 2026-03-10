@@ -409,35 +409,3 @@ a:hover {
   letter-spacing: 0.15em;
   text-transform: uppercase;
 }
-
-/* ── MOBILE ── */
-@media (max-width: 600px) {
-  .nav {
-    flex-wrap: wrap;
-  }
-  .nav-brand {
-    font-size: 14px;
-    padding: 8px 12px;
-  }
-  .nav-link {
-    padding: 8px 10px;
-    font-size: 10px;
-  }
-  .page-container {
-    padding: 0 12px;
-  }
-}
-
-/* ── FORCE LINK COLOURS ── */
-a, a:visited, a:link {
-  color: var(--black);
-}
-a:hover {
-  color: var(--white);
-}
-.btn, .btn:visited, .btn:link {
-  color: var(--black);
-}
-.btn-accent, .btn-accent:visited, .btn-accent:link {
-  color: var(--white);
-}
