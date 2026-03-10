@@ -16,8 +16,7 @@ export default function DashboardPage() {
   const [registrationClosed, setRegistrationClosed] = useState(false)
 
   useEffect(() => {
-    const init = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
+    const init = async (session: any) => {
       if (!session) { router.push('/login'); return }
 
       const { data: prof } = await supabase
@@ -28,13 +27,13 @@ export default function DashboardPage() {
         .from('groups').select('*').eq('id', ALPHABET_PROJECT_ID).single()
       setGroup(grp)
 
-      const { data: membership } = await supabase
+      const { data: membership, error: membershipError } = await supabase
         .from('group_members')
         .select('*')
         .eq('group_id', ALPHABET_PROJECT_ID)
         .eq('user_id', session.user.id)
-        .single()
-      setInGroup(!!membership)
+        .maybeSingle()
+      setInGroup(!!membership && !membershipError)
 
       // Registration closes after Week C's window
       const { data: weekC } = await supabase
@@ -46,7 +45,10 @@ export default function DashboardPage() {
 
       setLoading(false)
     }
-    init()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      init(session)
+    })
+    return () => subscription.unsubscribe()
   }, [])
 
   const handleJoin = async () => {
@@ -62,11 +64,14 @@ export default function DashboardPage() {
       return
     }
 
-    await supabase.from('group_members').insert({
+    const { error: joinError } = await supabase.from('group_members').insert({
       group_id: ALPHABET_PROJECT_ID,
       user_id: session.user.id,
     })
-    setInGroup(true)
+    // 23505 = duplicate key (already a member) — treat as success
+    if (!joinError || joinError.code === '23505') {
+      setInGroup(true)
+    }
   }
 
   if (loading) return (
