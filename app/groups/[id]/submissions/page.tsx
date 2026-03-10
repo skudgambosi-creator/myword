@@ -85,7 +85,7 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
       <div className="page-container" style={{ paddingTop: 40, paddingBottom: 60 }}>
         <h1 className="page-title">Submissions</h1>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 32, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 32, alignItems: 'start' }}>
 
           {/* LEFT: A–Z list */}
           <div className="box" style={{ padding: 0, overflow: 'hidden' }}>

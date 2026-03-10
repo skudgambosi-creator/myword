@@ -140,7 +140,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
           <h1 style={{ fontSize: 28, fontWeight: 'bold' }}>The Alphabet Project</h1>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 32, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 32, alignItems: 'start' }}>
 
           {/* LEFT COLUMN */}
           <div>
@@ -202,11 +202,15 @@ export default function GroupPage({ params }: { params: { id: string } }) {
 
             {!currentWeek && !isCompleted && (
               <div className="box" style={{ marginBottom: 24 }}>
-                <div className="box-header">AWAITING START</div>
-                <div style={{ padding: '16px 0 0', fontSize: 14, color: '#555' }}>
-                  The project starts on {new Date(group.start_date).toLocaleDateString('en-GB', {
+                <div className="box-header">WEEK 1 — LETTER A</div>
+                <div style={{ padding: '16px 0 0', fontSize: 14, color: '#555', lineHeight: 1.7 }}>
+                  <p style={{ marginBottom: 12 }}>The Alphabet Project officially kicks off on <strong>{new Date(group.start_date).toLocaleDateString('en-GB', {
                     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-                  })}. Week 1 will be Letter A.
+                  })}</strong>.</p>
+                  <p style={{ marginBottom: 16 }}>You're in early — submissions for Letter A are already open. Get ahead of the game.</p>
+                  <Link href={`/groups/${params.id}/submit`} className="btn btn-accent" style={{ fontSize: 15, padding: '10px 28px' }}>
+                    Submit Letter A early →
+                  </Link>
                 </div>
               </div>
             )}
