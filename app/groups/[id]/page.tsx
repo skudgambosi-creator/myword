@@ -102,9 +102,10 @@ export default function GroupPage({ params }: { params: { id: string } }) {
       const revealedWeeks = (allWeeks || []).filter((w: any) => w.revealed_at && new Date(w.revealed_at) < nowDate)
       const weeksElapsed = revealedWeeks.length
 
+      const revealedWeekIds = new Set(revealedWeeks.map((w: any) => w.id))
       const totals = (allMembers || []).map((m: any) => ({
         userId: m.user_id,
-        total: (allScores || []).filter((s: any) => s.user_id === m.user_id).reduce((sum: number, s: any) => sum + s.score, 0),
+        total: (allScores || []).filter((s: any) => s.user_id === m.user_id && revealedWeekIds.has(s.week_id)).reduce((sum: number, s: any) => sum + s.score, 0),
       })).sort((a: any, b: any) => b.total - a.total)
 
       const myTotal = totals.find((t: any) => t.userId === userId)?.total ?? 0
