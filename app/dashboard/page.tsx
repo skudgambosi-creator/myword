@@ -19,9 +19,9 @@ export default function DashboardPage() {
   const [registrationOpen, setRegistrationOpen] = useState(true)
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'INITIAL_SESSION' && !session) { router.push('/login'); return }
-      if (!session) return
+    async function loadDashboard() {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { router.push('/login'); return }
 
       const userId = session.user.id
 
@@ -56,7 +56,6 @@ export default function DashboardPage() {
         .eq('group_id', ALPHABET_PROJECT_ID)
       setMemberCount(mc || 0)
 
-      // Check if registration is still open (closes after week 3)
       const { data: weekThree } = await supabase
         .from('weeks').select('closes_at').eq('group_id', ALPHABET_PROJECT_ID)
         .eq('week_num', 3).maybeSingle()
@@ -65,6 +64,12 @@ export default function DashboardPage() {
       }
 
       setLoading(false)
+    }
+
+    loadDashboard()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') { router.push('/login') }
     })
     return () => subscription.unsubscribe()
   }, [])
