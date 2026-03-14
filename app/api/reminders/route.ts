@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email'
 
-// Called daily by pg_cron — sends reminders on Thu, Sun, Tue
+export async function GET(req: NextRequest) {
+  return POST(req)
+}
+
+// Called daily by cron — sends reminders on Thu, Sun, Tue
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
