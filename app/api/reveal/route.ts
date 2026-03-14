@@ -109,12 +109,14 @@ async function sendRevealEmail(week: any, group: any, submissions: any[], member
 
   const submissionsHtml = onTimeSubmissions.map(s => {
     const name = s.is_signed ? (s.signed_name || `Member #${s.users?.member_number}`) : `Member #${s.users?.member_number}`
+    console.log('RAW HTML:', JSON.stringify(s.body_html.slice(0, 200)))
     const withBreaks = s.body_html
       .replace(/<br\s*\/?>/gi, '<br>')
       .replace(/<\/(p|div|li|h[1-6])>/gi, '<br>')
       .replace(/<[^>]+>/g, '')
       .replace(/(<br>)+/g, '<br>')
       .trim()
+    console.log('PROCESSED:', JSON.stringify(withBreaks.slice(0, 200)))
     const plainText = withBreaks.replace(/<br>/g, ' ').replace(/\s+/g, ' ').trim()
     const truncated = plainText.length > 300
     const preview = truncated
