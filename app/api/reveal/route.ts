@@ -109,14 +109,17 @@ async function sendRevealEmail(week: any, group: any, submissions: any[], member
 
   const submissionsHtml = onTimeSubmissions.map(s => {
     const name = s.is_signed ? (s.signed_name || `Member #${s.users?.member_number}`) : `Member #${s.users?.member_number}`
-    const plainText = s.body_html
-      .replace(/<br\s*\/?>/gi, ' ')
-      .replace(/<\/(p|div|li|h[1-6])>/gi, ' ')
+    const withBreaks = s.body_html
+      .replace(/<br\s*\/?>/gi, '<br>')
+      .replace(/<\/(p|div|li|h[1-6])>/gi, '<br>')
       .replace(/<[^>]+>/g, '')
-      .replace(/\s+/g, ' ')
+      .replace(/(<br>)+/g, '<br>')
       .trim()
-    const preview = plainText.slice(0, 300)
+    const plainText = withBreaks.replace(/<br>/g, ' ').replace(/\s+/g, ' ').trim()
     const truncated = plainText.length > 300
+    const preview = truncated
+      ? withBreaks.replace(/<br>/g, '\n').slice(0, 300).replace(/\n/g, '<br>') + '...'
+      : withBreaks
     return `
       <div style="border-top: 2px solid #000; padding: 24px 0;">
         <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #999; margin-bottom: 4px;">
