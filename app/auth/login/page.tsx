@@ -1,23 +1,28 @@
 'use client'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const supabase = createClient()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const emailRef = useRef<HTMLInputElement>(null)
+  const passwordRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleLogin = async () => {
+    const email = emailRef.current?.value ?? ''
+    const password = passwordRef.current?.value ?? ''
+
+    if (!email || !password) {
+      setError('Please enter your email and password')
+      return
+    }
+
     setLoading(true)
     setError('')
 
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-
-    console.log('LOGIN RESULT:', JSON.stringify({ error: error?.message, hasSession: !!data.session, hasUser: !!data.user }))
-    console.log('COOKIES AFTER LOGIN:', document.cookie)
 
     if (error) {
       setError(error.message)
@@ -26,7 +31,7 @@ export default function LoginPage() {
     }
 
     if (!data.session) {
-      setError('Login succeeded but no session returned. Check browser console.')
+      setError('Login succeeded but no session was created — contact support.')
       setLoading(false)
       return
     }
@@ -53,15 +58,13 @@ export default function LoginPage() {
             )}
             <div style={{ marginBottom: 16 }}>
               <label className="field-label">Email Address</label>
-              <input className="field-input" type="email" value={email}
-                onChange={e => setEmail(e.target.value)}
+              <input ref={emailRef} className="field-input" type="email"
                 onKeyDown={e => e.key === 'Enter' && handleLogin()}
                 placeholder="your@email.com" />
             </div>
             <div style={{ marginBottom: 24 }}>
               <label className="field-label">Password</label>
-              <input className="field-input" type="password" value={password}
-                onChange={e => setPassword(e.target.value)}
+              <input ref={passwordRef} className="field-input" type="password"
                 onKeyDown={e => e.key === 'Enter' && handleLogin()}
                 placeholder="••••••••" />
             </div>
