@@ -6,15 +6,11 @@ export async function POST(req: NextRequest) {
     const { email } = await req.json()
     if (!email) return NextResponse.json({ error: 'No email' }, { status: 400 })
 
-    console.log('RESEND_API_KEY set:', !!process.env.RESEND_API_KEY)
-
     const result = await sendEmail({
       to: email,
       subject: 'Oh My Word.',
       html: `<pre style="font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.8;">Say less x</pre>`,
     })
-
-    console.log('Resend result:', JSON.stringify(result))
 
     if (result.error) return NextResponse.json({ error: result.error }, { status: 500 })
     return NextResponse.json({ ok: true })
