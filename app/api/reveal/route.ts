@@ -101,7 +101,9 @@ const REVEAL_BODIES: Record<number, string> = {
 }
 
 async function sendRevealEmail(week: any, group: any, submissions: any[], members: any[]) {
-  const onTimeSubmissions = submissions.filter(s => !s.is_late_catchup)
+  const onTimeSubmissions = submissions
+    .filter(s => !s.is_late_catchup)
+    .sort(() => Math.random() - 0.5)
   const notSubmitted = members.filter(m => !onTimeSubmissions.find(s => s.user_id === m.user_id))
 
   const archiveUrl = `${process.env.NEXT_PUBLIC_APP_URL}/groups/${group.id}/submissions`
