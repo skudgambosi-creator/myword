@@ -29,8 +29,9 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
   const [wordTitle, setWordTitle] = useState('')
   const [content, setContent] = useState('')
   const [existingSubmissionId, setExistingSubmissionId] = useState('')
-  const [existingIsSigned, setExistingIsSigned] = useState(false)
+  const [existingSignedName, setExistingSignedName] = useState('')
   const [memberNumber, setMemberNumber] = useState<number | null>(null)
+  const [signedName, setSignedName] = useState('')
 
   useEffect(() => {
     const init = async () => {
@@ -65,7 +66,8 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
               setWordTitle(sub.word_title)
               setContent(sub.body_html)
               setExistingSubmissionId(sub.id)
-              setExistingIsSigned(sub.is_signed || false)
+              setExistingSignedName(sub.signed_name || '')
+              setSignedName(sub.signed_name || '')
             }
           }
         }
@@ -88,10 +90,13 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
     setShowSignScreen(true)
   }
 
-  const handleSave = async (isSigned: boolean) => {
+  const handleSave = async (name: string | null) => {
     setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+
+    const isSigned = !!name
+    const resolvedName = name || null
 
     try {
       if (existingSubmissionId) {
@@ -100,6 +105,7 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
           body_html: content,
           word_count: wordCount,
           is_signed: isSigned,
+          signed_name: resolvedName,
           updated_at: new Date().toISOString(),
         }).eq('id', existingSubmissionId)
         if (error) throw error
@@ -113,6 +119,7 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
           word_count: wordCount,
           is_late_catchup: isCatchup,
           is_signed: isSigned,
+          signed_name: resolvedName,
         })
         if (error) throw error
       }
@@ -158,19 +165,31 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
           )}
 
           <div style={{ display: 'grid', gap: 12 }}>
+            <div>
+              <label className="field-label">Sign with your name</label>
+              <input
+                className="field-input"
+                type="text"
+                value={signedName}
+                onChange={e => setSignedName(e.target.value)}
+                placeholder="Enter your name..."
+                disabled={saving}
+              />
+            </div>
             <button
               className="btn btn-accent"
               style={{ padding: '16px', fontSize: 15, width: '100%' }}
-              disabled={saving}
-              onClick={() => handleSave(true)}>
-              {saving ? 'Submitting...' : `Sign it — Member #${memberNumber}`}
+              disabled={saving || !signedName.trim()}
+              onClick={() => handleSave(signedName.trim())}>
+              {saving ? 'Submitting...' : `Sign as "${signedName.trim() || '…'}"`}
             </button>
+            <div style={{ textAlign: 'center', fontSize: 12, color: '#999' }}>— or —</div>
             <button
               className="btn"
               style={{ padding: '16px', fontSize: 15, width: '100%' }}
               disabled={saving}
-              onClick={() => handleSave(false)}>
-              {saving ? 'Submitting...' : 'Submit anonymously'}
+              onClick={() => handleSave(null)}>
+              {saving ? 'Submitting...' : `Submit anonymously — Member #${memberNumber}`}
             </button>
             <button
               className="btn btn-ghost"
