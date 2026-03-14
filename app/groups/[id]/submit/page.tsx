@@ -85,12 +85,7 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
     }
     if (wordCount < 5) return setError('Minimum 5 words required.')
     if (wordCount > 1000) return setError('Maximum 1,000 words.')
-    // Edits go straight through — signing choice already made
-    if (isEdit) {
-      handleSave(existingIsSigned)
-    } else {
-      setShowSignScreen(true)
-    }
+    setShowSignScreen(true)
   }
 
   const handleSave = async (isSigned: boolean) => {
