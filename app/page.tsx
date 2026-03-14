@@ -18,9 +18,6 @@ export default function LandingPage() {
               <h1 style={{ fontSize: 48, fontWeight: 'bold', marginBottom: 4, letterSpacing: '-0.02em' }}>
                 MY WORD
               </h1>
-              <p style={{ fontSize: 14, color: '#999', marginBottom: 32, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                Private collaborative writing
-              </p>
               <div style={{ display: 'flex', gap: 12 }}>
                 <Link href="/register" className="btn btn-accent">
                   Create Account
@@ -59,11 +56,11 @@ export default function LandingPage() {
               <div className="box-header">HOW THE ALPHABET PROJECT WORKS</div>
               <div style={{ padding: '16px 0 0' }}>
                 {[
-                  ['01', 'Join a group', 'An admin invites you. Create your account — choose your name or go anonymous.'],
-                  ['02', 'Get the letter', 'Every Wednesday, a new letter is revealed. You have until Tuesday to submit.'],
-                  ['03', 'Write something', 'Pick a word beginning with the letter. Write whatever it brings up. Any length, any style.'],
-                  ['04', 'Wednesday reveal', 'All submissions unlock at once. A PDF lands in your inbox.'],
-                  ['05', '26 weeks later', 'You have a complete collection — yours and everyone else\'s. A to Z.'],
+                  ['1', 'One submission per letter', 'You get one entry per week. You can choose to sign a submission or remain anonymous.'],
+                  ['2', 'Your word must start with the letter', 'Your title can be any word or phrase — it just has to begin with that week\'s letter.'],
+                  ['3', 'Edit until Tuesday 23:59', 'You can change your submission at any time before the window closes. After that, it\'s locked.'],
+                  ['4', 'Hidden until Wednesday', 'Nobody can see anyone else\'s submission until the reveal. Not the title, not the content. You will get an email every Wednesday with the week\'s submissions, in no particular order.'],
+                  ['5', 'Scoring', 'You score points for keeping your word. Miss a week, miss a point.'],
                 ].map(([num, title, desc]) => (
                   <div key={num} style={{ display: 'flex', gap: 12, marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #eee' }}>
                     <div style={{ fontWeight: 'bold', fontSize: 11, color: '#CC0000', minWidth: 24, paddingTop: 2 }}>{num}</div>
@@ -73,6 +70,12 @@ export default function LandingPage() {
                     </div>
                   </div>
                 ))}
+                <div style={{ display: 'flex', gap: 12, marginBottom: 4, paddingBottom: 4 }}>
+                  <div style={{ fontWeight: 'bold', fontSize: 11, color: '#CC0000', minWidth: 24 }}>—</div>
+                  <div style={{ fontSize: 12, color: '#555', lineHeight: 1.6 }}>
+                    One last thing. The project will lock on week C. No-one can join after this time. A good secret should stay secret after all.
+                  </div>
+                </div>
               </div>
             </div>
           </div>

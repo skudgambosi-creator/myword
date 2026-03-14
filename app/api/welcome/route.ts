@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     const result = await sendEmail({
       to: email,
       subject: 'Oh My Word.',
-      html: `<pre style="font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.8;">Say less x</pre>`,
+      html: `<pre style="font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.8;">Say less x\n\nDon't lose your login:\n${email}</pre>`,
     })
 
     if (result.error) return NextResponse.json({ error: result.error }, { status: 500 })

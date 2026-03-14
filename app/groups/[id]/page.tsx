@@ -139,122 +139,88 @@ export default function GroupPage({ params }: { params: { id: string } }) {
           <h1 style={{ fontSize: 28, fontWeight: 'bold' }}>The Alphabet Project</h1>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 32, alignItems: 'start' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-          {/* LEFT COLUMN */}
-          <div>
-
-            {/* Letter + Timer + Submit */}
-            {currentWeek && !isCompleted && (
-              <div className="box" style={{ marginBottom: 24 }}>
-                <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                  {/* Big letter */}
-                  <div>
-                    <div style={{ fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#999', marginBottom: 4 }}>
-                      Week {currentWeek.week_num} of 26
-                    </div>
-                    <span style={{ fontSize: 140, fontWeight: 'bold', lineHeight: 1, color: '#CC0000', display: 'block' }}>
-                      {currentWeek.letter}
-                    </span>
+          {/* 1. Submission block */}
+          {currentWeek && !isCompleted && (
+            <div className="box">
+              <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                {/* Big letter */}
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#999', marginBottom: 4 }}>
+                    Week {currentWeek.week_num} of 26
                   </div>
+                  <span style={{ fontSize: 140, fontWeight: 'bold', lineHeight: 1, color: '#CC0000', display: 'block' }}>
+                    {currentWeek.letter}
+                  </span>
+                </div>
 
-                  {/* Timer + status + CTA */}
-                  <div style={{ flex: 1, paddingTop: 8 }}>
-                    {!windowClosed ? (
-                      <>
-                        <div style={{ marginBottom: 16 }}>
-                          <div className="section-header">Submission closes in</div>
-                          <Countdown closesAt={currentWeek.closes_at} />
-                        </div>
-                        <div style={{ marginBottom: 20 }}>
-                          <span className="submission-counter">
-                            <strong>{submissionCount}</strong> / {memberCount} submitted
-                          </span>
-                        </div>
-                        {mySubmission ? (
-                          <div>
-                            <div style={{ marginBottom: 8 }}>
-                              <span className="tag tag-complete">✓ Submitted</span>
-                              <span style={{ fontSize: 12, color: '#666', marginLeft: 8 }}>
-                                {mySubmission.word_title} · {mySubmission.word_count} words
-                              </span>
-                            </div>
-                            <Link href={`/groups/${params.id}/submit?edit=1`} className="btn">
-                              Edit Submission
-                            </Link>
-                          </div>
-                        ) : (
-                          <Link href={`/groups/${params.id}/submit`} className="btn btn-accent" style={{ fontSize: 15, padding: '10px 28px' }}>
-                            Submit Letter {currentWeek.letter}
-                          </Link>
-                        )}
-                      </>
-                    ) : (
-                      <div className="box-shaded" style={{ fontSize: 13 }}>
-                        Window closed. Reveal pending on Wednesday.
+                {/* Timer + status + CTA */}
+                <div style={{ flex: 1, paddingTop: 8 }}>
+                  {!windowClosed ? (
+                    <>
+                      <div style={{ marginBottom: 16 }}>
+                        <div className="section-header">Submission closes in</div>
+                        <Countdown closesAt={currentWeek.closes_at} />
                       </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {!currentWeek && !isCompleted && (
-              <div className="box" style={{ marginBottom: 24 }}>
-                <div className="box-header">AWAITING START</div>
-                <div style={{ padding: '16px 0 0', fontSize: 14, color: '#555' }}>
-                  The project starts on {new Date(group.start_date).toLocaleDateString('en-GB', {
-                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-                  })}. Week 1 will be Letter A.
-                </div>
-              </div>
-            )}
-
-            {isCompleted && (
-              <div className="box" style={{ marginBottom: 24, textAlign: 'center', padding: 48 }}>
-                <div style={{ fontSize: 48, marginBottom: 16 }}>A — Z</div>
-                <h2 style={{ fontSize: 20, marginBottom: 20 }}>The Alphabet Project is complete.</h2>
-                <Link href={`/groups/${params.id}/submissions`} className="btn btn-accent">
-                  Browse the Archive →
-                </Link>
-              </div>
-            )}
-
-            {/* Rules */}
-            <div className="box" style={{ marginBottom: 24 }}>
-              <div className="box-header">RULES</div>
-              <div style={{ padding: '16px 0 0' }}>
-                {[
-                  ['One submission per letter', 'You get one entry per week. Once submitted you can edit it, but you cannot delete it. You can choose to sign a submission or remain anonymous.'],
-                  ['Your word must start with the letter', 'Your title can be any word or phrase — it just has to begin with that week\'s letter.'],
-                  ['Edit until Tuesday 23:59', 'You can change your submission at any time before the window closes. After that, it\'s locked.'],
-                  ['Hidden until Wednesday', 'Nobody can see anyone else\'s submission until the reveal. Not the title, not the content. You will get an email every Wednesday with the week\'s submissions, in no particular order.'],
-                  ['Scoring', 'You score points for keeping your word. Miss a week, miss a point.'],
-                ].map(([title, desc], i) => (
-                  <div key={i} style={{ display: 'flex', gap: 12, marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #eee' }}>
-                    <div style={{ fontWeight: 'bold', fontSize: 11, color: '#CC0000', minWidth: 20 }}>{i + 1}</div>
-                    <div>
-                      <div style={{ fontWeight: 'bold', fontSize: 13, marginBottom: 2 }}>{title}</div>
-                      <div style={{ fontSize: 12, color: '#555', lineHeight: 1.6 }}>{desc}</div>
+                      <div style={{ marginBottom: 20 }}>
+                        <span className="submission-counter">
+                          <strong>{submissionCount}</strong> / {memberCount} submitted
+                        </span>
+                      </div>
+                      {mySubmission ? (
+                        <div>
+                          <div style={{ marginBottom: 8 }}>
+                            <span className="tag tag-complete">✓ Submitted</span>
+                            <span style={{ fontSize: 12, color: '#666', marginLeft: 8 }}>
+                              {mySubmission.word_title} · {mySubmission.word_count} words
+                            </span>
+                          </div>
+                          <Link href={`/groups/${params.id}/submit?edit=1`} className="btn">
+                            Edit Submission
+                          </Link>
+                        </div>
+                      ) : (
+                        <Link href={`/groups/${params.id}/submit`} className="btn btn-accent" style={{ fontSize: 15, padding: '10px 28px' }}>
+                          Submit Letter {currentWeek.letter}
+                        </Link>
+                      )}
+                    </>
+                  ) : (
+                    <div className="box-shaded" style={{ fontSize: 13 }}>
+                      Window closed. Reveal pending on Wednesday.
                     </div>
-                  </div>
-                ))}
-                <div style={{ display: 'flex', gap: 12, marginBottom: 4, paddingBottom: 4 }}>
-                  <div style={{ fontWeight: 'bold', fontSize: 11, color: '#CC0000', minWidth: 20 }}>—</div>
-                  <div style={{ fontSize: 12, color: '#555', lineHeight: 1.6 }}>
-                    One last thing. The project will lock on week C. No-one can join after this time. A good secret should stay secret after all.
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
+          )}
 
-          </div>
+          {!currentWeek && !isCompleted && (
+            <div className="box">
+              <div className="box-header">AWAITING START</div>
+              <div style={{ padding: '16px 0 0', fontSize: 14, color: '#555' }}>
+                The project starts on {new Date(group.start_date).toLocaleDateString('en-GB', {
+                  weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+                })}. Week 1 will be Letter A.
+              </div>
+            </div>
+          )}
 
-          {/* RIGHT COLUMN */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {isCompleted && (
+            <div className="box" style={{ textAlign: 'center', padding: 48 }}>
+              <div style={{ fontSize: 48, marginBottom: 16 }}>A — Z</div>
+              <h2 style={{ fontSize: 20, marginBottom: 20 }}>The Alphabet Project is complete.</h2>
+              <Link href={`/groups/${params.id}/submissions`} className="btn btn-accent">
+                Browse the Archive →
+              </Link>
+            </div>
+          )}
 
-            <Link href={`/groups/${params.id}/leaderboard`} style={{ textDecoration: 'none' }}>
-              <div className="box" style={{ cursor: 'pointer', borderLeft: '4px solid #CC0000' }}
+          {/* 2. Leaderboard + Submissions side by side */}
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+            <Link href={`/groups/${params.id}/leaderboard`} style={{ flex: 1, minWidth: 200, textDecoration: 'none' }}>
+              <div className="box" style={{ cursor: 'pointer', borderLeft: '4px solid #CC0000', height: '100%' }}
                 onMouseEnter={e => (e.currentTarget.style.background = '#f9f9f9')}
                 onMouseLeave={e => (e.currentTarget.style.background = '#fff')}>
                 <div style={{ fontWeight: 'bold', fontSize: 15, marginBottom: 4 }}>Leaderboard →</div>
@@ -262,42 +228,70 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               </div>
             </Link>
 
-            <Link href={`/groups/${params.id}/submissions`} style={{ textDecoration: 'none' }}>
-              <div className="box" style={{ cursor: 'pointer', borderLeft: '4px solid #000' }}
+            <Link href={`/groups/${params.id}/submissions`} style={{ flex: 1, minWidth: 200, textDecoration: 'none' }}>
+              <div className="box" style={{ cursor: 'pointer', borderLeft: '4px solid #000', height: '100%' }}
                 onMouseEnter={e => (e.currentTarget.style.background = '#f9f9f9')}
                 onMouseLeave={e => (e.currentTarget.style.background = '#fff')}>
                 <div style={{ fontWeight: 'bold', fontSize: 15, marginBottom: 4 }}>Submissions →</div>
                 <div style={{ fontSize: 12, color: '#666' }}>Browse the archive — A to Z</div>
               </div>
             </Link>
+          </div>
 
-            {/* Progress */}
-            {currentWeek && (
-              <div className="box">
-                <div className="section-header">Progress</div>
-                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 8 }}>
-                  {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter, i) => {
-                    const weekNum = i + 1
-                    const isPast = weekNum < currentWeek.week_num
-                    const isCurrent = weekNum === currentWeek.week_num
-                    return (
-                      <div key={letter} style={{
-                        width: 28, height: 28,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 11, fontWeight: 'bold',
-                        border: isCurrent ? '2px solid #CC0000' : '1px solid #eee',
-                        background: isPast ? '#000' : isCurrent ? '#fff' : '#fafafa',
-                        color: isPast ? '#fff' : isCurrent ? '#CC0000' : '#ccc',
-                      }}>
-                        {letter}
-                      </div>
-                    )
-                  })}
+          {/* 3. Progress */}
+          {currentWeek && (
+            <div className="box">
+              <div className="section-header">Progress</div>
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 8 }}>
+                {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter, i) => {
+                  const weekNum = i + 1
+                  const isPast = weekNum < currentWeek.week_num
+                  const isCurrent = weekNum === currentWeek.week_num
+                  return (
+                    <div key={letter} style={{
+                      width: 28, height: 28,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 11, fontWeight: 'bold',
+                      border: isCurrent ? '2px solid #CC0000' : '1px solid #eee',
+                      background: isPast ? '#000' : isCurrent ? '#fff' : '#fafafa',
+                      color: isPast ? '#fff' : isCurrent ? '#CC0000' : '#ccc',
+                    }}>
+                      {letter}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 4. Rules */}
+          <div className="box">
+            <div className="box-header">RULES</div>
+            <div style={{ padding: '16px 0 0' }}>
+              {[
+                ['One submission per letter', 'You get one entry per week. You can choose to sign a submission or remain anonymous.'],
+                ['Your word must start with the letter', 'Your title can be any word or phrase — it just has to begin with that week\'s letter.'],
+                ['Edit until Tuesday 23:59', 'You can change your submission at any time before the window closes. After that, it\'s locked.'],
+                ['Hidden until Wednesday', 'Nobody can see anyone else\'s submission until the reveal. Not the title, not the content. You will get an email every Wednesday with the week\'s submissions, in no particular order.'],
+                ['Scoring', 'You score points for keeping your word. Miss a week, miss a point.'],
+              ].map(([title, desc], i) => (
+                <div key={i} style={{ display: 'flex', gap: 12, marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #eee' }}>
+                  <div style={{ fontWeight: 'bold', fontSize: 11, color: '#CC0000', minWidth: 20 }}>{i + 1}</div>
+                  <div>
+                    <div style={{ fontWeight: 'bold', fontSize: 13, marginBottom: 2 }}>{title}</div>
+                    <div style={{ fontSize: 12, color: '#555', lineHeight: 1.6 }}>{desc}</div>
+                  </div>
+                </div>
+              ))}
+              <div style={{ display: 'flex', gap: 12, marginBottom: 4, paddingBottom: 4 }}>
+                <div style={{ fontWeight: 'bold', fontSize: 11, color: '#CC0000', minWidth: 20 }}>—</div>
+                <div style={{ fontSize: 12, color: '#555', lineHeight: 1.6 }}>
+                  One last thing. The project will lock on week C. No-one can join after this time. A good secret should stay secret after all.
                 </div>
               </div>
-            )}
-
+            </div>
           </div>
+
         </div>
       </div>
     </div>
