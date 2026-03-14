@@ -177,6 +177,7 @@ a:hover {
   color: var(--black);
   display: flex;
   align-items: center;
+  white-space: nowrap;
 }
 .nav-brand:hover {
   background: var(--black);
@@ -203,6 +204,18 @@ a:hover {
   background: var(--accent);
   color: var(--white);
   border-color: var(--accent);
+}
+
+@media (max-width: 480px) {
+  .nav-brand {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+  .nav-link {
+    font-size: 10px;
+    padding: 10px 10px;
+    letter-spacing: 0;
+  }
 }
 
 /* ── LETTER DISPLAY ── */
