@@ -257,9 +257,9 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                 onMouseLeave={e => (e.currentTarget.style.background = '#fff')}>
                 {(() => {
                   const revealedTotal = myStats?.total ?? 0
-                  const pendingPoint = mySubmission ? 1 : 0
+                  const pendingPoint = mySubmission && !currentWeek?.revealed_at ? 1 : 0
                   const displayTotal = revealedTotal + pendingPoint
-                  const displayPossible = (myStats?.weeksElapsed ?? 0) + (currentWeek ? 1 : 0)
+                  const displayPossible = (myStats?.weeksElapsed ?? 0) + (currentWeek && !currentWeek.revealed_at ? 1 : 0)
                   return (
                     <>
                       <div style={{ fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#999', marginBottom: 8 }}>Your Score</div>
