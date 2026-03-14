@@ -10,7 +10,7 @@ interface SendEmailParams {
 
 export async function sendEmail({ to, subject, html }: SendEmailParams) {
   const recipient = process.env.RESEND_TEST_EMAIL || to
-  return resend.emails.send({
+  return await resend.emails.send({
     from: 'My Word <hello@my-word.co.uk>',
     to: recipient,
     subject: process.env.RESEND_TEST_EMAIL ? `[TEST → ${to}] ${subject}` : subject,
