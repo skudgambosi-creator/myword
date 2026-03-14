@@ -1,5 +1,6 @@
 'use client'
 import { useEditor, EditorContent } from '@tiptap/react'
+import { Node, mergeAttributes } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import TextAlign from '@tiptap/extension-text-align'
@@ -8,6 +9,21 @@ import BulletList from '@tiptap/extension-bullet-list'
 import ListItem from '@tiptap/extension-list-item'
 import { createClient } from '@/lib/supabase/client'
 import { useRef } from 'react'
+
+const AudioNode = Node.create({
+  name: 'audio',
+  group: 'block',
+  atom: true,
+  addAttributes() {
+    return { src: { default: null } }
+  },
+  parseHTML() {
+    return [{ tag: 'audio' }]
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['audio', mergeAttributes({ controls: 'controls', style: 'width:100%;margin:8px 0' }, HTMLAttributes)]
+  },
+})
 
 const ToolbarButton = ({ onClick, isActive, children, title }: any) => (
   <button
@@ -32,6 +48,7 @@ export default function Editor({
 }) {
   const supabase = createClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const audioInputRef = useRef<HTMLInputElement>(null)
 
   const editor = useEditor({
     extensions: [
@@ -41,6 +58,7 @@ export default function Editor({
       ListItem,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Image.configure({ inline: true, allowBase64: false }),
+      AudioNode,
     ],
     content,
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
@@ -66,6 +84,25 @@ export default function Editor({
     if (!error) {
       const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/submission-images/${fileName}`
       editor.chain().focus().setImage({ src: url }).run()
+    }
+    e.target.value = ''
+  }
+
+  const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const fileName = `${groupId}/${user.id}/${Date.now()}-${file.name}`
+    const { error } = await supabase.storage
+      .from('submission-audio')
+      .upload(fileName, file, { contentType: file.type })
+
+    if (!error) {
+      const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/submission-audio/${fileName}`
+      editor.chain().focus().insertContent({ type: 'audio', attrs: { src: url } }).run()
     }
     e.target.value = ''
   }
@@ -98,6 +135,12 @@ export default function Editor({
         </ToolbarButton>
         <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp"
           onChange={handleImageUpload} style={{ display: 'none' }} />
+
+        <ToolbarButton onClick={() => audioInputRef.current?.click()} title="Insert audio">
+          AUD
+        </ToolbarButton>
+        <input ref={audioInputRef} type="file" accept="audio/mpeg,audio/wav,audio/ogg,audio/mp4,audio/aac"
+          onChange={handleAudioUpload} style={{ display: 'none' }} />
       </div>
 
       <EditorContent editor={editor} />
