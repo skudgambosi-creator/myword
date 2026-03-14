@@ -4,8 +4,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
-const ALPHABET_PROJECT_ID = '00000000-0000-0000-0000-000000000001'
-
 function Countdown({ closesAt }: { closesAt: string }) {
   const [timeLeft, setTimeLeft] = useState('')
 
@@ -62,11 +60,13 @@ export default function GroupPage({ params }: { params: { id: string } }) {
       const { data: grp } = await supabase.from('groups').select('*').eq('id', params.id).single()
       setGroup(grp)
 
-      // Current open week
+      // Current open week — must be open NOW (opens_at in past, closes_at in future)
       const now = new Date().toISOString()
       const { data: week } = await supabase
         .from('weeks').select('*').eq('group_id', params.id)
-        .lte('opens_at', now).order('week_num', { ascending: false }).limit(1).single()
+        .lte('opens_at', now)
+        .gte('closes_at', now)
+        .order('week_num', { ascending: false }).limit(1).single()
       setCurrentWeek(week)
 
       if (week) {
@@ -245,7 +245,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
 
           </div>
 
-          {/* RIGHT COLUMN — Nav to Leaderboard + Submissions */}
+          {/* RIGHT COLUMN */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
             <Link href={`/groups/${params.id}/leaderboard`} style={{ textDecoration: 'none' }}>
