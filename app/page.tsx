@@ -10,7 +10,7 @@ export default function LandingPage() {
 
       {/* Hero */}
       <main className="page-container" style={{ paddingTop: 60, paddingBottom: 60, flex: 1 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'start' }}>
+        <div className="landing-grid">
 
           {/* Left: Platform title + CTAs */}
           <div>

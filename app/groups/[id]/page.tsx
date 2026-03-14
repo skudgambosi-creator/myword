@@ -40,6 +40,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   const [mySubmission, setMySubmission] = useState<any>(null)
   const [memberCount, setMemberCount] = useState(0)
   const [submissionCount, setSubmissionCount] = useState(0)
+  const [myStats, setMyStats] = useState<{ total: number; rank: number; streak: number; weeksElapsed: number } | null>(null)
 
   useEffect(() => {
     const init = async () => {
@@ -88,6 +89,37 @@ export default function GroupPage({ params }: { params: { id: string } }) {
         .from('group_members').select('*', { count: 'exact', head: true })
         .eq('group_id', params.id)
       setMemberCount(mc || 0)
+
+      // My score, rank, streak
+      const { data: allMembers } = await supabase
+        .from('group_members').select('user_id').eq('group_id', params.id)
+      const { data: allScores } = await supabase
+        .from('scores').select('*').eq('group_id', params.id)
+      const { data: allWeeks } = await supabase
+        .from('weeks').select('*').eq('group_id', params.id)
+
+      const nowDate = new Date()
+      const revealedWeeks = (allWeeks || []).filter((w: any) => w.revealed_at && new Date(w.revealed_at) < nowDate)
+      const weeksElapsed = revealedWeeks.length
+
+      const totals = (allMembers || []).map((m: any) => ({
+        userId: m.user_id,
+        total: (allScores || []).filter((s: any) => s.user_id === m.user_id).reduce((sum: number, s: any) => sum + s.score, 0),
+      })).sort((a: any, b: any) => b.total - a.total)
+
+      const myTotal = totals.find((t: any) => t.userId === userId)?.total ?? 0
+      const rank = totals.findIndex((t: any) => t.userId === userId) + 1
+
+      const sortedRevealed = [...revealedWeeks].sort((a: any, b: any) => b.week_num - a.week_num)
+      const myScores = (allScores || []).filter((s: any) => s.user_id === userId)
+      let streak = 0
+      for (const w of sortedRevealed) {
+        const s = myScores.find((sc: any) => sc.week_id === w.id)
+        if (s && s.score === 1 && !s.is_late) streak++
+        else break
+      }
+
+      setMyStats({ total: myTotal, rank, streak, weeksElapsed })
 
       setLoading(false)
     }
@@ -223,8 +255,27 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               <div className="box" style={{ cursor: 'pointer', borderLeft: '4px solid #CC0000', height: '100%' }}
                 onMouseEnter={e => (e.currentTarget.style.background = '#f9f9f9')}
                 onMouseLeave={e => (e.currentTarget.style.background = '#fff')}>
-                <div style={{ fontWeight: 'bold', fontSize: 15, marginBottom: 4 }}>Leaderboard →</div>
-                <div style={{ fontSize: 12, color: '#666' }}>See how everyone is doing</div>
+                {(() => {
+                  const revealedTotal = myStats?.total ?? 0
+                  const pendingPoint = mySubmission ? 1 : 0
+                  const displayTotal = revealedTotal + pendingPoint
+                  const displayPossible = (myStats?.weeksElapsed ?? 0) + (currentWeek ? 1 : 0)
+                  return (
+                    <>
+                      <div style={{ fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#999', marginBottom: 8 }}>Your Score</div>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 8 }}>
+                        <span style={{ fontSize: 40, fontWeight: 'bold', lineHeight: 1, color: '#CC0000' }}>{displayTotal}</span>
+                        <span style={{ fontSize: 14, color: '#999' }}>/ {displayPossible}</span>
+                      </div>
+                      {myStats && myStats.streak > 0 && (
+                        <div style={{ marginBottom: 4 }}>
+                          <span style={{ fontSize: 12, color: '#CC0000', fontWeight: 'bold' }}>{myStats.streak} week streak</span>
+                        </div>
+                      )}
+                      <div style={{ fontSize: 11, color: '#999', marginTop: 8 }}>Leaderboard →</div>
+                    </>
+                  )
+                })()}
               </div>
             </Link>
 
