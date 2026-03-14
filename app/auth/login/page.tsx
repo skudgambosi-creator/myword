@@ -22,14 +22,7 @@ export default function LoginPage() {
       return
     }
 
-    // Log all cookies after login
-    console.log('Cookies after login:', document.cookie)
-    console.log('Session:', data.session?.access_token?.slice(0, 20))
-
-    // Wait a moment for cookies to be set then redirect
-    setTimeout(() => {
-      window.location.href = '/dashboard'
-    }, 500)
+    window.location.href = '/dashboard'
   }
 
   return (

@@ -21,7 +21,13 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user }, error } = await supabase.auth.getUser()
+
+  if (error) {
+    console.error('[middleware] getUser error:', error.message)
+  }
+
+  console.log('[middleware]', request.nextUrl.pathname, '| user:', user?.id ?? 'none', '| cookies:', request.cookies.getAll().map(c => c.name).join(', '))
 
   const protectedPaths = ['/dashboard', '/groups', '/profile']
   const isProtected = protectedPaths.some(p => request.nextUrl.pathname.startsWith(p))
@@ -30,7 +36,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/register')) {
+  const authPaths = ['/login', '/register', '/auth/login', '/auth/register']
+  if (user && authPaths.includes(request.nextUrl.pathname)) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 

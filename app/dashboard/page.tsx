@@ -20,7 +20,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!session) { router.push('/login'); return }
+      if (event === 'INITIAL_SESSION' && !session) { router.push('/login'); return }
+      if (!session) return
 
       const userId = session.user.id
 
