@@ -152,7 +152,7 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
                   <div style={{ display: 'grid', gap: 16 }}>
                     {submissions.map(sub => {
                       const name = sub.is_signed
-                        ? `Member #${sub.users?.member_number}` : 'Anonymous'
+                        ? (sub.signed_name || `Member #${sub.users?.member_number}`) : `Member #${sub.users?.member_number}`
                       return (
                         <div key={sub.id} className="submission-card">
                           <div className="submission-card-header">

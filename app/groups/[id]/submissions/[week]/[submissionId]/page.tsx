@@ -10,9 +10,8 @@ export default async function SubmissionReadPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase.from('users').select('*').eq('id', user.id).single()
-  const displayName = profile?.identity_mode === 'anonymous'
-    ? `No-name ${profile.noname_number}` : profile?.display_name
+  const { data: profile } = await supabase.from('users').select('member_number').eq('id', user.id).single()
+  const displayName = `Member #${profile?.member_number}`
 
   const { data: sub } = await supabase
     .from('submissions')
@@ -30,11 +29,8 @@ export default async function SubmissionReadPage({
   const isRevealed = sub.weeks?.revealed_at && new Date(sub.weeks.revealed_at) < new Date()
   if (!isOwn && !isRevealed) redirect(`/groups/${params.id}/submissions`)
 
-  const authorName = sub.users?.identity_mode === 'anonymous'
-    ? `No-name ${sub.users?.noname_number}` : sub.users?.display_name
-  const avatarUrl = sub.users?.avatar_storage_path
-    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${sub.users.avatar_storage_path}`
-    : null
+  const authorName = sub.is_signed
+    ? (sub.signed_name || `Member #${sub.users?.member_number}`) : `Member #${sub.users?.member_number}`
 
   return (
     <div style={{ minHeight: '100vh' }}>
@@ -60,10 +56,6 @@ export default async function SubmissionReadPage({
                 {sub.word_title}
               </h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                {avatarUrl && (
-                  <img src={avatarUrl} alt={authorName}
-                    style={{ width: 30, height: 40, objectFit: 'cover', border: '2px solid #000' }} />
-                )}
                 <span style={{ fontSize: 13, fontWeight: 'bold' }}>{authorName}</span>
                 <span style={{ fontSize: 11, color: '#999' }}>·</span>
                 <span style={{ fontSize: 11, color: '#666' }}>

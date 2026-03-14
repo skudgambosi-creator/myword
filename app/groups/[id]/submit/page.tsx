@@ -180,7 +180,7 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
               className="btn btn-accent"
               style={{ padding: '16px', fontSize: 15, width: '100%' }}
               disabled={saving || !signedName.trim()}
-              onClick={() => handleSave(signedName.trim())}>
+              onClick={() => { if (!signedName.trim()) return; handleSave(signedName.trim()) }}>
               {saving ? 'Submitting...' : `Sign as "${signedName.trim() || '…'}"`}
             </button>
             <div style={{ textAlign: 'center', fontSize: 12, color: '#999' }}>— or —</div>
