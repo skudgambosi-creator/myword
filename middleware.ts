@@ -21,13 +21,7 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { user }, error } = await supabase.auth.getUser()
-
-  if (error) {
-    console.error('[middleware] getUser error:', error.message)
-  }
-
-  console.log('[middleware]', request.nextUrl.pathname, '| user:', user?.id ?? 'none', '| cookies:', request.cookies.getAll().map(c => c.name).join(', '))
+  const { data: { user } } = await supabase.auth.getUser()
 
   const protectedPaths = ['/dashboard', '/groups', '/profile']
   const isProtected = protectedPaths.some(p => request.nextUrl.pathname.startsWith(p))

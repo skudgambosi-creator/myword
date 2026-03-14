@@ -22,6 +22,12 @@ export default function LoginPage() {
       return
     }
 
+    if (!data.session) {
+      setError('Please confirm your email address before logging in. Check your inbox for a confirmation link.')
+      setLoading(false)
+      return
+    }
+
     window.location.href = '/dashboard'
   }
 
