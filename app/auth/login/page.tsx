@@ -16,6 +16,9 @@ export default function LoginPage() {
 
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
+    console.log('LOGIN RESULT:', JSON.stringify({ error: error?.message, hasSession: !!data.session, hasUser: !!data.user }))
+    console.log('COOKIES AFTER LOGIN:', document.cookie)
+
     if (error) {
       setError(error.message)
       setLoading(false)
@@ -23,7 +26,7 @@ export default function LoginPage() {
     }
 
     if (!data.session) {
-      setError('Please confirm your email address before logging in. Check your inbox for a confirmation link.')
+      setError('Login succeeded but no session returned. Check browser console.')
       setLoading(false)
       return
     }
