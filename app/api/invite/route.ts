@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { Resend } from 'resend'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import { sendEmail } from '@/lib/email'
 
 export async function POST(req: NextRequest) {
   const { groupId, email, groupName } = await req.json()
@@ -19,8 +17,7 @@ export async function POST(req: NextRequest) {
   const joinUrl = `${process.env.NEXT_PUBLIC_APP_URL}/join/${invitation.token}`
 
   // Send invitation email
-  await resend.emails.send({
-    from: 'My Word <noreply@myword.vercel.app>',
+  await sendEmail({
     to: email,
     subject: `You've been invited to My Word — ${groupName}`,
     html: `

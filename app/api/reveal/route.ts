@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { Resend } from 'resend'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import { sendEmail } from '@/lib/email'
 
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get('authorization')
@@ -25,13 +23,13 @@ export async function POST(req: NextRequest) {
 
   for (const week of weeksToReveal) {
     const group = week.groups as any
-    await revealWeek(supabase, week, group, resend)
+    await revealWeek(supabase, week, group)
   }
 
   return NextResponse.json({ revealed: weeksToReveal.length })
 }
 
-async function revealWeek(supabase: any, week: any, group: any, resend: any) {
+async function revealWeek(supabase: any, week: any, group: any) {
   await supabase
     .from('weeks')
     .update({ revealed_at: new Date().toISOString() })
@@ -66,11 +64,11 @@ async function revealWeek(supabase: any, week: any, group: any, resend: any) {
       .from('groups')
       .update({ completed_at: new Date().toISOString() })
       .eq('id', group.id)
-    await sendFinalEmail(supabase, week, group, members, resend)
+    await sendFinalEmail(supabase, week, group, members)
     return
   }
 
-  await sendRevealEmail(week, group, submissions || [], members || [], resend)
+  await sendRevealEmail(week, group, submissions || [], members || [])
 }
 
 const REVEAL_BODIES: Record<number, string> = {
@@ -102,7 +100,7 @@ const REVEAL_BODIES: Record<number, string> = {
   26: 'Take part in your becoming. You shine through each other. You can write another one down and get down with another run of the funnies. Until next time. Well done. x',
 }
 
-async function sendRevealEmail(week: any, group: any, submissions: any[], members: any[], resend: any) {
+async function sendRevealEmail(week: any, group: any, submissions: any[], members: any[]) {
   const onTimeSubmissions = submissions.filter(s => !s.is_late_catchup)
   const notSubmitted = members.filter(m => !onTimeSubmissions.find(s => s.user_id === m.user_id))
 
@@ -110,7 +108,7 @@ async function sendRevealEmail(week: any, group: any, submissions: any[], member
   const body = REVEAL_BODIES[week.week_num] || 'Here are this week\'s submissions:'
 
   const submissionsHtml = onTimeSubmissions.map(s => {
-    const name = s.is_signed ? `Member #${s.users?.member_number}` : 'Anonymous'
+    const name = s.is_signed ? (s.signed_name || `Member #${s.users?.member_number}`) : `Member #${s.users?.member_number}`
     const preview = s.body_html.replace(/<[^>]+>/g, '').slice(0, 300)
     return `
       <div style="border-top: 2px solid #000; padding: 24px 0;">
@@ -136,8 +134,7 @@ async function sendRevealEmail(week: any, group: any, submissions: any[], member
   const memberEmails = members.map(m => (m.users as any)?.email).filter(Boolean)
 
   for (const email of memberEmails) {
-    await resend.emails.send({
-      from: 'My Word <hello@my-word.co.uk>',
+    await sendEmail({
       to: email,
       subject: `The Alphabet Project — ${week.letter}`,
       html: `
@@ -167,7 +164,7 @@ async function sendRevealEmail(week: any, group: any, submissions: any[], member
   }
 }
 
-async function sendFinalEmail(supabase: any, week: any, group: any, members: any[], resend: any) {
+async function sendFinalEmail(supabase: any, week: any, group: any, members: any[]) {
   const { data: allScores } = await supabase
     .from('scores').select('*, users(*)').eq('group_id', group.id)
 
@@ -191,8 +188,7 @@ async function sendFinalEmail(supabase: any, week: any, group: any, members: any
   ).join('')
 
   for (const email of memberEmails) {
-    await resend.emails.send({
-      from: 'My Word <hello@my-word.co.uk>',
+    await sendEmail({
       to: email,
       subject: `MY WORD — A to Z. We made it.`,
       html: `

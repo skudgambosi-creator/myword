@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { Resend } from 'resend'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import { sendEmail } from '@/lib/email'
 
 // Called daily by pg_cron — sends reminders on Thu, Sun, Tue
 export async function POST(req: NextRequest) {
@@ -69,8 +67,7 @@ export async function POST(req: NextRequest) {
         last: `Letter <strong>${week.letter}</strong> closes tonight at 23:59. This is your last chance to submit.`,
       }
 
-      await resend.emails.send({
-        from: 'My Word <noreply@myword.vercel.app>',
+      await sendEmail({
         to: user.email,
         subject: subjects[reminderType],
         html: `
