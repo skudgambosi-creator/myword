@@ -101,8 +101,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
     </div>
   )
 
-  const displayName = profile?.identity_mode === 'anonymous'
-    ? `No-name ${profile.noname_number}` : profile?.display_name
+  const displayName = `Member #${profile?.member_number}`
 
   const windowClosed = currentWeek ? new Date(currentWeek.closes_at) < new Date() : false
   const isCompleted = !!group?.completed_at
