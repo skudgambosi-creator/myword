@@ -109,14 +109,21 @@ async function sendRevealEmail(week: any, group: any, submissions: any[], member
 
   const submissionsHtml = onTimeSubmissions.map(s => {
     const name = s.is_signed ? (s.signed_name || `Member #${s.users?.member_number}`) : `Member #${s.users?.member_number}`
-    const preview = s.body_html.replace(/<[^>]+>/g, '').slice(0, 300)
+    const plainText = s.body_html
+      .replace(/<br\s*\/?>/gi, ' ')
+      .replace(/<\/(p|div|li|h[1-6])>/gi, ' ')
+      .replace(/<[^>]+>/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+    const preview = plainText.slice(0, 300)
+    const truncated = plainText.length > 300
     return `
       <div style="border-top: 2px solid #000; padding: 24px 0;">
         <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #999; margin-bottom: 4px;">
           ${name} · ${s.word_count} words
         </div>
         <div style="font-size: 20px; font-weight: bold; margin-bottom: 12px;">${s.word_title}</div>
-        <div style="font-size: 13px; color: #444; line-height: 1.8;">${preview}${s.body_html.replace(/<[^>]+>/g, '').length > 300 ? '...' : ''}</div>
+        <div style="font-size: 13px; color: #444; line-height: 1.8;">${preview}${truncated ? '...' : ''}</div>
         <a href="${archiveUrl}" style="font-size: 12px; color: #CC0000; margin-top: 8px; display: inline-block;">Read full piece →</a>
       </div>
     `
