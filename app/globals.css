@@ -336,6 +336,9 @@ a:hover {
   display: flex;
   gap: 4px;
   background: var(--grey-light);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 .tiptap-toolbar button {
   font-family: var(--font-mono);
