@@ -285,6 +285,18 @@ a:hover {
   font-size: 14px;
   line-height: 1.8;
 }
+.submission-card-body img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--grey-border);
+  display: block;
+  margin: 12px 0;
+}
+.submission-card-body audio {
+  width: 100%;
+  display: block;
+  margin: 12px 0;
+}
 
 /* ── AVATAR ── */
 .avatar {

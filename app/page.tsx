@@ -47,7 +47,7 @@ export default function LandingPage() {
               ['2', 'Your word must start with the letter', 'Your title can be any word or phrase — it just has to begin with that week\'s letter.'],
               ['3', 'Edit until Tuesday 23:59', 'You can change your submission at any time before the window closes. After that, it\'s locked.'],
               ['4', 'Hidden until Wednesday', 'Nobody can see anyone else\'s submission until the reveal. Not the title, not the content. You will get an email every Wednesday with the week\'s submissions, in no particular order.'],
-              ['5', 'Scoring', 'You score points for keeping your word. Miss a week, miss a point.'],
+              ['5', 'Scoring', 'You score points by keeping your word. Miss a week, miss a point.'],
             ].map(([num, title, desc]) => (
               <div key={num} style={{ display: 'flex', gap: 12, marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #eee' }}>
                 <div style={{ fontWeight: 'bold', fontSize: 11, color: '#CC0000', minWidth: 24, paddingTop: 2 }}>{num}</div>
