@@ -4,6 +4,22 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
+function textPreview(html: string, maxChars: number) {
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, maxChars)
+}
+
+function AttachmentTags({ html }: { html: string }) {
+  const hasImage = /<img[\s>]/i.test(html)
+  const hasAudio = /<audio[\s>]/i.test(html)
+  if (!hasImage && !hasAudio) return null
+  return (
+    <span style={{ display: 'inline-flex', gap: 4, marginLeft: 6 }}>
+      {hasImage && <span className="tag" style={{ color: '#555', borderColor: '#aaa', fontSize: 9 }}>IMG</span>}
+      {hasAudio && <span className="tag" style={{ color: '#555', borderColor: '#aaa', fontSize: 9 }}>AUD</span>}
+    </span>
+  )
+}
+
 export default function SubmissionsPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const supabase = createClient()
@@ -160,10 +176,13 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
                             <span style={{ marginLeft: 'auto', fontSize: 11, color: '#999' }}>{sub.word_count} words</span>
                           </div>
                           <div style={{ padding: '12px 16px' }}>
-                            <div style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 8 }}>{sub.word_title}</div>
-                            <div style={{ fontSize: 13, color: '#555', lineHeight: 1.7 }}
-                              dangerouslySetInnerHTML={{ __html: sub.body_html.slice(0, 300) + (sub.body_html.length > 300 ? '...' : '') }}
-                            />
+                            <div style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 8 }}>
+                              {sub.word_title}
+                              <AttachmentTags html={sub.body_html} />
+                            </div>
+                            <div style={{ fontSize: 13, color: '#555', lineHeight: 1.7 }}>
+                              {textPreview(sub.body_html, 300)}{sub.body_html.replace(/<[^>]*>/g, ' ').trim().length > 300 ? '…' : ''}
+                            </div>
                             <Link href={`/groups/${params.id}/submissions/${sub.week_id}/${sub.id}`}
                               style={{ fontSize: 12, marginTop: 10, display: 'inline-block' }}>
                               Read full piece →
