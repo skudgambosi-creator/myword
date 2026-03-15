@@ -2,6 +2,18 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
+function AttachmentTags({ html }: { html: string }) {
+  const hasImage = /<img[\s>]/i.test(html)
+  const hasAudio = /<audio[\s>]/i.test(html)
+  if (!hasImage && !hasAudio) return null
+  return (
+    <span style={{ display: 'inline-flex', gap: 4, marginLeft: 8 }}>
+      {hasImage && <span className="tag" style={{ color: '#555', borderColor: '#aaa', fontSize: 9 }}>IMG</span>}
+      {hasAudio && <span className="tag" style={{ color: '#555', borderColor: '#aaa', fontSize: 9 }}>AUD</span>}
+    </span>
+  )
+}
+
 export default function SubmissionsTabs({ groupId, userId, weeks, submissions, mySubmissions, currentUserId }: any) {
   const [tab, setTab] = useState<'mine' | 'all'>('mine')
   const [filterLetter, setFilterLetter] = useState<string>('ALL')
@@ -75,6 +87,7 @@ export default function SubmissionsTabs({ groupId, userId, weeks, submissions, m
                       {isRevealed ? (
                         <div>
                           <strong style={{ fontSize: 15 }}>{sub.word_title}</strong>
+                          <AttachmentTags html={sub.body_html} />
                           <div style={{ marginTop: 6, fontSize: 12, color: '#666' }}
                             dangerouslySetInnerHTML={{ __html: sub.body_html.slice(0, 200) + (sub.body_html.length > 200 ? '...' : '') }}
                           />
@@ -86,6 +99,7 @@ export default function SubmissionsTabs({ groupId, userId, weeks, submissions, m
                       ) : (
                         <div style={{ fontSize: 13, color: '#555' }}>
                           <strong>{sub.word_title}</strong>
+                          <AttachmentTags html={sub.body_html} />
                           <span style={{ color: '#999', marginLeft: 8 }}>— hidden until Wednesday reveal</span>
                           <div style={{ marginTop: 6 }}>
                             <Link href={`/groups/${groupId}/submit?edit=1`} style={{ fontSize: 12 }}>
@@ -174,6 +188,7 @@ export default function SubmissionsTabs({ groupId, userId, weeks, submissions, m
                             </div>
                             <div style={{ padding: '10px 12px' }}>
                               <strong style={{ fontSize: 15 }}>{sub.word_title}</strong>
+                              <AttachmentTags html={sub.body_html} />
                               <div style={{ marginTop: 6, fontSize: 12, color: '#666', lineHeight: 1.6 }}
                                 dangerouslySetInnerHTML={{ __html: sub.body_html.slice(0, 200) + (sub.body_html.length > 200 ? '...' : '') }}
                               />
