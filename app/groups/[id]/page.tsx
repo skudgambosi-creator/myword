@@ -321,7 +321,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
             <div className="box-header">RULES</div>
             <div style={{ padding: '16px 0 0' }}>
               {[
-                ['One submission per letter', 'You get one entry per week. You can choose to sign a submission or remain anonymous.'],
+                ['One submission per letter', 'You get one entry per week. You can choose to sign a submission or remain anonymous. You can add pictures and sounds too.'],
                 ['Your word must start with the letter', 'Your title can be any word or phrase — it just has to begin with that week\'s letter.'],
                 ['Edit until Tuesday 23:59', 'You can change your submission at any time before the window closes. After that, it\'s locked.'],
                 ['Hidden until Wednesday', 'Nobody can see anyone else\'s submission until the reveal. Not the title, not the content. You will get an email every Wednesday with the week\'s submissions, in no particular order.'],
@@ -345,6 +345,12 @@ export default function GroupPage({ params }: { params: { id: string } }) {
           </div>
 
         </div>
+
+        {/* Bottom rule */}
+        <hr className="rule" style={{ marginTop: 60 }} />
+        <p style={{ fontSize: 11, color: '#999', textAlign: 'center' }}>
+          MOUNTFORD - GAMBOSI
+        </p>
       </div>
     </div>
   )
