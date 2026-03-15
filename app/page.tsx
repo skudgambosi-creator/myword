@@ -6,13 +6,7 @@ export default function LandingPage() {
       {/* Header */}
       <nav className="nav">
         <span className="nav-brand">[ MY WORD ]</span>
-      </nav>
-
-      {/* Hero */}
-      <main className="page-container" style={{ paddingTop: 60, paddingBottom: 60, flex: 1 }}>
-
-        {/* CTAs */}
-        <div style={{ display: 'flex', gap: 12, marginBottom: 32 }}>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, alignItems: 'center' }}>
           <Link href="/register" className="btn btn-accent">
             Create Account
           </Link>
@@ -20,6 +14,10 @@ export default function LandingPage() {
             Log In
           </Link>
         </div>
+      </nav>
+
+      {/* Hero */}
+      <main className="page-container" style={{ paddingTop: 60, paddingBottom: 60, flex: 1 }}>
 
         <hr className="rule" />
 
