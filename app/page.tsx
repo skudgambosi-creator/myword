@@ -17,12 +17,10 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <main className="page-container" style={{ paddingTop: 60, paddingBottom: 60, flex: 1 }}>
-
-        <hr className="rule" />
+      <main className="page-container" style={{ paddingTop: 32, paddingBottom: 60, flex: 1 }}>
 
         {/* Season 1 callout */}
-        <div className="box" style={{ borderLeft: '4px solid #CC0000', marginTop: 32, marginBottom: 24 }}>
+        <div className="box" style={{ borderLeft: '4px solid #CC0000', marginBottom: 24 }}>
           <div style={{ fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.12em', color: '#CC0000', marginBottom: 8 }}>
             Season 1
           </div>
