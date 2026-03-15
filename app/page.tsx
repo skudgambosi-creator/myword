@@ -84,7 +84,7 @@ export default function LandingPage() {
         {/* Bottom rule */}
         <hr className="rule" style={{ marginTop: 60 }} />
         <p style={{ fontSize: 11, color: '#999', textAlign: 'center' }}>
-          MY WORD — PRIVATE GROUPS ONLY
+          MOUNTFORD - GAMBOSI
         </p>
       </main>
     </div>
