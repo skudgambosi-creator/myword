@@ -6,7 +6,7 @@ export default function LandingPage() {
       {/* Header */}
       <nav className="nav">
         <span className="nav-brand">[ MY WORD ]</span>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, alignItems: 'center' }}>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, alignItems: 'center', paddingRight: 20 }}>
           <Link href="/register" className="btn btn-accent">
             Create Account
           </Link>
