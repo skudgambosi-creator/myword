@@ -88,7 +88,7 @@ declare
   week_start timestamptz;
 begin
   for i in 1..26 loop
-    -- Each week opens on Wednesday 00:01, closes following Tuesday 23:59
+    -- Each week opens on Wednesday 00:01, closes following Wednesday 00:00
     week_start := (new.start_date + ((i - 1) * 7) * interval '1 day')::timestamptz
                   at time zone new.timezone;
     insert into public.weeks (group_id, week_num, letter, opens_at, closes_at)
@@ -97,7 +97,7 @@ begin
       i,
       letters[i],
       week_start + interval '1 minute',
-      week_start + interval '7 days' - interval '1 minute'
+      week_start + interval '7 days'
     );
   end loop;
   return new;
