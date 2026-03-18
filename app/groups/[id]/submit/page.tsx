@@ -152,6 +152,8 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
 
   if (loading) return <div className="page-container" style={{ paddingTop: 40 }}>Loading...</div>
 
+  const { images: galleryImages, audios: galleryAudios } = extractMedia(content)
+
   // ── SIGN SCREEN ──────────────────────────────────────────────
   if (showSignScreen) {
     return (
@@ -169,24 +171,20 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
             </div>
             <div style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 6 }}>{wordTitle}</div>
             <div style={{ fontSize: 13, color: '#999' }}>{wordCount} words</div>
-            {(() => {
-              const { images, audios } = extractMedia(content)
-              if (images.length === 0 && audios.length === 0) return null
-              return (
-                <div style={{ marginTop: 14, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 6 }}>
-                  {images.map((src, i) => (
-                    <img key={i} src={src} alt={`Image ${i + 1}`}
-                      style={{ width: 56, height: 56, objectFit: 'cover', border: '1px solid var(--grey-border)' }} />
-                  ))}
-                  {audios.map((src, i) => (
-                    <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, border: '1px solid var(--grey-border)', padding: '4px 8px' }}>
-                      <span style={{ fontWeight: 'bold', color: '#CC0000' }}>AUD</span>
-                      <span style={{ color: '#555' }}>{fileNameFromUrl(src)}</span>
-                    </span>
-                  ))}
-                </div>
-              )
-            })()}
+            {(galleryImages.length > 0 || galleryAudios.length > 0) && (
+              <div style={{ marginTop: 14, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 6 }}>
+                {galleryImages.map((src, i) => (
+                  <img key={i} src={src} alt={`Image ${i + 1}`}
+                    style={{ width: 56, height: 56, objectFit: 'cover', border: '1px solid #ccc' }} />
+                ))}
+                {galleryAudios.map((src, i) => (
+                  <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, border: '1px solid #ccc', padding: '4px 8px' }}>
+                    <span style={{ fontWeight: 'bold', color: '#CC0000' }}>AUD</span>
+                    <span style={{ color: '#555' }}>{fileNameFromUrl(src)}</span>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           <div style={{ borderTop: '2px solid #000', borderBottom: '2px solid #000', padding: '24px 0', marginBottom: 32, textAlign: 'center' }}>
@@ -292,35 +290,31 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
           <Editor content={content} onChange={setContent} groupId={params.id} />
         </div>
 
-        {(() => {
-          const { images, audios } = extractMedia(content)
-          if (images.length === 0 && audios.length === 0) return null
-          return (
-            <div style={{ border: '1px solid var(--grey-border)', padding: '12px 16px', marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 'bold', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#999', marginBottom: 10 }}>
-                Attachments ({images.length + audios.length})
-              </div>
-              {images.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: audios.length > 0 ? 10 : 0 }}>
-                  {images.map((src, i) => (
-                    <img key={i} src={src} alt={`Image ${i + 1}`}
-                      style={{ width: 72, height: 72, objectFit: 'cover', border: '1px solid var(--grey-border)', display: 'block' }} />
-                  ))}
-                </div>
-              )}
-              {audios.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {audios.map((src, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
-                      <span style={{ fontWeight: 'bold', color: '#CC0000' }}>AUD</span>
-                      <span style={{ color: '#555' }}>{fileNameFromUrl(src)}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+        {(galleryImages.length > 0 || galleryAudios.length > 0) && (
+          <div style={{ border: '1px solid #ccc', padding: '12px 16px', marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 'bold', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#999', marginBottom: 10 }}>
+              Attachments ({galleryImages.length + galleryAudios.length})
             </div>
-          )
-        })()}
+            {galleryImages.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: galleryAudios.length > 0 ? 10 : 0 }}>
+                {galleryImages.map((src, i) => (
+                  <img key={i} src={src} alt={`Image ${i + 1}`}
+                    style={{ width: 72, height: 72, objectFit: 'cover', border: '1px solid #ccc', display: 'block' }} />
+                ))}
+              </div>
+            )}
+            {galleryAudios.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {galleryAudios.map((src, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
+                    <span style={{ fontWeight: 'bold', color: '#CC0000' }}>AUD</span>
+                    <span style={{ color: '#555' }}>{fileNameFromUrl(src)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <span style={{ fontSize: 12, color: wordCount < 5 ? '#CC0000' : wordCount > 1000 ? '#CC0000' : '#666' }}>

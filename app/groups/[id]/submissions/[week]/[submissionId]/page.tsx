@@ -43,7 +43,7 @@ export default async function SubmissionReadPage({
     return { images, audios }
   }
 
-  const { images, audios } = extractMedia(sub.body_html)
+  const { images, audios } = extractMedia(sub.body_html ?? '')
 
   return (
     <div style={{ minHeight: '100vh' }}>
