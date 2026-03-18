@@ -78,7 +78,8 @@ export default function Editor({
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const fileName = `${groupId}/${user.id}/${Date.now()}-${file.name}`
+    const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')
+    const fileName = `${groupId}/${user.id}/${Date.now()}-${safeName}`
     const { error } = await supabase.storage
       .from('submission-images')
       .upload(fileName, file, { contentType: file.type })
@@ -100,7 +101,8 @@ export default function Editor({
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const fileName = `${groupId}/${user.id}/${Date.now()}-${file.name}`
+    const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')
+    const fileName = `${groupId}/${user.id}/${Date.now()}-${safeName}`
     const { error } = await supabase.storage
       .from('submission-audio')
       .upload(fileName, file, { contentType: file.type })
