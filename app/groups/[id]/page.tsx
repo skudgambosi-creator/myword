@@ -221,7 +221,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                     </>
                   ) : (
                     <div className="box-shaded" style={{ fontSize: 13 }}>
-                      Window closed. Reveal pending on Wednesday.
+                      Window closed. Reveal pending at midnight Wednesday.
                     </div>
                   )}
                 </div>
@@ -323,8 +323,8 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               {[
                 ['One submission per letter', 'You get one entry per week. You can choose to sign a submission or remain anonymous. You can add pictures and sounds too.'],
                 ['Your word must start with the letter', 'Your title can be any word or phrase — it just has to begin with that week\'s letter.'],
-                ['Edit until Tuesday 23:59', 'You can change your submission at any time before the window closes. After that, it\'s locked.'],
-                ['Hidden until Wednesday', 'Nobody can see anyone else\'s submission until the reveal. Not the title, not the content. You will get an email every Wednesday with the week\'s submissions, in no particular order.'],
+                ['Edit until Wednesday 23:59', 'You can change your submission at any time before the window closes. After that, it\'s locked.'],
+                ['Hidden until midnight Wednesday', 'Nobody can see anyone else\'s submission until the reveal. Not the title, not the content. You will get an email every Wednesday with the week\'s submissions, in no particular order.'],
                 ['Scoring', 'You score points by keeping your word. Miss a week, miss a point.'],
               ].map(([title, desc], i) => (
                 <div key={i} style={{ display: 'flex', gap: 12, marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #eee' }}>
