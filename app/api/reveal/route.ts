@@ -116,7 +116,12 @@ async function sendRevealEmail(week: any, group: any, submissions: any[], member
   const submissionsHtml = onTimeSubmissions.map(s => {
     const name = s.is_signed ? (s.signed_name || `Member #${s.users?.member_number}`) : `Member #${s.users?.member_number}`
     const grafs = (s.body_html.match(/<p[^>]*>[\s\S]*?<\/p>/gi) || [])
-      .map((p: string) => p.replace(/<\/?p[^>]*>/gi, '').trim())
+      .map((p: string) => p
+        .replace(/<\/?p[^>]*>/gi, '')
+        .replace(/<img[^>]*>/gi, '')
+        .replace(/<audio[^>]*>[\s\S]*?<\/audio>/gi, '')
+        .trim()
+      )
       .filter((p: string) => p.replace(/<[^>]+>/g, '').trim())
     const truncated = grafs.length > 6
     const preview = grafs.slice(0, 6).join('<br>') + (truncated ? '...' : '')

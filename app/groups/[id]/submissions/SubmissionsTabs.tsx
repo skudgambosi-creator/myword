@@ -137,7 +137,7 @@ export default function SubmissionsTabs({ groupId, userId, weeks, submissions, m
                 <option value="ALL">All Members</option>
                 {uniqueUsers.map((u: any) => (
                   <option key={u?.id} value={u?.id}>
-                    {u?.identity_mode === 'anonymous' ? `No-name ${u?.noname_number}` : u?.display_name}
+                    Member #{u?.member_number}
                   </option>
                 ))}
               </select>
@@ -169,8 +169,9 @@ export default function SubmissionsTabs({ groupId, userId, weeks, submissions, m
                     </div>
                     <div style={{ display: 'grid', gap: 12 }}>
                       {letterSubs.map((sub: any) => {
-                        const name = sub.users?.identity_mode === 'anonymous'
-                          ? `No-name ${sub.users?.noname_number}` : sub.users?.display_name
+                        const name = sub.is_signed
+                          ? (sub.signed_name || `Member #${sub.users?.member_number}`)
+                          : `Member #${sub.users?.member_number}`
                         const avatarUrl = sub.users?.avatar_storage_path
                           ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${sub.users.avatar_storage_path}`
                           : null
