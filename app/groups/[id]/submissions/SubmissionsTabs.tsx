@@ -8,8 +8,8 @@ function AttachmentTags({ html }: { html: string }) {
   if (!hasImage && !hasAudio) return null
   return (
     <span style={{ display: 'inline-flex', gap: 4, marginLeft: 8 }}>
-      {hasImage && <span className="tag" style={{ color: '#555', borderColor: '#aaa', fontSize: 9 }}>IMG</span>}
-      {hasAudio && <span className="tag" style={{ color: '#555', borderColor: '#aaa', fontSize: 9 }}>AUD</span>}
+      {hasImage && <span className="tag" style={{ color: '#555', borderColor: '#aaa', fontSize: 9 }}>has pictures</span>}
+      {hasAudio && <span className="tag" style={{ color: '#555', borderColor: '#aaa', fontSize: 9 }}>has sound</span>}
     </span>
   )
 }

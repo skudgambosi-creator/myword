@@ -32,6 +32,19 @@ export default async function SubmissionReadPage({
   const authorName = sub.is_signed
     ? (sub.signed_name || `Member #${sub.users?.member_number}`) : `Member #${sub.users?.member_number}`
 
+  function extractMedia(html: string) {
+    const images: string[] = []
+    const audios: string[] = []
+    const imgRegex = /<img[^>]+src="([^"]+)"/g
+    const audioRegex = /<audio[^>]+src="([^"]+)"/g
+    let m
+    while ((m = imgRegex.exec(html)) !== null) images.push(m[1])
+    while ((m = audioRegex.exec(html)) !== null) audios.push(m[1])
+    return { images, audios }
+  }
+
+  const { images, audios } = extractMedia(sub.body_html)
+
   return (
     <div style={{ minHeight: '100vh' }}>
       <Nav userName={displayName} />
@@ -75,6 +88,29 @@ export default async function SubmissionReadPage({
           style={{ fontSize: 15, lineHeight: 1.9 }}
           dangerouslySetInnerHTML={{ __html: sub.body_html }}
         />
+
+        {(images.length > 0 || audios.length > 0) && (
+          <div style={{ marginTop: 40, borderTop: '2px solid #000', paddingTop: 24 }}>
+            <div style={{ fontSize: 11, fontWeight: 'bold', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 }}>
+              Attachments
+            </div>
+            {images.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: audios.length > 0 ? 20 : 0 }}>
+                {images.map((src, i) => (
+                  <img key={i} src={src} alt={`Image ${i + 1}`}
+                    style={{ width: 140, height: 140, objectFit: 'cover', border: '1px solid #000', display: 'block' }} />
+                ))}
+              </div>
+            )}
+            {audios.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {audios.map((src, i) => (
+                  <audio key={i} controls src={src} style={{ width: '100%', display: 'block' }} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <hr className="rule" />
         <Link href={`/groups/${params.id}/submissions`} className="btn btn-ghost">
