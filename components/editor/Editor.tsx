@@ -8,7 +8,7 @@ import Image from '@tiptap/extension-image'
 import BulletList from '@tiptap/extension-bullet-list'
 import ListItem from '@tiptap/extension-list-item'
 import { createClient } from '@/lib/supabase/client'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 
 const AudioNode = Node.create({
   name: 'audio',
@@ -49,6 +49,7 @@ export default function Editor({
   const supabase = createClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const audioInputRef = useRef<HTMLInputElement>(null)
+  const [uploadError, setUploadError] = useState('')
 
   const editor = useEditor({
     extensions: [
@@ -72,6 +73,7 @@ export default function Editor({
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    setUploadError('')
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
@@ -81,7 +83,9 @@ export default function Editor({
       .from('submission-images')
       .upload(fileName, file, { contentType: file.type })
 
-    if (!error) {
+    if (error) {
+      setUploadError(`Image upload failed: ${error.message}`)
+    } else {
       const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/submission-images/${fileName}`
       editor.chain().focus().setImage({ src: url }).run()
     }
@@ -91,6 +95,7 @@ export default function Editor({
   const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    setUploadError('')
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
@@ -100,7 +105,9 @@ export default function Editor({
       .from('submission-audio')
       .upload(fileName, file, { contentType: file.type })
 
-    if (!error) {
+    if (error) {
+      setUploadError(`Audio upload failed: ${error.message}`)
+    } else {
       const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/submission-audio/${fileName}`
       editor.chain().focus().insertContent({ type: 'audio', attrs: { src: url } }).run()
     }
@@ -109,6 +116,11 @@ export default function Editor({
 
   return (
     <div>
+      {uploadError && (
+        <div style={{ border: '2px solid #CC0000', padding: '6px 10px', marginBottom: 8, fontSize: 12, color: '#CC0000' }}>
+          {uploadError}
+        </div>
+      )}
       <div className="tiptap-toolbar">
         <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()}
           isActive={editor.isActive('bold')} title="Bold">B</ToolbarButton>
