@@ -5,17 +5,14 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 function htmlPreview(html: string, maxParas: number): { preview: string; truncated: boolean } {
-  const grafs = (html.match(/<p[^>]*>[\s\S]*?<\/p>/gi) || [])
-    .map(p => p
-      .replace(/<\/?p[^>]*>/gi, '')
-      .replace(/<img[^>]*>/gi, '')
-      .replace(/<audio[^>]*>[\s\S]*?<\/audio>/gi, '')
-      .trim()
-    )
-    .filter(p => p.replace(/<[^>]+>/g, '').trim())
+  const stripped = html
+    .replace(/<img[^>]*>/gi, '')
+    .replace(/<audio[^>]*>[\s\S]*?<\/audio>/gi, '')
+  const grafs = stripped.match(/<p[^>]*>[\s\S]*?<\/p>/gi) || []
+  const nonEmpty = grafs.filter(p => p.replace(/<[^>]+>/g, '').trim())
   return {
-    preview: grafs.slice(0, maxParas).join('<br>'),
-    truncated: grafs.length > maxParas,
+    preview: nonEmpty.slice(0, maxParas).join(''),
+    truncated: nonEmpty.length > maxParas,
   }
 }
 
@@ -172,8 +169,9 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
                           const { preview, truncated } = htmlPreview(sub.body_html, 3)
                           return (
                             <div
-                              style={{ fontSize: 13, color: '#555', lineHeight: 1.8 }}
-                              dangerouslySetInnerHTML={{ __html: preview + (truncated ? '…' : '') }}
+                              className="submission-card-body"
+                              style={{ padding: '0 16px', fontSize: 13 }}
+                              dangerouslySetInnerHTML={{ __html: preview + (truncated ? '<p>…</p>' : '') }}
                             />
                           )
                         })()}
