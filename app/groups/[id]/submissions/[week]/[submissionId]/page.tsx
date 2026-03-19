@@ -81,11 +81,14 @@ export default async function SubmissionReadPage({
           </div>
         </div>
 
-        {/* Piece body */}
+        {/* Piece body — media stripped here, shown separately below */}
         <div
           className="submission-card-body"
           style={{ fontSize: 15, lineHeight: 1.9 }}
-          dangerouslySetInnerHTML={{ __html: sub.body_html }}
+          dangerouslySetInnerHTML={{ __html: (sub.body_html ?? '')
+            .replace(/<img[^>]*>/gi, '')
+            .replace(/<audio[^>]*>[\s\S]*?<\/audio>/gi, '')
+          }}
         />
 
         {(images.length > 0 || audios.length > 0) && (
