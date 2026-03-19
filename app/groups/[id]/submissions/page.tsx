@@ -180,7 +180,6 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
                   return (
                     <div key={sub.id} className="submission-card">
                       <div className="submission-card-header">
-                        {name && <span style={{ fontWeight: 'bold', fontSize: 13 }}>{name}</span>}
                         <span style={{ marginLeft: 'auto' }}><AttachmentTags html={sub.body_html} /></span>
                       </div>
                       <div style={{ padding: '12px 16px' }}>
@@ -194,6 +193,9 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
                           style={{ fontSize: 12, marginTop: 10, display: 'inline-block' }}>
                           Read full piece →
                         </Link>
+                        {name && (
+                          <div style={{ fontSize: 11, color: '#999', marginTop: 8 }}>{name}</div>
+                        )}
                       </div>
                     </div>
                   )
