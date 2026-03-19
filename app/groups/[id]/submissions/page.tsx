@@ -40,7 +40,6 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
   const [selectedLetter, setSelectedLetter] = useState<string | null>(null)
   const [submissions, setSubmissions] = useState<any[]>([])
   const [loadingSubs, setLoadingSubs] = useState(false)
-  const [pickerOpen, setPickerOpen] = useState(false)
 
   useEffect(() => {
     const init = async () => {
@@ -74,7 +73,6 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
 
   const handleLetterClick = async (week: any) => {
     if (!week.revealed_at || new Date(week.revealed_at) > new Date()) return
-    setPickerOpen(false)
     await loadSubmissions(week, setSelectedLetter, setSubmissions, setLoadingSubs, supabase)
   }
 
@@ -109,60 +107,39 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
       <div className="page-container" style={{ paddingTop: 40, paddingBottom: 60 }}>
         <h1 className="page-title">Submissions</h1>
 
-        {/* Letter picker dropdown */}
-        {pickerOpen && (
-          <div style={{ position: 'relative', marginBottom: 24 }}>
-            <div style={{
-              background: '#fff', border: '2px solid #000', padding: 16,
-              display: 'flex', flexWrap: 'wrap', gap: 6,
-            }}>
-              {letters.map(letter => {
-                const week = weeks.find(w => w.letter === letter)
-                const isRevealed = week?.revealed_at && new Date(week.revealed_at) < new Date()
-                const isSelected = selectedLetter === letter
-                const isLocked = !week || !isRevealed
-                return (
-                  <div
-                    key={letter}
-                    onClick={() => week && handleLetterClick(week)}
-                    style={{
-                      width: 40, height: 40,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: 'bold', fontSize: 15,
-                      cursor: isLocked ? 'default' : 'pointer',
-                      background: isSelected ? '#000' : 'transparent',
-                      color: isSelected ? '#fff' : isLocked ? '#ddd' : '#CC0000',
-                      border: isSelected ? '2px solid #000' : '1px solid #eee',
-                    }}
-                    onMouseEnter={e => { if (!isLocked && !isSelected) e.currentTarget.style.background = '#f5f5f5' }}
-                    onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent' }}
-                  >
-                    {letter}
-                  </div>
-                )
-              })}
+        {/* Header: ← A → nav */}
+        {(() => {
+          const revealedWeeks = weeks.filter((w: any) => w.revealed_at && new Date(w.revealed_at) < new Date())
+          const currentIndex = revealedWeeks.findIndex((w: any) => w.letter === selectedLetter)
+          const prevWeek = currentIndex > 0 ? revealedWeeks[currentIndex - 1] : null
+          const nextWeek = currentIndex < revealedWeeks.length - 1 ? revealedWeeks[currentIndex + 1] : null
+          return selectedLetter ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 24, borderBottom: '3px solid #000', paddingBottom: 12 }}>
+              <button
+                onClick={() => prevWeek && handleLetterClick(prevWeek)}
+                disabled={!prevWeek}
+                style={{ fontSize: 22, fontWeight: 'bold', background: 'none', border: 'none', cursor: prevWeek ? 'pointer' : 'default', color: prevWeek ? '#CC0000' : '#ddd', padding: '0 4px' }}
+              >
+                ←
+              </button>
+              <span style={{ fontSize: 64, fontWeight: 'bold', color: '#CC0000', lineHeight: 1, minWidth: 48, textAlign: 'center' }}>
+                {selectedLetter}
+              </span>
+              <button
+                onClick={() => nextWeek && handleLetterClick(nextWeek)}
+                disabled={!nextWeek}
+                style={{ fontSize: 22, fontWeight: 'bold', background: 'none', border: 'none', cursor: nextWeek ? 'pointer' : 'default', color: nextWeek ? '#CC0000' : '#ddd', padding: '0 4px' }}
+              >
+                →
+              </button>
+              {!loadingSubs && (
+                <span style={{ fontSize: 13, color: '#666', marginLeft: 4 }}>
+                  {submissions.length} submission{submissions.length !== 1 ? 's' : ''}
+                </span>
+              )}
             </div>
-          </div>
-        )}
-
-        {/* Header: big letter + count + picker toggle */}
-        {selectedLetter && !loadingSubs && (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, marginBottom: 24, borderBottom: '3px solid #000', paddingBottom: 12 }}>
-            <span
-              onClick={() => setPickerOpen(p => !p)}
-              style={{ fontSize: 64, fontWeight: 'bold', color: '#CC0000', lineHeight: 1, cursor: 'pointer', userSelect: 'none' }}
-              title="Change letter"
-            >
-              {selectedLetter}
-            </span>
-            <span style={{ fontSize: 13, color: '#666' }}>
-              {submissions.length} submission{submissions.length !== 1 ? 's' : ''}
-            </span>
-            <span style={{ fontSize: 12, color: '#999', marginLeft: 4, cursor: 'pointer' }} onClick={() => setPickerOpen(p => !p)}>
-              {pickerOpen ? '▲ close' : '▼ change'}
-            </span>
-          </div>
-        )}
+          ) : null
+        })()}
 
         {!selectedLetter && (
           <div className="box-shaded" style={{ textAlign: 'center', padding: 48 }}>
