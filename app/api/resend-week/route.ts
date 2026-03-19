@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { weekNum, emails } = await req.json()
+  const { weekNum, emails, customBody } = await req.json()
   if (!weekNum || !emails?.length) {
     return NextResponse.json({ error: 'weekNum and emails required' }, { status: 400 })
   }
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     1: 'Easy right? Enjoy yourselves:',
     2: 'Scrumptious. Give us another one:',
   }
-  const body = REVEAL_BODIES[week.week_num] || 'Here are this week\'s submissions:'
+  const body = customBody || REVEAL_BODIES[week.week_num] || 'Here are this week\'s submissions:'
 
   const submissionsHtml = onTimeSubmissions.map((s: any) => {
     const name = s.is_signed ? (s.signed_name || `Member #${s.users?.member_number}`) : `Member #${s.users?.member_number}`
