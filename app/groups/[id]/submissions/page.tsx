@@ -106,10 +106,8 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
       <div className="page-container" style={{ paddingTop: 40, paddingBottom: 60 }}>
         <h1 className="page-title">Submissions</h1>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 32, alignItems: 'start' }}>
-
-          {/* LEFT: A–Z list */}
-          <div className="box" style={{ padding: 0, overflow: 'hidden' }}>
+          {/* TOP: A–Z horizontal row */}
+          <div className="box" style={{ padding: 8, display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
             {letters.map(letter => {
               const week = weeks.find(w => w.letter === letter)
               const isRevealed = week?.revealed_at && new Date(week.revealed_at) < new Date()
@@ -120,40 +118,30 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
                 <div
                   key={letter}
                   onClick={() => week && handleLetterClick(week)}
+                  title={isLocked ? (week ? 'Not yet revealed' : 'Not started') : `Week ${week.week_num}`}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '10px 16px',
-                    borderBottom: '1px solid #eee',
+                    width: 36, height: 36,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontWeight: 'bold', fontSize: 14,
                     cursor: isLocked ? 'default' : 'pointer',
                     background: isSelected ? '#000' : 'transparent',
-                    color: isSelected ? '#fff' : isLocked ? '#ccc' : '#000',
+                    color: isSelected ? '#fff' : isLocked ? '#ddd' : '#CC0000',
+                    border: isSelected ? '2px solid #000' : '1px solid #eee',
                   }}
                   onMouseEnter={e => { if (!isLocked && !isSelected) e.currentTarget.style.background = '#f5f5f5' }}
                   onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent' }}
                 >
-                  <span style={{ fontSize: 20, fontWeight: 'bold', minWidth: 24, color: isSelected ? '#fff' : isLocked ? '#ddd' : '#CC0000' }}>
-                    {letter}
-                  </span>
-                  <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    {isLocked ? (week ? 'Not yet revealed' : 'Not started') : `Week ${week.week_num}`}
-                  </span>
-                  {isLocked && (
-                    <span style={{ marginLeft: 'auto', fontSize: 12, color: '#ccc' }}>🔒</span>
-                  )}
+                  {letter}
                 </div>
               )
             })}
           </div>
 
-          {/* RIGHT: Submissions for selected letter */}
+          {/* BELOW: Submissions for selected letter */}
           <div>
             {!selectedLetter && (
               <div className="box-shaded" style={{ textAlign: 'center', padding: 48 }}>
-                <p style={{ fontSize: 14, color: '#666' }}>
-                  Select a letter to read that week's submissions.
-                </p>
+                <p style={{ fontSize: 14, color: '#666' }}>Select a letter to read that week's submissions.</p>
               </div>
             )}
 
