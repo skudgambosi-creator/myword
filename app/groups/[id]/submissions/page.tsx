@@ -4,14 +4,19 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
-function textPreview(html: string, maxChars: number) {
-  return html
-    .replace(/<br\s*\/?>/gi, ' ')
-    .replace(/<\/?(p|div|h[1-6]|li|blockquote)[^>]*>/gi, ' ')
-    .replace(/<[^>]*>/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, maxChars)
+function htmlPreview(html: string, maxParas: number): { preview: string; truncated: boolean } {
+  const grafs = (html.match(/<p[^>]*>[\s\S]*?<\/p>/gi) || [])
+    .map(p => p
+      .replace(/<\/?p[^>]*>/gi, '')
+      .replace(/<img[^>]*>/gi, '')
+      .replace(/<audio[^>]*>[\s\S]*?<\/audio>/gi, '')
+      .trim()
+    )
+    .filter(p => p.replace(/<[^>]+>/g, '').trim())
+  return {
+    preview: grafs.slice(0, maxParas).join('<br>'),
+    truncated: grafs.length > maxParas,
+  }
 }
 
 function AttachmentTags({ html }: { html: string }) {
@@ -186,9 +191,15 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
                         <div style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 8 }}>
                           {sub.word_title}
                         </div>
-                        <div style={{ fontSize: 13, color: '#555', lineHeight: 1.7 }}>
-                          {textPreview(sub.body_html, 300)}{sub.body_html.replace(/<[^>]*>/g, '').trim().length > 300 ? '…' : ''}
-                        </div>
+                        {(() => {
+                          const { preview, truncated } = htmlPreview(sub.body_html, 3)
+                          return (
+                            <div
+                              style={{ fontSize: 13, color: '#555', lineHeight: 1.8 }}
+                              dangerouslySetInnerHTML={{ __html: preview + (truncated ? '…' : '') }}
+                            />
+                          )
+                        })()}
                         <Link href={`/groups/${params.id}/submissions/${sub.week_id}/${sub.id}`}
                           style={{ fontSize: 12, marginTop: 10, display: 'inline-block' }}>
                           Read full piece →
