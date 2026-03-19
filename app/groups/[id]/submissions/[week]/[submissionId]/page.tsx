@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Nav from '@/components/layout/Nav'
+import ImageGallery from '@/components/ui/ImageGallery'
 
 export default async function SubmissionReadPage({
   params
@@ -97,11 +98,8 @@ export default async function SubmissionReadPage({
               Attachments
             </div>
             {images.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: audios.length > 0 ? 20 : 0 }}>
-                {images.map((src, i) => (
-                  <img key={i} src={src} alt={`Image ${i + 1}`}
-                    style={{ width: 140, height: 140, objectFit: 'cover', border: '1px solid #000', display: 'block' }} />
-                ))}
+              <div style={{ marginBottom: audios.length > 0 ? 20 : 0 }}>
+                <ImageGallery images={images} />
               </div>
             )}
             {audios.length > 0 && (
