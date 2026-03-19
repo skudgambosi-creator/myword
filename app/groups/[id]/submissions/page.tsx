@@ -19,9 +19,9 @@ function AttachmentTags({ html }: { html: string }) {
   const hasAudio = /<audio[\s>]/i.test(html)
   if (!hasImage && !hasAudio) return null
   return (
-    <span style={{ display: 'inline-flex', gap: 4, marginLeft: 6 }}>
-      {hasImage && <span className="tag" style={{ color: '#555', borderColor: '#aaa', fontSize: 9 }}>IMG</span>}
-      {hasAudio && <span className="tag" style={{ color: '#555', borderColor: '#aaa', fontSize: 9 }}>AUD</span>}
+    <span style={{ display: 'inline-flex', gap: 4 }}>
+      {hasImage && <span className="tag" style={{ color: '#2563eb', borderColor: '#93c5fd', background: '#eff6ff', fontSize: 9 }}>IMG</span>}
+      {hasAudio && <span className="tag" style={{ color: '#db2777', borderColor: '#f9a8d4', background: '#fdf2f8', fontSize: 9 }}>AUD</span>}
     </span>
   )
 }
@@ -181,12 +181,11 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
                     <div key={sub.id} className="submission-card">
                       <div className="submission-card-header">
                         {name && <span style={{ fontWeight: 'bold', fontSize: 13 }}>{name}</span>}
-                        <span style={{ marginLeft: 'auto', fontSize: 11, color: '#999' }}>{sub.word_count} words</span>
+                        <span style={{ marginLeft: 'auto' }}><AttachmentTags html={sub.body_html} /></span>
                       </div>
                       <div style={{ padding: '12px 16px' }}>
                         <div style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 8 }}>
                           {sub.word_title}
-                          <AttachmentTags html={sub.body_html} />
                         </div>
                         <div style={{ fontSize: 13, color: '#555', lineHeight: 1.7 }}>
                           {textPreview(sub.body_html, 300)}{sub.body_html.replace(/<[^>]*>/g, '').trim().length > 300 ? '…' : ''}
