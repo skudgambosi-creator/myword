@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email'
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
 export async function GET(req: NextRequest) {
   return POST(req)
 }
@@ -149,6 +151,7 @@ async function sendRevealEmail(week: any, group: any, submissions: any[], member
   const memberEmails = members.map(m => (m.users as any)?.email).filter(Boolean)
 
   for (const email of memberEmails) {
+    await sleep(600)
     await sendEmail({
       to: email,
       subject: `The Alphabet Project — ${week.letter}`,
@@ -203,6 +206,7 @@ async function sendFinalEmail(supabase: any, week: any, group: any, members: any
   ).join('')
 
   for (const email of memberEmails) {
+    await sleep(600)
     await sendEmail({
       to: email,
       subject: `MY WORD — A to Z. We made it.`,

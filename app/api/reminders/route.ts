@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email'
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
 export async function GET(req: NextRequest) {
   return POST(req)
 }
@@ -71,6 +73,7 @@ export async function POST(req: NextRequest) {
         last: `Letter <strong>${week.letter}</strong> closes tonight at 23:59. This is your last chance to submit.`,
       }
 
+      await sleep(600)
       await sendEmail({
         to: user.email,
         subject: subjects[reminderType],
