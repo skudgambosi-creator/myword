@@ -41,6 +41,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   const [memberCount, setMemberCount] = useState(0)
   const [submissionCount, setSubmissionCount] = useState(0)
   const [myStats, setMyStats] = useState<{ total: number; rank: number; streak: number; weeksElapsed: number } | null>(null)
+  const [nextWeek, setNextWeek] = useState<any>(null)
 
   useEffect(() => {
     const init = async () => {
@@ -69,6 +70,14 @@ export default function GroupPage({ params }: { params: { id: string } }) {
         .gte('closes_at', now)
         .order('week_num', { ascending: false }).limit(1).single()
       setCurrentWeek(week)
+
+      if (!week) {
+        const { data: upcoming } = await supabase
+          .from('weeks').select('*').eq('group_id', params.id)
+          .gt('opens_at', now)
+          .order('week_num', { ascending: true }).limit(1).single()
+        setNextWeek(upcoming)
+      }
 
       if (week) {
         // My submission
@@ -229,13 +238,35 @@ export default function GroupPage({ params }: { params: { id: string } }) {
             </div>
           )}
 
-          {!currentWeek && !isCompleted && (
+          {!currentWeek && !isCompleted && nextWeek && nextWeek.week_num === 1 && (
             <div className="box">
               <div className="box-header">AWAITING START</div>
               <div style={{ padding: '16px 0 0', fontSize: 14, color: '#555' }}>
                 The project starts on {new Date(group.start_date).toLocaleDateString('en-GB', {
                   weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
                 })}. Week 1 will be Letter A.
+              </div>
+            </div>
+          )}
+
+          {!currentWeek && !isCompleted && nextWeek && nextWeek.week_num > 1 && (
+            <div className="box">
+              <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#999', marginBottom: 4 }}>
+                    Week {nextWeek.week_num} of 26
+                  </div>
+                  <span style={{ fontSize: 140, fontWeight: 'bold', lineHeight: 1, color: '#CC0000', display: 'block' }}>
+                    {nextWeek.letter}
+                  </span>
+                </div>
+                <div style={{ flex: 1, paddingTop: 8 }}>
+                  <div className="section-header">Submission opens in</div>
+                  <Countdown closesAt={nextWeek.opens_at} />
+                  <div style={{ fontSize: 13, color: '#555', marginTop: 16 }}>
+                    Opens {new Date(nextWeek.opens_at).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -291,14 +322,15 @@ export default function GroupPage({ params }: { params: { id: string } }) {
           </div>
 
           {/* 3. Progress */}
-          {currentWeek && (
+          {(currentWeek || nextWeek) && (
             <div className="box">
               <div className="section-header">Progress</div>
               <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 8 }}>
                 {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter, i) => {
                   const weekNum = i + 1
-                  const isPast = weekNum < currentWeek.week_num
-                  const isCurrent = weekNum === currentWeek.week_num
+                  const activeWeek = currentWeek || nextWeek
+                  const isPast = weekNum < activeWeek.week_num
+                  const isCurrent = weekNum === activeWeek.week_num
                   return (
                     <div key={letter} style={{
                       width: 28, height: 28,
