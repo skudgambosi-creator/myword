@@ -29,8 +29,7 @@ export default async function SubmissionReadPage({
   const isRevealed = sub.weeks?.revealed_at && new Date(sub.weeks.revealed_at) < new Date()
   if (!isOwn && !isRevealed) redirect(`/groups/${params.id}/submissions`)
 
-  const authorName = sub.is_signed
-    ? (sub.signed_name || `Member #${sub.users?.member_number}`) : `Member #${sub.users?.member_number}`
+  const authorName = sub.is_signed ? sub.signed_name : null
 
   function extractMedia(html: string) {
     const images: string[] = []
@@ -69,8 +68,8 @@ export default async function SubmissionReadPage({
                 {sub.word_title}
               </h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 13, fontWeight: 'bold' }}>{authorName}</span>
-                <span style={{ fontSize: 11, color: '#999' }}>·</span>
+                {authorName && <span style={{ fontSize: 13, fontWeight: 'bold' }}>{authorName}</span>}
+                {authorName && <span style={{ fontSize: 11, color: '#999' }}>·</span>}
                 <span style={{ fontSize: 11, color: '#666' }}>
                   Week {sub.weeks?.week_num} of 26
                 </span>

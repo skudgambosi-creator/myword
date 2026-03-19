@@ -167,12 +167,11 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
                 ) : (
                   <div style={{ display: 'grid', gap: 16 }}>
                     {submissions.map(sub => {
-                      const name = sub.is_signed
-                        ? (sub.signed_name || `Member #${sub.users?.member_number}`) : `Member #${sub.users?.member_number}`
+                      const name = sub.is_signed ? sub.signed_name : null
                       return (
                         <div key={sub.id} className="submission-card">
                           <div className="submission-card-header">
-                            <span style={{ fontWeight: 'bold', fontSize: 13 }}>{name}</span>
+                            {name && <span style={{ fontWeight: 'bold', fontSize: 13 }}>{name}</span>}
                             <span style={{ marginLeft: 'auto', fontSize: 11, color: '#999' }}>{sub.word_count} words</span>
                           </div>
                           <div style={{ padding: '12px 16px' }}>
