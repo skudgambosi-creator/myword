@@ -5,7 +5,13 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 function textPreview(html: string, maxChars: number) {
-  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, maxChars)
+  return html
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<\/?(p|div|h[1-6]|li|blockquote)[^>]*>/gi, ' ')
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, maxChars)
 }
 
 function AttachmentTags({ html }: { html: string }) {
