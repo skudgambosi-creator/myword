@@ -60,7 +60,7 @@ async function revealWeek(supabase: any, week: any, group: any) {
       week_id: week.id,
       score: sub ? 1 : 0,
       is_late: false,
-    })
+    }, { onConflict: 'group_id,user_id,week_id' })
   }
 
   if (week.week_num === 26) {
