@@ -104,7 +104,7 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
       return setError(`Your word title must begin with the letter ${letter}.`)
     }
     if (wordCount < 5) return setError('Minimum 5 words required.')
-    if (wordCount > 1000) return setError('Maximum 1,000 words.')
+    if (wordCount > 2000) return setError('Maximum 2,000 words.')
     setShowSignScreen(true)
   }
 
@@ -170,7 +170,7 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
               {letter}
             </div>
             <div style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 6 }}>{wordTitle}</div>
-            <div style={{ fontSize: 13, color: '#999' }}>{wordCount} words</div>
+            <div style={{ fontSize: 13, color: '#999' }}>{wordCount} / 2,000 words</div>
             {(galleryImages.length > 0 || galleryAudios.length > 0) && (
               <div style={{ marginTop: 14, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 6 }}>
                 {galleryImages.map((src, i) => (
@@ -317,12 +317,12 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
         )}
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <span style={{ fontSize: 12, color: wordCount < 5 ? '#CC0000' : wordCount > 1000 ? '#CC0000' : '#666' }}>
-            {wordCount} / 1,000 words
+          <span style={{ fontSize: 12, color: wordCount < 5 ? '#CC0000' : wordCount > 2000 ? '#CC0000' : '#666' }}>
+            {wordCount} / 2,000 words
             {wordCount < 5 && wordCount > 0 && ' — minimum 5 words'}
-            {wordCount > 1000 && ' — over limit'}
+            {wordCount > 2000 && ' — over limit'}
           </span>
-          {wordCount >= 5 && wordCount <= 1000 && (
+          {wordCount >= 5 && wordCount <= 2000 && (
             <span style={{ fontSize: 12, color: '#006600' }}>✓ Word count OK</span>
           )}
         </div>

@@ -62,15 +62,15 @@ export async function POST(req: NextRequest) {
       const submitUrl = `${process.env.NEXT_PUBLIC_APP_URL}/groups/${group.id}/submit`
 
       const subjects: Record<string, string> = {
-        first: `My Word — Letter ${week.letter} is open. Submit by Tuesday.`,
-        second: `My Word — Letter ${week.letter} — 2 days remaining`,
-        last: `My Word — Last chance: Letter ${week.letter} closes tonight`,
+        first: `My Word — Letter ${week.letter} is open. Submit by Wednesday.`,
+        second: `My Word — Letter ${week.letter} — 3 days remaining`,
+        last: `My Word — Last chance: Letter ${week.letter} closes tomorrow`,
       }
 
       const bodies: Record<string, string> = {
-        first: `Week ${week.week_num} of 26 is open. This week's letter is <strong>${week.letter}</strong>.<br><br>You have until Tuesday 23:59 to submit.`,
-        second: `Just a reminder — Letter <strong>${week.letter}</strong> is still open. You have 2 days left.`,
-        last: `Letter <strong>${week.letter}</strong> closes tonight at 23:59. This is your last chance to submit.`,
+        first: `Week ${week.week_num} of 26 is open. This week's letter is <strong>${week.letter}</strong>.<br><br>You have until Wednesday 23:59 to submit.`,
+        second: `Just a reminder — Letter <strong>${week.letter}</strong> is still open. You have 3 days left.`,
+        last: `Letter <strong>${week.letter}</strong> closes tomorrow at 23:59. This is your last chance to submit.`,
       }
 
       await sleep(600)

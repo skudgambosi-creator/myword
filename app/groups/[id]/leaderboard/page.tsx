@@ -53,8 +53,7 @@ export default function LeaderboardPage({ params }: { params: { id: string } }) 
           else break
         }
 
-        const name = user?.identity_mode === 'anonymous'
-          ? `No-name ${user?.noname_number}` : user?.display_name
+        const name = `Member #${user?.member_number}`
 
         return { user, name, total, streak, userId: m.user_id }
       }).sort((a: any, b: any) => b.total - a.total || b.streak - a.streak)
@@ -72,8 +71,7 @@ export default function LeaderboardPage({ params }: { params: { id: string } }) 
     </div>
   )
 
-  const displayName = profile?.identity_mode === 'anonymous'
-    ? `No-name ${profile.noname_number}` : profile?.display_name
+  const displayName = `Member #${profile?.member_number}`
 
   return (
     <div style={{ minHeight: '100vh' }}>
