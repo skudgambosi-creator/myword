@@ -311,7 +311,7 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
       <div className="page-container" style={{ paddingTop: 40, paddingBottom: 60 }}>
 
         {/* Title + toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <div className="submissions-header">
           <h1 className="page-title" style={{ margin: 0 }}>Submissions</h1>
           <div style={{ display: 'flex', border: '2px solid #000', overflow: 'hidden' }}>
             <button onClick={() => setView('az')} style={toggleBtn(view === 'az', false)}>A–Z</button>
