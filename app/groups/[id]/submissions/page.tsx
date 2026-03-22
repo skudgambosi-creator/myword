@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -40,6 +40,13 @@ function SubmissionCard({
   const { preview } = htmlPreview(sub.body_html, 8)
   const hasVoted = userVotedThisWeek !== null
   const isMyVote = userVotedThisWeek === sub.id
+  const contentRef = useRef<HTMLDivElement>(null)
+  const [isOverflowing, setIsOverflowing] = useState(false)
+
+  useEffect(() => {
+    const el = contentRef.current
+    if (el) setIsOverflowing(el.scrollHeight > el.clientHeight)
+  }, [preview])
 
   return (
     <div className="submission-card">
@@ -70,17 +77,19 @@ function SubmissionCard({
         </span>
       </div>
       <div style={{ padding: '12px 16px' }}>
-        <div style={{ position: 'relative', maxHeight: 150, overflow: 'hidden' }}>
+        <div ref={contentRef} style={{ position: 'relative', maxHeight: 150, overflow: 'hidden' }}>
           <div
             className="submission-card-body"
             style={{ padding: '0 16px', fontSize: 13 }}
             dangerouslySetInnerHTML={{ __html: preview }}
           />
-          <div style={{
-            position: 'absolute', bottom: 0, left: 0, right: 0, height: 60,
-            background: 'linear-gradient(to bottom, transparent, #fff)',
-            pointerEvents: 'none',
-          }} />
+          {isOverflowing && (
+            <div style={{
+              position: 'absolute', bottom: 0, left: 0, right: 0, height: 60,
+              background: 'linear-gradient(to bottom, transparent, #fff)',
+              pointerEvents: 'none',
+            }} />
+          )}
         </div>
         <Link
           href={`/groups/${groupId}/submissions/${sub.week_id}/${sub.id}`}
@@ -302,7 +311,7 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
       <div className="page-container" style={{ paddingTop: 40, paddingBottom: 60 }}>
 
         {/* Title + toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
           <h1 className="page-title" style={{ margin: 0 }}>Submissions</h1>
           <div style={{ display: 'flex', border: '2px solid #000', overflow: 'hidden' }}>
             <button onClick={() => setView('az')} style={toggleBtn(view === 'az', false)}>A–Z</button>
@@ -311,6 +320,9 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
             <button onClick={switchToFavourite} style={toggleBtn(view === 'favourite')}>Favourite</button>
           </div>
         </div>
+        <p style={{ fontSize: 11, color: '#999', fontStyle: 'italic', textAlign: 'right', marginBottom: 24 }}>
+          Pick your favourite by hearting it! One time only.
+        </p>
 
         {/* A-Z VIEW */}
         {view === 'az' && (
