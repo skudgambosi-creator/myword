@@ -38,7 +38,6 @@ function SubmissionCard({
 }) {
   const name = sub.is_signed ? sub.signed_name : null
   const { preview } = htmlPreview(sub.body_html, 8)
-  const hasVoted = userVotedThisWeek !== null
   const isMyVote = userVotedThisWeek === sub.id
   const contentRef = useRef<HTMLDivElement>(null)
   const [isOverflowing, setIsOverflowing] = useState(false)
@@ -58,13 +57,13 @@ function SubmissionCard({
           <AttachmentTags html={sub.body_html} />
           {onFavourite && (
             <button
-              onClick={() => !hasVoted && onFavourite(sub.id, sub.week_id)}
-              title={isMyVote ? 'Your favourite' : hasVoted ? 'Already voted this week' : 'Mark as favourite'}
+              onClick={() => onFavourite(sub.id, sub.week_id)}
+              title={isMyVote ? 'Remove favourite' : 'Mark as favourite'}
               style={{
                 background: 'none',
                 border: 'none',
-                cursor: hasVoted ? 'default' : 'pointer',
-                color: isMyVote ? '#CC0000' : hasVoted ? '#ccc' : '#999',
+                cursor: 'pointer',
+                color: isMyVote ? '#CC0000' : '#999',
                 fontSize: 16,
                 padding: '0 2px',
                 lineHeight: 1,
@@ -259,14 +258,30 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
 
   const handleFavourite = async (submissionId: string, weekId: string) => {
     if (!userId) return
-    const { error } = await supabase.from('favourites').insert({
-      group_id: params.id,
-      user_id: userId,
-      submission_id: submissionId,
-      week_id: weekId,
-    })
-    if (!error) {
-      setMyFavourites(prev => ({ ...prev, [weekId]: submissionId }))
+    const currentVote = myFavourites[weekId]
+
+    if (currentVote === submissionId) {
+      // Un-favourite: remove the existing vote
+      const { error } = await supabase.from('favourites').delete()
+        .eq('user_id', userId).eq('week_id', weekId).eq('group_id', params.id)
+      if (!error) {
+        setMyFavourites(prev => { const next = { ...prev }; delete next[weekId]; return next })
+      }
+    } else {
+      // Switch or new favourite: delete any existing vote for this week, then insert
+      if (currentVote) {
+        await supabase.from('favourites').delete()
+          .eq('user_id', userId).eq('week_id', weekId).eq('group_id', params.id)
+      }
+      const { error } = await supabase.from('favourites').insert({
+        group_id: params.id,
+        user_id: userId,
+        submission_id: submissionId,
+        week_id: weekId,
+      })
+      if (!error) {
+        setMyFavourites(prev => ({ ...prev, [weekId]: submissionId }))
+      }
     }
   }
 
@@ -321,7 +336,7 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
           </div>
         </div>
         <p style={{ fontSize: 11, color: '#999', fontStyle: 'italic', textAlign: 'right', marginBottom: 24 }}>
-          Pick your favourite by hearting it! One time only.
+          Pick your favourite piece from each letter by hearting it.
         </p>
 
         {/* A-Z VIEW */}
