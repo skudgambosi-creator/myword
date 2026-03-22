@@ -7,6 +7,8 @@ import TextAlign from '@tiptap/extension-text-align'
 import Image from '@tiptap/extension-image'
 import BulletList from '@tiptap/extension-bullet-list'
 import ListItem from '@tiptap/extension-list-item'
+import Color from '@tiptap/extension-color'
+import TextStyle from '@tiptap/extension-text-style'
 import { createClient } from '@/lib/supabase/client'
 import { useRef, useState } from 'react'
 
@@ -58,6 +60,8 @@ export default function Editor({
       BulletList,
       ListItem,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      TextStyle,
+      Color,
       Image.configure({ inline: true, allowBase64: false }),
       AudioNode,
     ],
@@ -132,6 +136,19 @@ export default function Editor({
           isActive={editor.isActive('underline')} title="Underline"><u>U</u></ToolbarButton>
         <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()}
           isActive={editor.isActive('bulletList')} title="Bullet list">≡</ToolbarButton>
+
+        <span style={{ borderLeft: '1px solid #ccc', margin: '0 4px' }} />
+
+        <ToolbarButton
+          onClick={() => editor.chain().focus().unsetColor().run()}
+          isActive={!editor.isActive('textStyle', { color: '#CC0000' })}
+          title="Black text"
+        ><span style={{ color: '#000' }}>A</span></ToolbarButton>
+        <ToolbarButton
+          onClick={() => editor.chain().focus().setColor('#CC0000').run()}
+          isActive={editor.isActive('textStyle', { color: '#CC0000' })}
+          title="Red text"
+        ><span style={{ color: '#CC0000' }}>A</span></ToolbarButton>
 
         <span style={{ borderLeft: '1px solid #ccc', margin: '0 4px' }} />
 
