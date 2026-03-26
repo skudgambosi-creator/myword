@@ -74,6 +74,23 @@ async function revealWeek(supabase: any, week: any, group: any) {
     return
   }
 
+  // Auto-open next week immediately if it hasn't started yet
+  const { data: nextWeek } = await supabase
+    .from('weeks')
+    .select('id, opens_at')
+    .eq('group_id', group.id)
+    .eq('week_num', week.week_num + 1)
+    .single()
+
+  if (nextWeek && new Date(nextWeek.opens_at) > new Date()) {
+    const opensAt = new Date()
+    const closesAt = new Date(opensAt.getTime() + 7 * 24 * 60 * 60 * 1000)
+    await supabase
+      .from('weeks')
+      .update({ opens_at: opensAt.toISOString(), closes_at: closesAt.toISOString() })
+      .eq('id', nextWeek.id)
+  }
+
   await sendRevealEmail(week, group, submissions || [], members || [])
 }
 

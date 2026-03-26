@@ -62,6 +62,21 @@ Check status: Vercel → Settings → Crons
 
 ## Key SQL commands (run in Supabase SQL editor)
 
+**Fix a week gap (e.g. if week N closed but week N+1 hasn't opened yet):**
+```sql
+UPDATE weeks
+SET opens_at = now(), closes_at = now() + interval '7 days'
+WHERE group_id = '00000000-0000-0000-0000-000000000001' AND week_num = <N+1>;
+```
+Note: as of the March 2026 fix, the reveal cron now does this automatically — when it reveals week N it immediately opens week N+1 if it hasn't started yet. You should only need this SQL if the cron fails or you're fixing a one-off.
+
+**Immediate fix for week C (March 2026 incident):**
+```sql
+UPDATE weeks
+SET opens_at = now(), closes_at = now() + interval '7 days'
+WHERE group_id = '00000000-0000-0000-0000-000000000001' AND week_num = 3;
+```
+
 Set week A close date:
 ```sql
 UPDATE weeks SET closes_at = '2026-03-18T23:59:00Z'
