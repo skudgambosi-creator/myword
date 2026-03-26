@@ -448,90 +448,161 @@ a:hover {
   font-size: 18px;
 }
 
-/* ── FILE CABINET ── */
-.file-cabinet {
-  border: 2px solid #000;
-  overflow: hidden;
-}
-.file-strip-row {
+/* ── FILING CABINET ── */
+
+/* Outer container */
+.cabinet {
   display: flex;
-  align-items: stretch;
-  border-bottom: 1px solid #ddd;
+  flex-direction: column;
+  gap: 0;
 }
-.file-strip-row:last-child {
+
+/* One letter's folder */
+.folder-section {
+  margin-bottom: 6px;
+}
+
+/* The tab wrapper — positioned to one of 4 horizontal slots */
+.folder-tab-wrap {
+  display: flex;
+}
+.folder-tab-slot-0 { padding-left: 0; }
+.folder-tab-slot-1 { padding-left: 80px; }
+.folder-tab-slot-2 { padding-left: 180px; }
+.folder-tab-slot-3 { padding-left: 290px; }
+
+/* The tab itself */
+.folder-tab {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  background: #f5f5e0;
+  border: 1px solid #bbb;
   border-bottom: none;
+  padding: 5px 16px 6px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  position: relative;
+  z-index: 1;
+  /* connects seamlessly to the folder body below */
 }
-.file-strip-link {
-  flex: 1;
+.folder-tab.open {
+  background: #f5f5e0;
+}
+.folder-tab:hover {
+  background: #efefd0;
+}
+.folder-tab-letter {
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 0.06em;
+}
+.folder-tab-count {
+  font-size: 10px;
+  color: #999;
+  font-weight: normal;
+}
+
+/* Thin collapsed drawer — visible when folder is shut */
+.folder-closed {
+  height: 5px;
+  background: #ebebd8;
+  border: 1px solid #bbb;
+  border-top: none;
+}
+
+/* Open folder body */
+.folder-body {
+  background: #f5f5e0;
+  border: 1px solid #bbb;
+  border-top: none;
+  padding: 20px 20px 24px 20px;
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Single submission entry within an open folder */
+.folder-entry {
+  max-width: 680px;
+}
+.folder-entry-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.folder-entry-link {
+  flex: 1;
   text-decoration: none;
   color: inherit;
   min-width: 0;
 }
-.file-strip-link:hover {
-  background: #000;
-  color: #fff;
-  text-decoration: none;
+.folder-entry-link:hover .folder-entry-name {
+  text-decoration: underline;
 }
-.file-strip-link:hover .file-strip-meta {
-  color: #aaa;
-}
-.file-strip-link:hover .file-strip-fav-dot {
-  color: #ff8080;
-}
-.file-strip-title {
-  flex: 1;
-  font-weight: bold;
-  font-size: 13px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.file-strip-meta {
+.folder-entry-title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 5px;
+}
+.folder-entry-name {
+  font-weight: bold;
+  font-size: 13px;
+}
+.folder-entry-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   flex-shrink: 0;
-  font-size: 11px;
-  color: #666;
 }
-.file-strip-fav-dot {
+.folder-fav-mark {
   color: var(--accent);
+  font-size: 11px;
+}
+.folder-entry-preview {
   font-size: 12px;
+  color: #666;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
-.file-strip-signed {
-  font-style: italic;
-}
-.file-strip-arrow {
-  color: #999;
-}
-.file-strip-vote {
+.folder-vote-btn {
   background: none;
   border: none;
-  border-left: 1px solid #e0e0e0;
   cursor: pointer;
-  color: #ccc;
   font-size: 15px;
-  padding: 10px 14px;
+  padding: 0 2px;
+  color: #ccc;
   line-height: 1;
   font-family: inherit;
   flex-shrink: 0;
+  margin-top: 1px;
 }
-.file-strip-vote.voted {
+.folder-vote-btn.voted {
   color: var(--accent);
 }
-.file-strip-vote:hover {
+.folder-vote-btn:hover {
   color: var(--accent);
 }
-@media (max-width: 480px) {
-  .file-strip-signed {
-    display: none;
+
+/* Mobile — remove tab stagger, tighten indents */
+@media (max-width: 640px) {
+  .folder-tab-slot-0,
+  .folder-tab-slot-1,
+  .folder-tab-slot-2,
+  .folder-tab-slot-3 {
+    padding-left: 0;
   }
-  .file-strip-wordcount {
-    display: none;
+  .folder-entry {
+    margin-left: 0 !important;
+  }
+  .folder-body {
+    padding: 16px 14px 20px;
+    gap: 18px;
   }
 }
 
