@@ -450,130 +450,83 @@ a:hover {
 
 /* ── FILING CABINET ── */
 
-.cabinet {
+.file-cabinet {
+  border: 2px solid #000;
+  overflow: hidden;
+}
+
+/* Full-width black letter header */
+.cabinet-letter-tab {
+  background: #000;
+  color: #fff;
+  padding: 7px 16px;
   display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-/* One letter section */
-.folder-section {
-  margin-bottom: 5px;
-}
-
-/* Tab wrapper — staggered horizontal slots */
-.folder-tab-wrap { display: flex; }
-.folder-tab-slot-0 { padding-left: 0; }
-.folder-tab-slot-1 { padding-left: 90px; }
-.folder-tab-slot-2 { padding-left: 200px; }
-.folder-tab-slot-3 { padding-left: 320px; }
-
-/* The tab */
-.folder-tab {
-  display: inline-flex;
   align-items: baseline;
-  gap: 8px;
-  background: #f0edd5;
-  border: 1px solid #b8b49a;
-  border-bottom: none;
-  padding: 5px 18px 6px;
-  cursor: pointer;
-  font-family: var(--font-mono);
-  position: relative;
-  z-index: 1;
-  transition: background 0.1s;
+  gap: 10px;
 }
-.folder-tab:hover,
-.folder-tab.open {
-  background: #e8e4c8;
-}
-.folder-tab-letter {
-  font-size: 14px;
+.cabinet-letter {
+  font-size: 15px;
   font-weight: bold;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
 }
-.folder-tab-count {
+.cabinet-count {
   font-size: 10px;
-  color: #999;
-  font-weight: normal;
+  color: #777;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
-/* Closed state — thin strip below the tab */
-.folder-closed {
-  height: 4px;
-  background: #e8e4c8;
-  border: 1px solid #b8b49a;
-  border-top: none;
+/* Individual file strip */
+.file-strip-row {
+  border-bottom: 1px solid #e0e0e0;
 }
-
-/* Open folder body */
-.folder-body {
-  background: #f0edd5;
-  border: 1px solid #b8b49a;
-  border-top: none;
-  padding: 18px 20px 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+.file-strip-row:last-child {
+  border-bottom: none;
 }
-
-/* ── ENTRY ROW (shared by cabinet + flat list) ── */
-
-.entry-row {
-  /* no additional spacing needed — parent gap handles it */
-}
-.entry-row-main {
+.file-strip-main {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  padding: 9px 14px;
   flex-wrap: wrap;
 }
-
-/* White title flag/tag */
-.entry-tag {
-  background: #fff;
-  border: 1px solid #bbb;
-  padding: 3px 10px;
-  font-size: 12px;
+.file-strip-title {
   font-weight: bold;
-  font-family: var(--font-mono);
-  letter-spacing: 0.03em;
-  white-space: nowrap;
+  font-size: 13px;
+  flex-shrink: 0;
 }
-
-/* Badges next to the tag */
-.entry-badges {
+.file-strip-badges {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   font-size: 11px;
   color: #666;
 }
-.entry-fav-mark {
+.file-strip-fav {
   color: var(--accent);
   font-size: 11px;
 }
-.entry-author {
+.file-strip-author {
   font-style: italic;
   font-size: 11px;
   color: #888;
 }
 
 /* Peek / Open buttons */
-.entry-actions {
+.file-strip-actions {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   margin-left: auto;
 }
-.entry-action-btn {
+.strip-btn {
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   background: none;
-  border: 1px solid #bbb;
+  border: 1px solid #ccc;
   padding: 2px 9px;
   cursor: pointer;
   color: #555;
@@ -581,8 +534,8 @@ a:hover {
   display: inline-block;
   line-height: 1.6;
 }
-.entry-action-btn:hover,
-.entry-action-btn.active {
+.strip-btn:hover,
+.strip-btn.active {
   background: #000;
   color: #fff;
   border-color: #000;
@@ -590,7 +543,7 @@ a:hover {
 }
 
 /* Heart vote button */
-.entry-vote-btn {
+.strip-vote-btn {
   background: none;
   border: none;
   cursor: pointer;
@@ -599,59 +552,25 @@ a:hover {
   color: #ccc;
   font-family: inherit;
   line-height: 1;
+  margin-left: 2px;
 }
-.entry-vote-btn.voted { color: var(--accent); }
-.entry-vote-btn:hover { color: var(--accent); }
+.strip-vote-btn.voted { color: var(--accent); }
+.strip-vote-btn:hover { color: var(--accent); }
 
-/* Peek panel */
-.entry-peek-panel {
-  margin-top: 8px;
-  padding: 12px 16px;
-  background: #fff;
-  border: 1px solid #ccc;
+/* Inline peek panel */
+.strip-peek-panel {
+  border-top: 1px solid #e8e8e8;
   border-left: 3px solid #000;
+  background: #fafafa;
   font-size: 13px;
-  line-height: 1.75;
+  line-height: 1.8;
+  padding: 14px 20px !important;
 }
 
-/* ── FLAT LIST (Mine + Favourite views) ── */
-
-.flat-list {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-}
-.flat-list-group {}
-.flat-list-letter {
-  font-size: 32px;
-  font-weight: bold;
-  color: var(--black);
-  line-height: 1;
-  margin-bottom: 10px;
-  padding-bottom: 6px;
-  border-bottom: 2px solid #000;
-}
-.flat-list-entries {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-left: 4px;
-}
-
-/* Mobile adjustments */
-@media (max-width: 640px) {
-  .folder-tab-slot-0,
-  .folder-tab-slot-1,
-  .folder-tab-slot-2,
-  .folder-tab-slot-3 {
-    padding-left: 0;
-  }
-  .folder-body {
-    padding: 14px 14px 18px;
-  }
-  /* Entry indents zero'd in folder body on mobile via inline style override */
-  .entry-actions {
+@media (max-width: 480px) {
+  .file-strip-actions {
     margin-left: 0;
+    flex-basis: 100%;
   }
 }
 
