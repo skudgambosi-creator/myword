@@ -4,22 +4,92 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
-// Tab horizontal positions — cycle through 4 slots across the cabinet width
-const TAB_SLOTS = [0, 1, 2, 3]
-
-// Content indent within an open folder — gives the irregular filing cabinet look
+// Tab horizontal positions — 4 slots cycling across the cabinet
 const ENTRY_INDENTS = [0, 48, 24, 64, 12, 40, 28, 56, 8, 36]
 
-function MediaTags({ html, small }: { html: string; small?: boolean }) {
+function peekContent(html: string): string {
+  const cleaned = (html || '')
+    .replace(/<img[^>]*>/gi, '')
+    .replace(/<audio[^>]*>[\s\S]*?<\/audio>/gi, '')
+  const grafs = cleaned.match(/<p[^>]*>[\s\S]*?<\/p>/gi) || []
+  const nonEmpty = grafs.filter(p => p.replace(/<[^>]+>/g, '').trim())
+  return nonEmpty.slice(0, 2).join('')
+}
+
+function MediaBadges({ html }: { html: string }) {
   const hasImage = /<img[\s>]/i.test(html)
   const hasAudio = /<audio[\s>]/i.test(html)
   if (!hasImage && !hasAudio) return null
-  const sz = small ? 8 : 9
   return (
     <span style={{ display: 'inline-flex', gap: 3 }}>
-      {hasImage && <span className="tag" style={{ fontSize: sz }}>IMG</span>}
-      {hasAudio && <span className="tag" style={{ fontSize: sz }}>AUD</span>}
+      {hasImage && <span className="tag" style={{ fontSize: 8 }}>IMG</span>}
+      {hasAudio && <span className="tag" style={{ fontSize: 8 }}>AUD</span>}
     </span>
+  )
+}
+
+function EntryRow({
+  sub, groupId, isFav, isMyVote, onFavourite,
+}: {
+  sub: any
+  groupId: string
+  isFav: boolean
+  isMyVote: boolean
+  onFavourite?: (submissionId: string, weekId: string) => void
+}) {
+  const [peeked, setPeeked] = useState(false)
+  const peek = peekContent(sub.body_html)
+
+  return (
+    <div className="entry-row">
+      <div className="entry-row-main">
+        {/* White title tag */}
+        <span className="entry-tag">{sub.word_title}</span>
+
+        {/* Inline badges */}
+        <span className="entry-badges">
+          <MediaBadges html={sub.body_html} />
+          {isFav && <span className="entry-fav-mark">♥</span>}
+          {sub.is_signed && sub.signed_name && (
+            <span className="entry-author">{sub.signed_name}</span>
+          )}
+        </span>
+
+        {/* Actions */}
+        <span className="entry-actions">
+          {peek && (
+            <button
+              onClick={() => setPeeked(v => !v)}
+              className={`entry-action-btn${peeked ? ' active' : ''}`}
+            >
+              {peeked ? 'Close' : 'Peek'}
+            </button>
+          )}
+          <Link
+            href={`/groups/${groupId}/submissions/${sub.week_id}/${sub.id}`}
+            className="entry-action-btn"
+          >
+            Open
+          </Link>
+          {onFavourite && (
+            <button
+              onClick={() => onFavourite(sub.id, sub.week_id)}
+              title={isMyVote ? 'Remove favourite' : 'Mark as favourite'}
+              className={`entry-vote-btn${isMyVote ? ' voted' : ''}`}
+            >
+              {isMyVote ? '♥' : '♡'}
+            </button>
+          )}
+        </span>
+      </div>
+
+      {peeked && peek && (
+        <div
+          className="entry-peek-panel submission-card-body"
+          dangerouslySetInnerHTML={{ __html: peek }}
+        />
+      )}
+    </div>
   )
 }
 
@@ -38,7 +108,6 @@ function FolderSection({
 
   return (
     <div className="folder-section">
-      {/* Tab protruding above the folder */}
       <div className={`folder-tab-wrap folder-tab-slot-${tabSlot}`}>
         <button
           className={`folder-tab${open ? ' open' : ''}`}
@@ -50,48 +119,55 @@ function FolderSection({
         </button>
       </div>
 
-      {/* Folder body — expands on click */}
       {open ? (
         <div className="folder-body">
-          {subs.map((sub, i) => {
-            const indent = ENTRY_INDENTS[i % ENTRY_INDENTS.length]
-            const isFav = communityFavourites[sub.week_id] === sub.id
-            const isMyVote = myFavourites[sub.week_id] === sub.id
-            return (
-              <div key={sub.id} className="folder-entry" style={{ marginLeft: indent }}>
-                <div className="folder-entry-inner">
-                  <Link
-                    href={`/groups/${groupId}/submissions/${sub.week_id}/${sub.id}`}
-                    className="folder-entry-link"
-                  >
-                    <div className="folder-entry-title">
-                      <span className="folder-entry-name">{sub.word_title}</span>
-                      <span className="folder-entry-badges">
-                        <MediaTags html={sub.body_html} small />
-                        {isFav && <span className="folder-fav-mark">♥</span>}
-                        {sub.is_signed && sub.signed_name && (
-                          <span className="folder-entry-author">{sub.signed_name}</span>
-                        )}
-                      </span>
-                    </div>
-                  </Link>
-                  {onFavourite && (
-                    <button
-                      onClick={() => onFavourite(sub.id, sub.week_id)}
-                      title={isMyVote ? 'Remove favourite' : 'Mark as favourite'}
-                      className={`folder-vote-btn${isMyVote ? ' voted' : ''}`}
-                    >
-                      {isMyVote ? '♥' : '♡'}
-                    </button>
-                  )}
-                </div>
-              </div>
-            )
-          })}
+          {subs.map((sub, i) => (
+            <div key={sub.id} style={{ marginLeft: ENTRY_INDENTS[i % ENTRY_INDENTS.length] }}>
+              <EntryRow
+                sub={sub}
+                groupId={groupId}
+                isFav={communityFavourites[sub.week_id] === sub.id}
+                isMyVote={myFavourites[sub.week_id] === sub.id}
+                onFavourite={onFavourite}
+              />
+            </div>
+          ))}
         </div>
       ) : (
         <div className="folder-closed" />
       )}
+    </div>
+  )
+}
+
+// Flat list with simple letter dividers — used for Mine and Favourite views
+function FlatList({
+  subs, groupId, communityFavourites, myFavourites,
+}: {
+  subs: any[]
+  groupId: string
+  communityFavourites: Record<string, string>
+  myFavourites: Record<string, string>
+}) {
+  const groups = buildWeekGroups(subs)
+  return (
+    <div className="flat-list">
+      {groups.map(({ week, subs: weekSubs }) => (
+        <div key={week?.id} className="flat-list-group">
+          <div className="flat-list-letter">{week?.letter}</div>
+          <div className="flat-list-entries">
+            {weekSubs.map(sub => (
+              <EntryRow
+                key={sub.id}
+                sub={sub}
+                groupId={groupId}
+                isFav={communityFavourites[sub.week_id] === sub.id}
+                isMyVote={myFavourites[sub.week_id] === sub.id}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
@@ -121,7 +197,9 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
   const [loadingMine, setLoadingMine] = useState(false)
   const [mineFetched, setMineFetched] = useState(false)
 
+  // User's own vote per week
   const [myFavourites, setMyFavourites] = useState<Record<string, string>>({})
+  // Group-wide top pick per week (all members' votes aggregated)
   const [communityFavourites, setCommunityFavourites] = useState<Record<string, string>>({})
 
   useEffect(() => {
@@ -147,7 +225,7 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
         .filter((wk: any) => wk.revealed_at && new Date(wk.revealed_at) < new Date())
         .map((wk: any) => wk.id)
 
-      // User's own favourites
+      // This user's votes
       const { data: myFavs } = await supabase
         .from('favourites').select('submission_id, week_id')
         .eq('user_id', session.user.id).eq('group_id', params.id)
@@ -155,7 +233,7 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
       for (const f of myFavs || []) myFavMap[f.week_id] = f.submission_id
       setMyFavourites(myFavMap)
 
-      // All group favourites → community top per week
+      // All members' votes → find group-wide top submission per week
       const { data: allFavs } = await supabase
         .from('favourites').select('submission_id, week_id').eq('group_id', params.id)
       const weekCounts: Record<string, Record<string, number>> = {}
@@ -170,7 +248,6 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
       }
       setCommunityFavourites(commFavMap)
 
-      // A-Z submissions, alphabetical by title
       if (revealedWeekIds.length > 0) {
         setLoadingAZ(true)
         const { data } = await supabase
@@ -243,27 +320,6 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
     </div>
   )
 
-  const renderCabinet = (subs: any[], showVote: boolean) => {
-    if (subs.length === 0) return emptyState('No revealed weeks yet.')
-    const groups = buildWeekGroups(subs)
-    return (
-      <div className="cabinet">
-        {groups.map(({ week, subs: weekSubs }, gi) => (
-          <FolderSection
-            key={week?.id}
-            week={week}
-            subs={weekSubs}
-            groupId={params.id}
-            tabSlot={gi % 4}
-            communityFavourites={communityFavourites}
-            myFavourites={myFavourites}
-            onFavourite={showVote ? handleFavourite : undefined}
-          />
-        ))}
-      </div>
-    )
-  }
-
   const favouriteSubs = azSubmissions
     .filter(sub => communityFavourites[sub.week_id] === sub.id)
     .sort((a, b) => a.weeks?.week_num - b.weeks?.week_num)
@@ -298,24 +354,54 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
           Heart your favourite piece from each letter.
         </p>
 
+        {/* A–Z: collapsible filing cabinet */}
         {view === 'az' && (
           loadingAZ
             ? <div style={{ fontSize: 13, color: '#666' }}>Loading...</div>
-            : renderCabinet(azSubmissions, true)
+            : azSubmissions.length === 0
+              ? emptyState('No revealed weeks yet.')
+              : (
+                <div className="cabinet">
+                  {buildWeekGroups(azSubmissions).map(({ week, subs }, gi) => (
+                    <FolderSection
+                      key={week?.id}
+                      week={week}
+                      subs={subs}
+                      groupId={params.id}
+                      tabSlot={gi % 4}
+                      communityFavourites={communityFavourites}
+                      myFavourites={myFavourites}
+                      onFavourite={handleFavourite}
+                    />
+                  ))}
+                </div>
+              )
         )}
 
+        {/* Mine: flat list with letter dividers */}
         {view === 'mine' && (
           loadingMine
             ? <div style={{ fontSize: 13, color: '#666' }}>Loading...</div>
             : mineFetched && mySubmissions.length === 0
               ? emptyState("You haven't submitted anything yet.")
-              : renderCabinet(mySubmissions, false)
+              : <FlatList
+                  subs={mySubmissions}
+                  groupId={params.id}
+                  communityFavourites={communityFavourites}
+                  myFavourites={myFavourites}
+                />
         )}
 
+        {/* Favourite: group consensus, one per letter, flat list */}
         {view === 'favourite' && (
           favouriteSubs.length === 0
             ? emptyState('No favourites yet — be the first to vote.')
-            : renderCabinet(favouriteSubs, false)
+            : <FlatList
+                subs={favouriteSubs}
+                groupId={params.id}
+                communityFavourites={communityFavourites}
+                myFavourites={myFavourites}
+              />
         )}
       </div>
     </div>

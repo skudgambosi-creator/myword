@@ -450,52 +450,47 @@ a:hover {
 
 /* ── FILING CABINET ── */
 
-/* Outer container */
 .cabinet {
   display: flex;
   flex-direction: column;
   gap: 0;
 }
 
-/* One letter's folder */
+/* One letter section */
 .folder-section {
-  margin-bottom: 6px;
+  margin-bottom: 5px;
 }
 
-/* The tab wrapper — positioned to one of 4 horizontal slots */
-.folder-tab-wrap {
-  display: flex;
-}
+/* Tab wrapper — staggered horizontal slots */
+.folder-tab-wrap { display: flex; }
 .folder-tab-slot-0 { padding-left: 0; }
-.folder-tab-slot-1 { padding-left: 80px; }
-.folder-tab-slot-2 { padding-left: 180px; }
-.folder-tab-slot-3 { padding-left: 290px; }
+.folder-tab-slot-1 { padding-left: 90px; }
+.folder-tab-slot-2 { padding-left: 200px; }
+.folder-tab-slot-3 { padding-left: 320px; }
 
-/* The tab itself */
+/* The tab */
 .folder-tab {
   display: inline-flex;
   align-items: baseline;
-  gap: 7px;
-  background: #f5f5e0;
-  border: 1px solid #bbb;
+  gap: 8px;
+  background: #f0edd5;
+  border: 1px solid #b8b49a;
   border-bottom: none;
-  padding: 5px 16px 6px;
+  padding: 5px 18px 6px;
   cursor: pointer;
   font-family: var(--font-mono);
   position: relative;
   z-index: 1;
-  /* connects seamlessly to the folder body below */
+  transition: background 0.1s;
 }
+.folder-tab:hover,
 .folder-tab.open {
-  background: #f5f5e0;
-}
-.folder-tab:hover {
-  background: #efefd0;
+  background: #e8e4c8;
 }
 .folder-tab-letter {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: bold;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
 }
 .folder-tab-count {
   font-size: 10px;
@@ -503,89 +498,147 @@ a:hover {
   font-weight: normal;
 }
 
-/* Thin collapsed drawer — visible when folder is shut */
+/* Closed state — thin strip below the tab */
 .folder-closed {
-  height: 5px;
-  background: #ebebd8;
-  border: 1px solid #bbb;
+  height: 4px;
+  background: #e8e4c8;
+  border: 1px solid #b8b49a;
   border-top: none;
 }
 
 /* Open folder body */
 .folder-body {
-  background: #f5f5e0;
-  border: 1px solid #bbb;
+  background: #f0edd5;
+  border: 1px solid #b8b49a;
   border-top: none;
-  padding: 20px 20px 24px 20px;
+  padding: 18px 20px 22px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 
-/* Single submission entry within an open folder */
-.folder-entry {
-  max-width: 680px;
+/* ── ENTRY ROW (shared by cabinet + flat list) ── */
+
+.entry-row {
+  /* no additional spacing needed — parent gap handles it */
 }
-.folder-entry-inner {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-.folder-entry-link {
-  flex: 1;
-  text-decoration: none;
-  color: inherit;
-  min-width: 0;
-}
-.folder-entry-link:hover .folder-entry-name {
-  text-decoration: underline;
-}
-.folder-entry-title {
+.entry-row-main {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 5px;
 }
-.folder-entry-name {
+
+/* White title flag/tag */
+.entry-tag {
+  background: #fff;
+  border: 1px solid #bbb;
+  padding: 3px 10px;
+  font-size: 12px;
   font-weight: bold;
-  font-size: 13px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
 }
-.folder-entry-badges {
+
+/* Badges next to the tag */
+.entry-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #666;
+}
+.entry-fav-mark {
+  color: var(--accent);
+  font-size: 11px;
+}
+.entry-author {
+  font-style: italic;
+  font-size: 11px;
+  color: #888;
+}
+
+/* Peek / Open buttons */
+.entry-actions {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  flex-shrink: 0;
+  margin-left: auto;
 }
-.folder-fav-mark {
-  color: var(--accent);
-  font-size: 11px;
+.entry-action-btn {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: none;
+  border: 1px solid #bbb;
+  padding: 2px 9px;
+  cursor: pointer;
+  color: #555;
+  text-decoration: none;
+  display: inline-block;
+  line-height: 1.6;
 }
-.folder-entry-author {
-  font-size: 11px;
-  color: #888;
-  font-style: italic;
+.entry-action-btn:hover,
+.entry-action-btn.active {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+  text-decoration: none;
 }
-.folder-vote-btn {
+
+/* Heart vote button */
+.entry-vote-btn {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 15px;
+  font-size: 14px;
   padding: 0 2px;
   color: #ccc;
-  line-height: 1;
   font-family: inherit;
-  flex-shrink: 0;
-  margin-top: 1px;
+  line-height: 1;
 }
-.folder-vote-btn.voted {
-  color: var(--accent);
-}
-.folder-vote-btn:hover {
-  color: var(--accent);
+.entry-vote-btn.voted { color: var(--accent); }
+.entry-vote-btn:hover { color: var(--accent); }
+
+/* Peek panel */
+.entry-peek-panel {
+  margin-top: 8px;
+  padding: 12px 16px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-left: 3px solid #000;
+  font-size: 13px;
+  line-height: 1.75;
 }
 
-/* Mobile — remove tab stagger, tighten indents */
+/* ── FLAT LIST (Mine + Favourite views) ── */
+
+.flat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.flat-list-group {}
+.flat-list-letter {
+  font-size: 32px;
+  font-weight: bold;
+  color: var(--black);
+  line-height: 1;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #000;
+}
+.flat-list-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 4px;
+}
+
+/* Mobile adjustments */
 @media (max-width: 640px) {
   .folder-tab-slot-0,
   .folder-tab-slot-1,
@@ -593,12 +646,12 @@ a:hover {
   .folder-tab-slot-3 {
     padding-left: 0;
   }
-  .folder-entry {
-    margin-left: 0 !important;
-  }
   .folder-body {
-    padding: 16px 14px 20px;
-    gap: 18px;
+    padding: 14px 14px 18px;
+  }
+  /* Entry indents zero'd in folder body on mobile via inline style override */
+  .entry-actions {
+    margin-left: 0;
   }
 }
 
