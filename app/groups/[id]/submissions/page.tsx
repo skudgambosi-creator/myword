@@ -10,11 +10,6 @@ const TAB_SLOTS = [0, 1, 2, 3]
 // Content indent within an open folder — gives the irregular filing cabinet look
 const ENTRY_INDENTS = [0, 48, 24, 64, 12, 40, 28, 56, 8, 36]
 
-function textPreview(html: string, chars = 200): string {
-  const stripped = (html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
-  return stripped.length > chars ? stripped.slice(0, chars) + '…' : stripped
-}
-
 function MediaTags({ html, small }: { html: string; small?: boolean }) {
   const hasImage = /<img[\s>]/i.test(html)
   const hasAudio = /<audio[\s>]/i.test(html)
@@ -62,7 +57,6 @@ function FolderSection({
             const indent = ENTRY_INDENTS[i % ENTRY_INDENTS.length]
             const isFav = communityFavourites[sub.week_id] === sub.id
             const isMyVote = myFavourites[sub.week_id] === sub.id
-            const preview = textPreview(sub.body_html)
             return (
               <div key={sub.id} className="folder-entry" style={{ marginLeft: indent }}>
                 <div className="folder-entry-inner">
@@ -75,11 +69,11 @@ function FolderSection({
                       <span className="folder-entry-badges">
                         <MediaTags html={sub.body_html} small />
                         {isFav && <span className="folder-fav-mark">♥</span>}
+                        {sub.is_signed && sub.signed_name && (
+                          <span className="folder-entry-author">{sub.signed_name}</span>
+                        )}
                       </span>
                     </div>
-                    {preview && (
-                      <div className="folder-entry-preview">{preview}</div>
-                    )}
                   </Link>
                   {onFavourite && (
                     <button
