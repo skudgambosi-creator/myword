@@ -1,105 +1,82 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
-function htmlPreview(html: string, maxParas: number): { preview: string } {
-  const stripped = html
-    .replace(/<img[^>]*>/gi, '')
-    .replace(/<audio[^>]*>[\s\S]*?<\/audio>/gi, '')
-  const grafs = stripped.match(/<p[^>]*>[\s\S]*?<\/p>/gi) || []
-  const nonEmpty = grafs.filter(p => p.replace(/<[^>]+>/g, '').trim())
-  return { preview: nonEmpty.slice(0, maxParas).join('') }
-}
-
-function AttachmentTags({ html }: { html: string }) {
+function MediaTags({ html }: { html: string }) {
   const hasImage = /<img[\s>]/i.test(html)
   const hasAudio = /<audio[\s>]/i.test(html)
   if (!hasImage && !hasAudio) return null
   return (
     <span style={{ display: 'inline-flex', gap: 4 }}>
-      {hasImage && <span className="tag" style={{ color: '#2563eb', borderColor: '#93c5fd', background: '#eff6ff', fontSize: 9 }}>IMG</span>}
-      {hasAudio && <span className="tag" style={{ color: '#db2777', borderColor: '#f9a8d4', background: '#fdf2f8', fontSize: 9 }}>AUD</span>}
+      {hasImage && <span className="tag" style={{ fontSize: 9 }}>IMG</span>}
+      {hasAudio && <span className="tag" style={{ fontSize: 9 }}>AUD</span>}
     </span>
   )
 }
 
-function SubmissionCard({
-  sub,
-  groupId,
-  userVotedThisWeek,
-  onFavourite,
+function LetterTab({ letter, count }: { letter: string; count: number }) {
+  return (
+    <div style={{
+      background: '#000', color: '#fff',
+      padding: '7px 16px',
+      display: 'flex', alignItems: 'baseline', gap: 10,
+    }}>
+      <span style={{ fontSize: 14, fontWeight: 'bold', letterSpacing: '0.1em' }}>{letter}</span>
+      <span style={{ fontSize: 10, color: '#777', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+        {count} piece{count !== 1 ? 's' : ''}
+      </span>
+    </div>
+  )
+}
+
+function FileStrip({
+  sub, groupId, isCommunityFavourite, isMyVote, onFavourite,
 }: {
   sub: any
   groupId: string
-  userVotedThisWeek: string | null
+  isCommunityFavourite: boolean
+  isMyVote: boolean
   onFavourite?: (submissionId: string, weekId: string) => void
 }) {
-  const name = sub.is_signed ? sub.signed_name : null
-  const { preview } = htmlPreview(sub.body_html, 8)
-  const isMyVote = userVotedThisWeek === sub.id
-  const contentRef = useRef<HTMLDivElement>(null)
-  const [isOverflowing, setIsOverflowing] = useState(false)
-
-  useEffect(() => {
-    const el = contentRef.current
-    if (el) setIsOverflowing(el.scrollHeight > el.clientHeight)
-  }, [preview])
-
   return (
-    <div className="submission-card">
-      <div className="submission-card-header">
-        <span style={{ fontWeight: 'bold', fontSize: 13, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: 8 }}>
-          {sub.word_title}
-        </span>
-        <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
-          <AttachmentTags html={sub.body_html} />
-          {onFavourite && (
-            <button
-              onClick={() => onFavourite(sub.id, sub.week_id)}
-              title={isMyVote ? 'Remove favourite' : 'Mark as favourite'}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: isMyVote ? '#CC0000' : '#999',
-                fontSize: 16,
-                padding: '0 2px',
-                lineHeight: 1,
-                fontFamily: 'inherit',
-              }}
-            >
-              {isMyVote ? '♥' : '♡'}
-            </button>
+    <div className="file-strip-row">
+      <Link
+        href={`/groups/${groupId}/submissions/${sub.week_id}/${sub.id}`}
+        className="file-strip-link"
+      >
+        <span className="file-strip-title">{sub.word_title}</span>
+        <span className="file-strip-meta">
+          <MediaTags html={sub.body_html} />
+          <span className="file-strip-wordcount">{sub.word_count}w</span>
+          {isCommunityFavourite && <span className="file-strip-fav-dot">♥</span>}
+          {sub.is_signed && sub.signed_name && (
+            <span className="file-strip-signed">{sub.signed_name}</span>
           )}
+          <span className="file-strip-arrow">→</span>
         </span>
-      </div>
-      <div style={{ padding: '12px 16px' }}>
-        <div ref={contentRef} style={{ position: 'relative', maxHeight: 150, overflow: 'hidden' }}>
-          <div
-            className="submission-card-body"
-            style={{ padding: '0 16px', fontSize: 13 }}
-            dangerouslySetInnerHTML={{ __html: preview }}
-          />
-          {isOverflowing && (
-            <div style={{
-              position: 'absolute', bottom: 0, left: 0, right: 0, height: 60,
-              background: 'linear-gradient(to bottom, transparent, #fff)',
-              pointerEvents: 'none',
-            }} />
-          )}
-        </div>
-        <Link
-          href={`/groups/${groupId}/submissions/${sub.week_id}/${sub.id}`}
-          style={{ fontSize: 12, marginTop: 10, display: 'inline-block' }}
+      </Link>
+      {onFavourite && (
+        <button
+          onClick={() => onFavourite(sub.id, sub.week_id)}
+          title={isMyVote ? 'Remove favourite' : 'Mark as favourite'}
+          className={`file-strip-vote${isMyVote ? ' voted' : ''}`}
         >
-          Read full piece →
-        </Link>
-        {name && <div style={{ fontSize: 11, color: '#999', marginTop: 8 }}>{name}</div>}
-      </div>
+          {isMyVote ? '♥' : '♡'}
+        </button>
+      )}
     </div>
   )
+}
+
+function buildWeekGroups(subs: any[]) {
+  const weekMap: Record<string, { week: any; subs: any[] }> = {}
+  for (const sub of subs) {
+    if (!weekMap[sub.week_id]) weekMap[sub.week_id] = { week: sub.weeks, subs: [] }
+    weekMap[sub.week_id].subs.push(sub)
+  }
+  return Object.values(weekMap).sort((a, b) => a.week?.week_num - b.week?.week_num)
 }
 
 export default function SubmissionsPage({ params }: { params: { id: string } }) {
@@ -109,27 +86,19 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
   const [profile, setProfile] = useState<any>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [weeks, setWeeks] = useState<any[]>([])
-  const [view, setView] = useState<'az' | 'byletter' | 'mine' | 'favourite'>('az')
+  const [view, setView] = useState<'az' | 'mine' | 'favourite'>('az')
 
-  // A-Z view state (default)
   const [azSubmissions, setAZSubmissions] = useState<any[]>([])
   const [loadingAZ, setLoadingAZ] = useState(false)
 
-  // By Letter view state
-  const [selectedLetter, setSelectedLetter] = useState<string | null>(null)
-  const [submissions, setSubmissions] = useState<any[]>([])
-  const [loadingSubs, setLoadingSubs] = useState(false)
-
-  // Mine view state
   const [mySubmissions, setMySubmissions] = useState<any[]>([])
   const [loadingMine, setLoadingMine] = useState(false)
+  const [mineFetched, setMineFetched] = useState(false)
 
-  // Favourite view state
-  const [favouriteSubmissions, setFavouriteSubmissions] = useState<any[]>([])
-  const [loadingFavourite, setLoadingFavourite] = useState(false)
-
-  // User's votes: weekId → submissionId
+  // User's own vote: weekId → submissionId
   const [myFavourites, setMyFavourites] = useState<Record<string, string>>({})
+  // Community top pick: weekId → submissionId
+  const [communityFavourites, setCommunityFavourites] = useState<Record<string, string>>({})
 
   useEffect(() => {
     const init = async () => {
@@ -154,19 +123,34 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
         .filter((wk: any) => wk.revealed_at && new Date(wk.revealed_at) < new Date())
         .map((wk: any) => wk.id)
 
-      // Load user's favourites
+      // User's own favourites
       const { data: myFavs } = await supabase
         .from('favourites')
         .select('submission_id, week_id')
         .eq('user_id', session.user.id)
         .eq('group_id', params.id)
-      const favMap: Record<string, string> = {}
-      for (const f of myFavs || []) {
-        favMap[f.week_id] = f.submission_id
-      }
-      setMyFavourites(favMap)
+      const myFavMap: Record<string, string> = {}
+      for (const f of myFavs || []) myFavMap[f.week_id] = f.submission_id
+      setMyFavourites(myFavMap)
 
-      // Load A-Z submissions (default view)
+      // All group favourites → compute community top per week
+      const { data: allFavs } = await supabase
+        .from('favourites')
+        .select('submission_id, week_id')
+        .eq('group_id', params.id)
+      const weekCounts: Record<string, Record<string, number>> = {}
+      for (const f of allFavs || []) {
+        if (!weekCounts[f.week_id]) weekCounts[f.week_id] = {}
+        weekCounts[f.week_id][f.submission_id] = (weekCounts[f.week_id][f.submission_id] || 0) + 1
+      }
+      const commFavMap: Record<string, string> = {}
+      for (const [weekId, counts] of Object.entries(weekCounts)) {
+        const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]
+        if (top) commFavMap[weekId] = top[0]
+      }
+      setCommunityFavourites(commFavMap)
+
+      // A-Z submissions, alphabetical by title
       if (revealedWeekIds.length > 0) {
         setLoadingAZ(true)
         const { data } = await supabase
@@ -174,7 +158,7 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
           .select('*, users(*), weeks(*)')
           .in('week_id', revealedWeekIds)
           .eq('is_late_catchup', false)
-          .order('submitted_at', { ascending: true })
+          .order('word_title', { ascending: true })
         setAZSubmissions(data || [])
         setLoadingAZ(false)
       }
@@ -184,100 +168,45 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
     init()
   }, [])
 
-  const switchToByLetter = async () => {
-    setView('byletter')
-    if (!selectedLetter) {
-      const revealedWeeks = weeks.filter((w: any) => w.revealed_at && new Date(w.revealed_at) < new Date())
-      if (revealedWeeks.length > 0) {
-        const latest = revealedWeeks[revealedWeeks.length - 1]
-        await loadSubmissions(latest, setSelectedLetter, setSubmissions, setLoadingSubs, supabase)
-      }
-    }
-  }
-
-  const handleLetterClick = async (week: any) => {
-    if (!week.revealed_at || new Date(week.revealed_at) > new Date()) return
-    await loadSubmissions(week, setSelectedLetter, setSubmissions, setLoadingSubs, supabase)
-  }
-
   const switchToMine = async () => {
     setView('mine')
-    if (mySubmissions.length > 0 || !userId) return
+    if (mineFetched || !userId) return
     setLoadingMine(true)
     const revealedWeekIds = weeks
       .filter((w: any) => w.revealed_at && new Date(w.revealed_at) < new Date())
       .map((w: any) => w.id)
-    if (revealedWeekIds.length === 0) { setLoadingMine(false); return }
+    if (revealedWeekIds.length === 0) { setLoadingMine(false); setMineFetched(true); return }
     const { data } = await supabase
       .from('submissions')
       .select('*, weeks(*)')
       .eq('user_id', userId)
       .eq('is_late_catchup', false)
       .in('week_id', revealedWeekIds)
-      .order('week_id', { ascending: true })
+      .order('word_title', { ascending: true })
     const sorted = (data || []).sort((a: any, b: any) => a.weeks?.week_num - b.weeks?.week_num)
     setMySubmissions(sorted)
+    setMineFetched(true)
     setLoadingMine(false)
-  }
-
-  const switchToFavourite = async () => {
-    setView('favourite')
-    setLoadingFavourite(true)
-
-    const { data: allFavs } = await supabase
-      .from('favourites')
-      .select('submission_id, week_id')
-      .eq('group_id', params.id)
-
-    if (!allFavs?.length) {
-      setFavouriteSubmissions([])
-      setLoadingFavourite(false)
-      return
-    }
-
-    // Count votes per submission per week
-    const weekVotes: Record<string, Record<string, number>> = {}
-    for (const fav of allFavs) {
-      if (!weekVotes[fav.week_id]) weekVotes[fav.week_id] = {}
-      weekVotes[fav.week_id][fav.submission_id] = (weekVotes[fav.week_id][fav.submission_id] || 0) + 1
-    }
-
-    // Find top submission per week
-    const topIds = Object.values(weekVotes).map(counts =>
-      Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0]
-    )
-
-    const { data: topSubs } = await supabase
-      .from('submissions')
-      .select('*, users(*), weeks(*)')
-      .in('id', topIds)
-    const sorted = (topSubs || []).sort((a: any, b: any) => a.weeks?.week_num - b.weeks?.week_num)
-    setFavouriteSubmissions(sorted)
-    setLoadingFavourite(false)
   }
 
   const handleFavourite = async (submissionId: string, weekId: string) => {
     if (!userId) return
     const currentVote = myFavourites[weekId]
-
     if (currentVote === submissionId) {
-      // Un-favourite: remove the existing vote
       const { error } = await supabase.from('favourites').delete()
         .eq('user_id', userId).eq('week_id', weekId).eq('group_id', params.id)
       if (!error) {
         setMyFavourites(prev => { const next = { ...prev }; delete next[weekId]; return next })
+        // recompute community favs locally: remove this vote
+        setCommunityFavourites(prev => recomputeAfterVoteChange(prev, weekId, null, currentVote, azSubmissions))
       }
     } else {
-      // Switch or new favourite: delete any existing vote for this week, then insert
       if (currentVote) {
         await supabase.from('favourites').delete()
           .eq('user_id', userId).eq('week_id', weekId).eq('group_id', params.id)
       }
       const { error } = await supabase.from('favourites').insert({
-        group_id: params.id,
-        user_id: userId,
-        submission_id: submissionId,
-        week_id: weekId,
+        group_id: params.id, user_id: userId, submission_id: submissionId, week_id: weekId,
       })
       if (!error) {
         setMyFavourites(prev => ({ ...prev, [weekId]: submissionId }))
@@ -292,18 +221,53 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
     </div>
   )
 
-  const toggleBtn = (active: boolean, hasLeftBorder: boolean = true) => ({
-    padding: '6px 12px',
+  const toggleBtn = (active: boolean, first: boolean = false) => ({
+    padding: '6px 14px',
     fontSize: 11,
     fontWeight: 'bold' as const,
     textTransform: 'uppercase' as const,
     letterSpacing: '0.08em',
     border: 'none',
-    borderLeft: hasLeftBorder ? '2px solid #000' : 'none',
+    borderLeft: first ? 'none' : '2px solid #000',
     cursor: 'pointer',
     background: active ? '#000' : '#fff',
     color: active ? '#fff' : '#000',
   })
+
+  const emptyState = (msg: string) => (
+    <div className="box-shaded" style={{ textAlign: 'center', padding: 48 }}>
+      <p style={{ fontSize: 13, color: '#666' }}>{msg}</p>
+    </div>
+  )
+
+  const renderCabinet = (subs: any[], showVote: boolean) => {
+    if (subs.length === 0) return emptyState('No revealed weeks yet.')
+    const groups = buildWeekGroups(subs)
+    return (
+      <div className="file-cabinet">
+        {groups.map(({ week, subs: weekSubs }, gi) => (
+          <div key={week?.id} style={{ borderTop: gi > 0 ? '2px solid #000' : 'none' }}>
+            <LetterTab letter={week?.letter} count={weekSubs.length} />
+            {weekSubs.map(sub => (
+              <FileStrip
+                key={sub.id}
+                sub={sub}
+                groupId={params.id}
+                isCommunityFavourite={communityFavourites[sub.week_id] === sub.id}
+                isMyVote={myFavourites[sub.week_id] === sub.id}
+                onFavourite={showVote ? handleFavourite : undefined}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  // Community favourite per letter — one entry per revealed week
+  const favouriteSubs = azSubmissions
+    .filter(sub => communityFavourites[sub.week_id] === sub.id)
+    .sort((a, b) => a.weeks?.week_num - b.weeks?.week_num)
 
   return (
     <div style={{ minHeight: '100vh' }}>
@@ -324,193 +288,50 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
       </nav>
 
       <div className="page-container" style={{ paddingTop: 40, paddingBottom: 60 }}>
-
-        {/* Title + toggle */}
         <div className="submissions-header">
           <h1 className="page-title" style={{ margin: 0 }}>Submissions</h1>
           <div style={{ display: 'flex', border: '2px solid #000', overflow: 'hidden' }}>
-            <button onClick={() => setView('az')} style={toggleBtn(view === 'az', false)}>A–Z</button>
-            <button onClick={switchToByLetter} style={toggleBtn(view === 'byletter')}>By Letter</button>
+            <button onClick={() => setView('az')} style={toggleBtn(view === 'az', true)}>A–Z</button>
             <button onClick={switchToMine} style={toggleBtn(view === 'mine')}>Mine</button>
-            <button onClick={switchToFavourite} style={toggleBtn(view === 'favourite')}>Favourite</button>
+            <button onClick={() => setView('favourite')} style={toggleBtn(view === 'favourite')}>Favourite</button>
           </div>
         </div>
         <p style={{ fontSize: 11, color: '#999', fontStyle: 'italic', textAlign: 'right', marginBottom: 24 }}>
-          Pick your favourite piece from each letter by hearting it.
+          Heart your favourite piece from each letter.
         </p>
 
-        {/* A-Z VIEW */}
         {view === 'az' && (
-          <>
-            {loadingAZ && <div style={{ fontSize: 14, color: '#666' }}>Loading...</div>}
-            {!loadingAZ && azSubmissions.length === 0 && (
-              <div className="box-shaded" style={{ textAlign: 'center', padding: 48 }}>
-                <p style={{ fontSize: 14, color: '#666' }}>No revealed weeks yet.</p>
-              </div>
-            )}
-            {!loadingAZ && azSubmissions.length > 0 && (() => {
-              const weekMap: Record<string, { week: any; subs: any[] }> = {}
-              for (const sub of azSubmissions) {
-                if (!weekMap[sub.week_id]) weekMap[sub.week_id] = { week: sub.weeks, subs: [] }
-                weekMap[sub.week_id].subs.push(sub)
-              }
-              const sortedWeeks = Object.values(weekMap).sort((a, b) => a.week?.week_num - b.week?.week_num)
-              return (
-                <div style={{ display: 'grid', gap: 40 }}>
-                  {sortedWeeks.map(({ week, subs }) => (
-                    <div key={week?.id}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16, borderBottom: '3px solid #000', paddingBottom: 8 }}>
-                        <span style={{ fontSize: 48, fontWeight: 'bold', color: '#CC0000', lineHeight: 1 }}>{week?.letter}</span>
-                        <span style={{ fontSize: 13, color: '#666' }}>{subs.length} submission{subs.length !== 1 ? 's' : ''}</span>
-                      </div>
-                      <div style={{ display: 'grid', gap: 16 }}>
-                        {subs.map(sub => (
-                          <SubmissionCard
-                            key={sub.id}
-                            sub={sub}
-                            groupId={params.id}
-                            userVotedThisWeek={myFavourites[sub.week_id] || null}
-                            onFavourite={handleFavourite}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )
-            })()}
-          </>
+          loadingAZ
+            ? <div style={{ fontSize: 13, color: '#666' }}>Loading...</div>
+            : renderCabinet(azSubmissions, true)
         )}
 
-        {/* BY LETTER VIEW */}
-        {view === 'byletter' && (
-          <>
-            {(() => {
-              const revealedWeeks = weeks.filter((w: any) => w.revealed_at && new Date(w.revealed_at) < new Date())
-              const currentIndex = revealedWeeks.findIndex((w: any) => w.letter === selectedLetter)
-              const prevWeek = currentIndex > 0 ? revealedWeeks[currentIndex - 1] : null
-              const nextWeek = currentIndex < revealedWeeks.length - 1 ? revealedWeeks[currentIndex + 1] : null
-              return selectedLetter ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 24, borderBottom: '3px solid #000', paddingBottom: 12 }}>
-                  <button onClick={() => prevWeek && handleLetterClick(prevWeek)} disabled={!prevWeek}
-                    style={{ fontSize: 22, fontWeight: 'bold', background: 'none', border: 'none', cursor: prevWeek ? 'pointer' : 'default', color: prevWeek ? '#CC0000' : '#ddd', padding: '0 4px' }}>
-                    ←
-                  </button>
-                  <span style={{ fontSize: 64, fontWeight: 'bold', color: '#CC0000', lineHeight: 1, minWidth: 48, textAlign: 'center' }}>
-                    {selectedLetter}
-                  </span>
-                  <button onClick={() => nextWeek && handleLetterClick(nextWeek)} disabled={!nextWeek}
-                    style={{ fontSize: 22, fontWeight: 'bold', background: 'none', border: 'none', cursor: nextWeek ? 'pointer' : 'default', color: nextWeek ? '#CC0000' : '#ddd', padding: '0 4px' }}>
-                    →
-                  </button>
-                  {!loadingSubs && (
-                    <span style={{ fontSize: 13, color: '#666', marginLeft: 4 }}>
-                      {submissions.length} submission{submissions.length !== 1 ? 's' : ''}
-                    </span>
-                  )}
-                </div>
-              ) : null
-            })()}
-
-            {!selectedLetter && (
-              <div className="box-shaded" style={{ textAlign: 'center', padding: 48 }}>
-                <p style={{ fontSize: 14, color: '#666' }}>No revealed weeks yet.</p>
-              </div>
-            )}
-            {selectedLetter && loadingSubs && <div style={{ fontSize: 14, color: '#666' }}>Loading...</div>}
-            {selectedLetter && !loadingSubs && (
-              <div style={{ display: 'grid', gap: 16 }}>
-                {submissions.map(sub => (
-                  <SubmissionCard
-                    key={sub.id}
-                    sub={sub}
-                    groupId={params.id}
-                    userVotedThisWeek={myFavourites[sub.week_id] || null}
-                    onFavourite={handleFavourite}
-                  />
-                ))}
-              </div>
-            )}
-          </>
-        )}
-
-        {/* MINE VIEW */}
         {view === 'mine' && (
-          <>
-            {loadingMine && <div style={{ fontSize: 14, color: '#666' }}>Loading...</div>}
-            {!loadingMine && mySubmissions.length === 0 && (
-              <div className="box-shaded" style={{ textAlign: 'center', padding: 48 }}>
-                <p style={{ fontSize: 14, color: '#666' }}>You haven't submitted anything yet.</p>
-              </div>
-            )}
-            {!loadingMine && mySubmissions.length > 0 && (
-              <div style={{ display: 'grid', gap: 24 }}>
-                {mySubmissions.map(sub => (
-                  <div key={sub.id}>
-                    <div style={{ fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#999', marginBottom: 6 }}>
-                      Week {sub.weeks?.week_num} · Letter {sub.weeks?.letter}
-                    </div>
-                    <SubmissionCard
-                      sub={sub}
-                      groupId={params.id}
-                      userVotedThisWeek={null}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
+          loadingMine
+            ? <div style={{ fontSize: 13, color: '#666' }}>Loading...</div>
+            : mineFetched && mySubmissions.length === 0
+              ? emptyState("You haven't submitted anything yet.")
+              : renderCabinet(mySubmissions, false)
         )}
 
-        {/* FAVOURITE VIEW */}
         {view === 'favourite' && (
-          <>
-            {loadingFavourite && <div style={{ fontSize: 14, color: '#666' }}>Loading...</div>}
-            {!loadingFavourite && favouriteSubmissions.length === 0 && (
-              <div className="box-shaded" style={{ textAlign: 'center', padding: 48 }}>
-                <p style={{ fontSize: 14, color: '#666' }}>No favourites yet — be the first to vote!</p>
-              </div>
-            )}
-            {!loadingFavourite && favouriteSubmissions.length > 0 && (
-              <div style={{ display: 'grid', gap: 24 }}>
-                {favouriteSubmissions.map(sub => (
-                  <div key={sub.id}>
-                    <div style={{ fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#999', marginBottom: 6 }}>
-                      Week {sub.weeks?.week_num} · Letter {sub.weeks?.letter}
-                    </div>
-                    <SubmissionCard
-                      sub={sub}
-                      groupId={params.id}
-                      userVotedThisWeek={myFavourites[sub.week_id] || null}
-                      onFavourite={handleFavourite}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
+          favouriteSubs.length === 0
+            ? emptyState('No favourites yet — be the first to vote.')
+            : renderCabinet(favouriteSubs, false)
         )}
-
       </div>
     </div>
   )
 }
 
-async function loadSubmissions(
-  week: any,
-  setSelectedLetter: (l: string) => void,
-  setSubmissions: (s: any[]) => void,
-  setLoadingSubs: (b: boolean) => void,
-  supabase: any
-) {
-  setSelectedLetter(week.letter)
-  setLoadingSubs(true)
-  const { data } = await supabase
-    .from('submissions')
-    .select('*, users(*)')
-    .eq('week_id', week.id)
-    .eq('is_late_catchup', false)
-    .order('submitted_at', { ascending: true })
-  setSubmissions(data || [])
-  setLoadingSubs(false)
+// Optimistic community favourite recompute isn't worth the complexity —
+// a full page reload will pick up changes. This stub keeps the type happy.
+function recomputeAfterVoteChange(
+  prev: Record<string, string>,
+  _weekId: string,
+  _newSubId: string | null,
+  _oldSubId: string,
+  _subs: any[]
+): Record<string, string> {
+  return prev
 }

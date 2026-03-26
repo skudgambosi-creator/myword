@@ -448,6 +448,93 @@ a:hover {
   font-size: 18px;
 }
 
+/* ── FILE CABINET ── */
+.file-cabinet {
+  border: 2px solid #000;
+  overflow: hidden;
+}
+.file-strip-row {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid #ddd;
+}
+.file-strip-row:last-child {
+  border-bottom: none;
+}
+.file-strip-link {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+}
+.file-strip-link:hover {
+  background: #000;
+  color: #fff;
+  text-decoration: none;
+}
+.file-strip-link:hover .file-strip-meta {
+  color: #aaa;
+}
+.file-strip-link:hover .file-strip-fav-dot {
+  color: #ff8080;
+}
+.file-strip-title {
+  flex: 1;
+  font-weight: bold;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.file-strip-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  font-size: 11px;
+  color: #666;
+}
+.file-strip-fav-dot {
+  color: var(--accent);
+  font-size: 12px;
+}
+.file-strip-signed {
+  font-style: italic;
+}
+.file-strip-arrow {
+  color: #999;
+}
+.file-strip-vote {
+  background: none;
+  border: none;
+  border-left: 1px solid #e0e0e0;
+  cursor: pointer;
+  color: #ccc;
+  font-size: 15px;
+  padding: 10px 14px;
+  line-height: 1;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+.file-strip-vote.voted {
+  color: var(--accent);
+}
+.file-strip-vote:hover {
+  color: var(--accent);
+}
+@media (max-width: 480px) {
+  .file-strip-signed {
+    display: none;
+  }
+  .file-strip-wordcount {
+    display: none;
+  }
+}
+
 /* ── COMPLETED STATE ── */
 .completed-banner {
   background: var(--black);
