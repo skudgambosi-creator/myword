@@ -4,10 +4,32 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
+function Header({ title }: { title: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', padding: '28px 40px 0', gap: 16 }}>
+      <div style={{ flex: 1, height: 1, background: '#000' }} />
+      <span style={{ fontSize: 15, letterSpacing: '0.22em', fontWeight: 400, whiteSpace: 'nowrap' }}>{title}</span>
+      <div style={{ flex: 1, height: 1, background: '#000' }} />
+    </div>
+  )
+}
+
+function Footer() {
+  return (
+    <footer style={{ textAlign: 'center', padding: '60px 0 32px' }}>
+      <svg width="54" height="50" viewBox="0 0 54 50" fill="none" style={{ display: 'block', margin: '0 auto 6px' }}>
+        <circle cx="17" cy="16" r="14" stroke="#000" strokeWidth="0.75" />
+        <circle cx="37" cy="16" r="14" stroke="#000" strokeWidth="0.75" />
+        <circle cx="27" cy="32" r="14" stroke="#000" strokeWidth="0.75" />
+      </svg>
+      <div style={{ fontSize: 9, letterSpacing: '0.2em' }}>MOUNTFORD-GAMBOSI</div>
+    </footer>
+  )
+}
+
 export default function RegisterPage() {
   const router = useRouter()
   const supabase = createClient()
-
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -32,7 +54,6 @@ export default function RegisterPage() {
       })
       if (profileError) throw profileError
 
-      // Send welcome email
       await fetch('/api/welcome', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -49,46 +70,67 @@ export default function RegisterPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh' }}>
-      <nav className="nav">
-        <Link href="/" className="nav-brand">[ MY WORD ]</Link>
-      </nav>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Header title="MY WORD" />
 
-      <div className="page-container" style={{ paddingTop: 48, maxWidth: 520 }}>
-        <h1 className="page-title">Create Account</h1>
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 40px 0', maxWidth: 800, width: '100%', margin: '0 auto' }}>
 
-        {error && (
-          <div style={{ border: '2px solid #CC0000', padding: '8px 12px', marginBottom: 16, fontSize: 13, color: '#CC0000' }}>
-            {error}
+        {/* Form card */}
+        <div style={{ border: '1px solid #000', width: '100%', padding: '60px 32px 40px', marginBottom: 0 }}>
+          {error && (
+            <div style={{ color: '#C85A5A', fontSize: 12, marginBottom: 20, letterSpacing: '0.05em' }}>{error}</div>
+          )}
+
+          <div style={{ marginBottom: 20 }}>
+            <span style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', marginRight: 12 }}>YOUR EMAIL:...</span>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              style={{ border: 'none', borderBottom: '1px solid #000', outline: 'none', fontSize: 13, width: 'calc(100% - 160px)', fontFamily: 'inherit', background: 'transparent' }}
+            />
           </div>
-        )}
+          <div style={{ marginBottom: 48 }}>
+            <span style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', marginRight: 12 }}>YOUR PASSWORD:</span>
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+              style={{ border: 'none', borderBottom: '1px solid #000', outline: 'none', fontSize: 13, width: 'calc(100% - 160px)', fontFamily: 'inherit', background: 'transparent' }}
+            />
+          </div>
 
-        <div className="box">
-          <div className="box-header">JOIN THE ALPHABET PROJECT</div>
-          <div style={{ padding: '20px 0 0' }}>
-            <div style={{ marginBottom: 16 }}>
-              <label className="field-label">Email Address</label>
-              <input className="field-input" type="email" value={email}
-                onChange={e => setEmail(e.target.value)} placeholder="your@email.com" />
-            </div>
-            <div style={{ marginBottom: 24 }}>
-              <label className="field-label">Password</label>
-              <input className="field-input" type="password" value={password}
-                onChange={e => setPassword(e.target.value)} placeholder="minimum 6 characters"
-                onKeyDown={e => e.key === 'Enter' && handleSubmit()} />
-            </div>
-            <button className="btn btn-accent" style={{ width: '100%' }}
-              disabled={loading}
-              onClick={handleSubmit}>
-              {loading ? 'Creating account...' : 'Create Account'}
-            </button>
+          {/* Venn diagram */}
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <svg width="100" height="72" viewBox="0 0 100 72" fill="none">
+              <circle cx="33" cy="36" r="28" stroke="#000" strokeWidth="0.75" />
+              <circle cx="67" cy="36" r="28" stroke="#000" strokeWidth="0.75" />
+            </svg>
           </div>
         </div>
 
-        <p style={{ marginTop: 20, fontSize: 13, textAlign: 'center' }}>
-          Already have an account? <Link href="/login">Log in</Link>
+        {/* CREATE ACCOUNT button */}
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          style={{
+            display: 'block', width: '100%', background: '#000', color: '#fff',
+            border: 'none', padding: '18px', fontSize: 15, fontWeight: 700,
+            letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer',
+            fontFamily: 'inherit', marginBottom: 16,
+          }}
+        >
+          {loading ? '...' : 'CREATE ACCOUNT'}
+        </button>
+
+        <p style={{ fontSize: 11, color: '#999', letterSpacing: '0.05em', textAlign: 'center' }}>
+          Already have an account?{' '}
+          <Link href="/login" style={{ color: '#000', textDecoration: 'underline' }}>Come in</Link>
         </p>
-      </div>
+      </main>
+
+      <Footer />
     </div>
   )
 }

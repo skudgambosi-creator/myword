@@ -3,93 +3,18 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import Nav from '@/components/layout/Nav'
 
-function peekContent(html: string): string {
-  const cleaned = (html || '')
-    .replace(/<img[^>]*>/gi, '')
-    .replace(/<audio[^>]*>[\s\S]*?<\/audio>/gi, '')
-  const grafs = cleaned.match(/<p[^>]*>[\s\S]*?<\/p>/gi) || []
-  const nonEmpty = grafs.filter(p => p.replace(/<[^>]+>/g, '').trim())
-  return nonEmpty.slice(0, 2).join('')
-}
-
-function MediaBadges({ html }: { html: string }) {
-  const hasImage = /<img[\s>]/i.test(html)
-  const hasAudio = /<audio[\s>]/i.test(html)
-  if (!hasImage && !hasAudio) return null
+function Footer() {
   return (
-    <span style={{ display: 'inline-flex', gap: 3 }}>
-      {hasImage && <span className="tag" style={{ fontSize: 8 }}>IMG</span>}
-      {hasAudio && <span className="tag" style={{ fontSize: 8 }}>AUD</span>}
-    </span>
-  )
-}
-
-function FileStrip({
-  sub, groupId, isFav, isMyVote, onFavourite,
-}: {
-  sub: any
-  groupId: string
-  isFav: boolean
-  isMyVote: boolean
-  onFavourite?: (submissionId: string, weekId: string) => void
-}) {
-  const [peeked, setPeeked] = useState(false)
-  const peek = peekContent(sub.body_html)
-
-  return (
-    <div className="file-strip-row">
-      <div className="file-strip-main">
-        <span className="file-strip-title">{sub.word_title}</span>
-        <span className="file-strip-badges">
-          <MediaBadges html={sub.body_html} />
-          {isFav && <span className="file-strip-fav">♥</span>}
-          {sub.is_signed && sub.signed_name && (
-            <span className="file-strip-author">{sub.signed_name}</span>
-          )}
-        </span>
-        <span className="file-strip-actions">
-          {peek && (
-            <button
-              onClick={() => setPeeked(v => !v)}
-              className={`strip-btn${peeked ? ' active' : ''}`}
-            >
-              {peeked ? 'Close' : 'Peek'}
-            </button>
-          )}
-          <Link
-            href={`/groups/${groupId}/submissions/${sub.week_id}/${sub.id}`}
-            className="strip-btn"
-          >
-            Open
-          </Link>
-          {onFavourite && (
-            <button
-              onClick={() => onFavourite(sub.id, sub.week_id)}
-              title={isMyVote ? 'Remove favourite' : 'Mark as favourite'}
-              className={`strip-vote-btn${isMyVote ? ' voted' : ''}`}
-            >
-              {isMyVote ? '♥' : '♡'}
-            </button>
-          )}
-        </span>
-      </div>
-      {peeked && peek && (
-        <div
-          className="strip-peek-panel submission-card-body"
-          dangerouslySetInnerHTML={{ __html: peek }}
-        />
-      )}
-    </div>
-  )
-}
-
-function LetterTab({ letter, count }: { letter: string; count: number }) {
-  return (
-    <div className="cabinet-letter-tab">
-      <span className="cabinet-letter">{letter}</span>
-      <span className="cabinet-count">{count} piece{count !== 1 ? 's' : ''}</span>
-    </div>
+    <footer style={{ textAlign: 'center', padding: '60px 0 32px' }}>
+      <svg width="54" height="50" viewBox="0 0 54 50" fill="none" style={{ display: 'block', margin: '0 auto 6px' }}>
+        <circle cx="17" cy="16" r="14" stroke="#000" strokeWidth="0.75" />
+        <circle cx="37" cy="16" r="14" stroke="#000" strokeWidth="0.75" />
+        <circle cx="27" cy="32" r="14" stroke="#000" strokeWidth="0.75" />
+      </svg>
+      <div style={{ fontSize: 9, letterSpacing: '0.2em' }}>MOUNTFORD-GAMBOSI</div>
+    </footer>
   )
 }
 
@@ -102,27 +27,70 @@ function buildWeekGroups(subs: any[]) {
   return Object.values(weekMap).sort((a, b) => a.week?.week_num - b.week?.week_num)
 }
 
-function Cabinet({
-  subs, groupId, communityFavourites, myFavourites, onFavourite,
-}: {
-  subs: any[]
-  groupId: string
-  communityFavourites: Record<string, string>
-  myFavourites: Record<string, string>
-  onFavourite?: (submissionId: string, weekId: string) => void
+function hasImage(html: string) { return /<img[\s>]/i.test(html) }
+function hasAudio(html: string) { return /<audio[\s>]/i.test(html) }
+
+function SubmissionRow({ sub, groupId, isMyVote, onFavourite }: {
+  sub: any; groupId: string; isMyVote: boolean; onFavourite?: (submissionId: string, weekId: string) => void
+}) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderBottom: '1px solid #e8e8e8', flexWrap: 'wrap' }}>
+      <span style={{ fontSize: 13, fontWeight: 700, flex: 1, minWidth: 120 }}>{sub.word_title}</span>
+
+      <span style={{ display: 'inline-flex', gap: 4 }}>
+        {hasImage(sub.body_html) && (
+          <span style={{ border: '1px solid #ccc', padding: '1px 6px', fontSize: 10, letterSpacing: '0.06em', fontWeight: 700 }}>IMG</span>
+        )}
+        {hasAudio(sub.body_html) && (
+          <span style={{ border: '1px solid #ccc', padding: '1px 6px', fontSize: 10, letterSpacing: '0.06em', fontWeight: 700 }}>AUD</span>
+        )}
+      </span>
+
+      {sub.is_signed && sub.signed_name && (
+        <span style={{ fontSize: 11, color: '#888', fontStyle: 'italic' }}>{sub.signed_name}</span>
+      )}
+
+      <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        <Link
+          href={`/groups/${groupId}/submissions/${sub.week_id}/${sub.id}`}
+          style={{ border: '1px solid #ccc', padding: '2px 10px', fontSize: 10, letterSpacing: '0.06em', fontWeight: 700, textDecoration: 'none', color: '#000', textTransform: 'uppercase' }}
+        >
+          OPEN
+        </Link>
+        {onFavourite && (
+          <button
+            onClick={() => onFavourite(sub.id, sub.week_id)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: isMyVote ? '#C85A5A' : '#ccc', padding: '0 2px', fontFamily: 'inherit', lineHeight: 1 }}
+          >
+            {isMyVote ? '♥' : '♡'}
+          </button>
+        )}
+      </span>
+    </div>
+  )
+}
+
+function Cabinet({ subs, groupId, myFavourites, onFavourite }: {
+  subs: any[]; groupId: string; myFavourites: Record<string, string>; onFavourite?: (id: string, weekId: string) => void
 }) {
   const groups = buildWeekGroups(subs)
   return (
-    <div className="file-cabinet">
+    <div style={{ border: '1px solid #000', overflow: 'hidden' }}>
       {groups.map(({ week, subs: weekSubs }, gi) => (
         <div key={week?.id} style={{ borderTop: gi > 0 ? '2px solid #000' : 'none' }}>
-          <LetterTab letter={week?.letter} count={weekSubs.length} />
+          {/* Letter header */}
+          <div style={{ background: '#000', display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
+            <div style={{
+              width: 28, height: 28, borderRadius: '50%', border: '2px solid #C85A5A', background: '#C85A5A',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 13, fontWeight: 700, color: '#fff',
+            }}>
+              {week?.letter}
+            </div>
+          </div>
           {weekSubs.map(sub => (
-            <FileStrip
-              key={sub.id}
-              sub={sub}
-              groupId={groupId}
-              isFav={communityFavourites[sub.week_id] === sub.id}
+            <SubmissionRow
+              key={sub.id} sub={sub} groupId={groupId}
               isMyVote={myFavourites[sub.week_id] === sub.id}
               onFavourite={onFavourite}
             />
@@ -137,18 +105,14 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(true)
-  const [profile, setProfile] = useState<any>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [weeks, setWeeks] = useState<any[]>([])
-  const [view, setView] = useState<'az' | 'mine' | 'favourite'>('az')
+  const [view, setView] = useState<'all' | 'mine' | 'favourite'>('all')
 
-  const [azSubmissions, setAZSubmissions] = useState<any[]>([])
-  const [loadingAZ, setLoadingAZ] = useState(false)
-
-  const [mySubmissions, setMySubmissions] = useState<any[]>([])
+  const [azSubs, setAZSubs] = useState<any[]>([])
+  const [mySubs, setMySubs] = useState<any[]>([])
   const [loadingMine, setLoadingMine] = useState(false)
   const [mineFetched, setMineFetched] = useState(false)
-
   const [myFavourites, setMyFavourites] = useState<Record<string, string>>({})
   const [communityFavourites, setCommunityFavourites] = useState<Record<string, string>>({})
 
@@ -162,8 +126,6 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
         .eq('group_id', params.id).eq('user_id', session.user.id).single()
       if (!membership) { router.push('/dashboard'); return }
 
-      const { data: prof } = await supabase.from('users').select('*').eq('id', session.user.id).single()
-      setProfile(prof)
       setUserId(session.user.id)
 
       const { data: allWeeks } = await supabase
@@ -171,9 +133,7 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
       const w = allWeeks || []
       setWeeks(w)
 
-      const revealedWeekIds = w
-        .filter((wk: any) => wk.revealed_at && new Date(wk.revealed_at) < new Date())
-        .map((wk: any) => wk.id)
+      const revealedIds = w.filter((wk: any) => wk.revealed_at && new Date(wk.revealed_at) < new Date()).map((wk: any) => wk.id)
 
       const { data: myFavs } = await supabase
         .from('favourites').select('submission_id, week_id')
@@ -182,7 +142,6 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
       for (const f of myFavs || []) myFavMap[f.week_id] = f.submission_id
       setMyFavourites(myFavMap)
 
-      // All members' votes → group-wide top submission per week
       const { data: allFavs } = await supabase
         .from('favourites').select('submission_id, week_id').eq('group_id', params.id)
       const weekCounts: Record<string, Record<string, number>> = {}
@@ -197,14 +156,12 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
       }
       setCommunityFavourites(commFavMap)
 
-      if (revealedWeekIds.length > 0) {
-        setLoadingAZ(true)
+      if (revealedIds.length > 0) {
         const { data } = await supabase
           .from('submissions').select('*, users(*), weeks(*)')
-          .in('week_id', revealedWeekIds).eq('is_late_catchup', false)
+          .in('week_id', revealedIds).eq('is_late_catchup', false)
           .order('word_title', { ascending: true })
-        setAZSubmissions(data || [])
-        setLoadingAZ(false)
+        setAZSubs(data || [])
       }
 
       setLoading(false)
@@ -216,16 +173,13 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
     setView('mine')
     if (mineFetched || !userId) return
     setLoadingMine(true)
-    const revealedWeekIds = weeks
-      .filter((w: any) => w.revealed_at && new Date(w.revealed_at) < new Date())
-      .map((w: any) => w.id)
-    if (revealedWeekIds.length === 0) { setLoadingMine(false); setMineFetched(true); return }
+    const revealedIds = weeks.filter((w: any) => w.revealed_at && new Date(w.revealed_at) < new Date()).map((w: any) => w.id)
+    if (revealedIds.length === 0) { setLoadingMine(false); setMineFetched(true); return }
     const { data } = await supabase
       .from('submissions').select('*, weeks(*)')
       .eq('user_id', userId).eq('is_late_catchup', false)
-      .in('week_id', revealedWeekIds).order('word_title', { ascending: true })
-    const sorted = (data || []).sort((a: any, b: any) => a.weeks?.week_num - b.weeks?.week_num)
-    setMySubmissions(sorted)
+      .in('week_id', revealedIds).order('word_title', { ascending: true })
+    setMySubs((data || []).sort((a: any, b: any) => a.weeks?.week_num - b.weeks?.week_num))
     setMineFetched(true)
     setLoadingMine(false)
   }
@@ -238,10 +192,7 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
         .eq('user_id', userId).eq('week_id', weekId).eq('group_id', params.id)
       if (!error) setMyFavourites(prev => { const n = { ...prev }; delete n[weekId]; return n })
     } else {
-      if (currentVote) {
-        await supabase.from('favourites').delete()
-          .eq('user_id', userId).eq('week_id', weekId).eq('group_id', params.id)
-      }
+      if (currentVote) await supabase.from('favourites').delete().eq('user_id', userId).eq('week_id', weekId).eq('group_id', params.id)
       const { error } = await supabase.from('favourites').insert({
         group_id: params.id, user_id: userId, submission_id: submissionId, week_id: weekId,
       })
@@ -251,90 +202,68 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
 
   if (loading) return (
     <div style={{ minHeight: '100vh' }}>
-      <nav className="nav"><Link href="/dashboard" className="nav-brand">[ MY WORD ]</Link></nav>
-      <div className="page-container" style={{ paddingTop: 40 }}>Loading...</div>
+      <Nav />
+      <div style={{ padding: '40px', fontSize: 13, color: '#999' }}>Loading...</div>
     </div>
   )
 
-  const toggleBtn = (active: boolean, first = false) => ({
-    padding: '6px 14px', fontSize: 11, fontWeight: 'bold' as const,
-    textTransform: 'uppercase' as const, letterSpacing: '0.08em',
-    border: 'none', borderLeft: first ? 'none' : '2px solid #000',
-    cursor: 'pointer', background: active ? '#000' : '#fff', color: active ? '#fff' : '#000',
+  const tabBtn = (active: boolean) => ({
+    padding: '6px 20px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em',
+    textTransform: 'uppercase' as const, cursor: 'pointer', fontFamily: 'inherit',
+    background: active ? '#000' : 'transparent', color: active ? '#fff' : '#000',
+    border: '1px solid #000', marginRight: -1,
   })
 
-  const emptyState = (msg: string) => (
-    <div className="box-shaded" style={{ textAlign: 'center', padding: 48 }}>
-      <p style={{ fontSize: 13, color: '#666' }}>{msg}</p>
-    </div>
+  const favouriteSubs = azSubs.filter(s => communityFavourites[s.week_id] === s.id).sort((a, b) => a.weeks?.week_num - b.weeks?.week_num)
+  const empty = (msg: string) => (
+    <div style={{ border: '1px solid #ccc', padding: '40px', textAlign: 'center', fontSize: 13, color: '#666' }}>{msg}</div>
   )
 
-  const favouriteSubs = azSubmissions
-    .filter(sub => communityFavourites[sub.week_id] === sub.id)
-    .sort((a, b) => a.weeks?.week_num - b.weeks?.week_num)
-
   return (
-    <div style={{ minHeight: '100vh' }}>
-      <nav className="nav">
-        <Link href="/dashboard" className="nav-brand">[ MY WORD ]</Link>
-        <Link href={`/groups/${params.id}`} className="nav-link">← Project</Link>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
-          <span style={{ padding: '10px 16px', fontSize: 12, color: '#666', borderLeft: '1px solid #aaa' }}>
-            #{profile?.member_number}
-          </span>
-          <button onClick={async () => {
-            await supabase.auth.signOut(); window.location.href = '/'
-          }} className="nav-link" style={{ border: 'none', cursor: 'pointer', background: 'none' }}>
-            Sign Out
-          </button>
-        </div>
-      </nav>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Nav />
 
-      <div className="page-container" style={{ paddingTop: 40, paddingBottom: 60 }}>
-        <div className="submissions-header">
-          <h1 className="page-title" style={{ margin: 0 }}>Submissions</h1>
-          <div style={{ display: 'flex', border: '2px solid #000', overflow: 'hidden' }}>
-            <button onClick={() => setView('az')} style={toggleBtn(view === 'az', true)}>A–Z</button>
-            <button onClick={switchToMine} style={toggleBtn(view === 'mine')}>Mine</button>
-            <button onClick={() => setView('favourite')} style={toggleBtn(view === 'favourite')}>Favourite</button>
+      <main style={{ flex: 1, padding: '28px 40px 0', maxWidth: 900, width: '100%', margin: '0 auto' }}>
+
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 20, marginBottom: 24 }}>
+          <Link href={`/groups/${params.id}`} style={{ fontSize: 11, color: '#999', letterSpacing: '0.1em', textTransform: 'uppercase', textDecoration: 'none' }}>
+            GO BACK
+          </Link>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', margin: 0 }}>
+            SUBMISSIONS
+          </h1>
+        </div>
+
+        {/* Filter tabs */}
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24 }}>
+          <div style={{ flex: 1, height: 1, background: '#000' }} />
+          <div style={{ display: 'flex', margin: '0 0' }}>
+            <button onClick={() => setView('all')} style={tabBtn(view === 'all')}>ALL</button>
+            <button onClick={switchToMine} style={tabBtn(view === 'mine')}>MINE</button>
+            <button onClick={() => setView('favourite')} style={tabBtn(view === 'favourite')}>FAVOURITE</button>
           </div>
+          <div style={{ flex: 1, height: 1, background: '#000' }} />
         </div>
-        <p style={{ fontSize: 11, color: '#999', fontStyle: 'italic', textAlign: 'right', marginBottom: 24 }}>
-          Heart your favourite piece from each letter.
-        </p>
 
-        {view === 'az' && (
-          loadingAZ
-            ? <div style={{ fontSize: 13, color: '#666' }}>Loading...</div>
-            : azSubmissions.length === 0
-              ? emptyState('No revealed weeks yet.')
-              : <Cabinet subs={azSubmissions} groupId={params.id}
-                  communityFavourites={communityFavourites}
-                  myFavourites={myFavourites}
-                  onFavourite={handleFavourite}
-                />
+        {view === 'all' && (
+          azSubs.length === 0 ? empty('No revealed weeks yet.') :
+          <Cabinet subs={azSubs} groupId={params.id} myFavourites={myFavourites} onFavourite={handleFavourite} />
         )}
 
         {view === 'mine' && (
-          loadingMine
-            ? <div style={{ fontSize: 13, color: '#666' }}>Loading...</div>
-            : mineFetched && mySubmissions.length === 0
-              ? emptyState("You haven't submitted anything yet.")
-              : <Cabinet subs={mySubmissions} groupId={params.id}
-                  communityFavourites={communityFavourites}
-                  myFavourites={myFavourites}
-                />
+          loadingMine ? <div style={{ fontSize: 13, color: '#666' }}>Loading...</div> :
+          mineFetched && mySubs.length === 0 ? empty("You haven't submitted anything yet.") :
+          <Cabinet subs={mySubs} groupId={params.id} myFavourites={myFavourites} />
         )}
 
         {view === 'favourite' && (
-          favouriteSubs.length === 0
-            ? emptyState('No favourites yet — be the first to vote.')
-            : <Cabinet subs={favouriteSubs} groupId={params.id}
-                communityFavourites={communityFavourites}
-                myFavourites={myFavourites}
-              />
+          favouriteSubs.length === 0 ? empty('No community favourites yet.') :
+          <Cabinet subs={favouriteSubs} groupId={params.id} myFavourites={myFavourites} />
         )}
-      </div>
+
+      </main>
+
+      <Footer />
     </div>
   )
 }

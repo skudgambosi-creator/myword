@@ -3,12 +3,25 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import Nav from '@/components/layout/Nav'
+
+function Footer() {
+  return (
+    <footer style={{ textAlign: 'center', padding: '60px 0 32px' }}>
+      <svg width="54" height="50" viewBox="0 0 54 50" fill="none" style={{ display: 'block', margin: '0 auto 6px' }}>
+        <circle cx="17" cy="16" r="14" stroke="#000" strokeWidth="0.75" />
+        <circle cx="37" cy="16" r="14" stroke="#000" strokeWidth="0.75" />
+        <circle cx="27" cy="32" r="14" stroke="#000" strokeWidth="0.75" />
+      </svg>
+      <div style={{ fontSize: 9, letterSpacing: '0.2em' }}>MOUNTFORD-GAMBOSI</div>
+    </footer>
+  )
+}
 
 export default function LeaderboardPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(true)
-  const [profile, setProfile] = useState<any>(null)
   const [entries, setEntries] = useState<any[]>([])
   const [weeksElapsed, setWeeksElapsed] = useState(0)
 
@@ -22,16 +35,11 @@ export default function LeaderboardPage({ params }: { params: { id: string } }) 
         .eq('group_id', params.id).eq('user_id', session.user.id).single()
       if (!membership) { router.push('/dashboard'); return }
 
-      const { data: prof } = await supabase.from('users').select('*').eq('id', session.user.id).single()
-      setProfile(prof)
-
       const { data: members } = await supabase
         .from('group_members').select('user_id, users(*)')
         .eq('group_id', params.id)
-
       const { data: scores } = await supabase
         .from('scores').select('*').eq('group_id', params.id)
-
       const { data: weeks } = await supabase
         .from('weeks').select('*').eq('group_id', params.id)
 
@@ -45,17 +53,13 @@ export default function LeaderboardPage({ params }: { params: { id: string } }) 
         const user = m.users
         const userScores = (scores || []).filter((s: any) => s.user_id === m.user_id)
         const total = userScores.reduce((sum: number, s: any) => sum + s.score, 0)
-
         let streak = 0
         for (const week of sortedWeeks) {
           const s = userScores.find((sc: any) => sc.week_id === week.id)
           if (s && s.score === 1 && !s.is_late) streak++
           else break
         }
-
-        const name = `Member #${user?.member_number}`
-
-        return { user, name, total, streak, userId: m.user_id }
+        return { name: `Member #${user?.member_number}`, total, streak, userId: m.user_id }
       }).sort((a: any, b: any) => b.total - a.total || b.streak - a.streak)
 
       setEntries(leaderboard)
@@ -66,78 +70,56 @@ export default function LeaderboardPage({ params }: { params: { id: string } }) 
 
   if (loading) return (
     <div style={{ minHeight: '100vh' }}>
-      <nav className="nav"><Link href="/dashboard" className="nav-brand">[ MY WORD ]</Link></nav>
-      <div className="page-container" style={{ paddingTop: 40 }}>Loading...</div>
+      <Nav />
+      <div style={{ padding: '40px', fontSize: 13, color: '#999' }}>Loading...</div>
     </div>
   )
 
-  const displayName = `Member #${profile?.member_number}`
-
   return (
-    <div style={{ minHeight: '100vh' }}>
-      <nav className="nav">
-        <Link href="/dashboard" className="nav-brand">[ MY WORD ]</Link>
-        <Link href={`/groups/${params.id}`} className="nav-link">← Project</Link>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
-          <span style={{ padding: '10px 16px', fontSize: 12, color: '#666', borderLeft: '1px solid #aaa' }}>
-            {displayName}
-          </span>
-          <button onClick={async () => {
-            await supabase.auth.signOut()
-            window.location.href = '/'
-          }} className="nav-link" style={{ border: 'none', cursor: 'pointer', background: 'none' }}>
-            Sign Out
-          </button>
-        </div>
-      </nav>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Nav />
 
-      <div className="page-container" style={{ paddingTop: 40, paddingBottom: 60, maxWidth: 640 }}>
-        <h1 className="page-title">Leaderboard</h1>
-        <p style={{ fontSize: 13, color: '#666', marginBottom: 24 }}>
-          {weeksElapsed} of 26 weeks completed
-        </p>
+      <main style={{ flex: 1, padding: '28px 40px 0', maxWidth: 900, width: '100%', margin: '0 auto' }}>
+
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 20, marginBottom: 24 }}>
+          <Link href={`/groups/${params.id}`} style={{ fontSize: 11, color: '#999', letterSpacing: '0.1em', textTransform: 'uppercase', textDecoration: 'none' }}>
+            GO BACK
+          </Link>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', margin: 0 }}>
+            LEADERBOARD
+          </h1>
+        </div>
 
         {weeksElapsed === 0 ? (
-          <div className="box-shaded" style={{ textAlign: 'center', padding: 40, fontSize: 14, color: '#666' }}>
+          <div style={{ border: '1px solid #ccc', padding: '40px', textAlign: 'center', fontSize: 13, color: '#666', letterSpacing: '0.05em' }}>
             The leaderboard will appear after the first week's reveal on Wednesday.
           </div>
         ) : (
-          <div className="box" style={{ padding: 0, overflow: 'hidden' }}>
-            <table className="grid-table" style={{ marginBottom: 0 }}>
-              <thead>
-                <tr>
-                  <th style={{ width: 40 }}>#</th>
-                  <th>Member</th>
-                  <th style={{ width: 80 }}>Score</th>
-                  <th style={{ width: 100 }}>Streak</th>
-                </tr>
-              </thead>
-              <tbody>
-                {entries.map((entry, i) => {
-                  const isYou = entry.userId === profile?.id
-                  return (
-                    <tr key={entry.userId} style={{ background: isYou ? '#fff8f8' : undefined }}>
-                      <td style={{ fontWeight: 'bold', color: i === 0 ? '#CC0000' : '#999' }}>
-                        {i + 1}
-                      </td>
-                      <td style={{ fontWeight: isYou ? 'bold' : 'normal' }}>
-                        {entry.name} {isYou && <span style={{ color: '#CC0000', fontSize: 11 }}>(you)</span>}
-                      </td>
-                      <td style={{ fontWeight: 'bold' }}>
-                        {entry.total}
-                        <span style={{ fontSize: 11, color: '#999', fontWeight: 'normal' }}>/{weeksElapsed}</span>
-                      </td>
-                      <td style={{ fontSize: 12, color: entry.streak > 2 ? '#CC0000' : '#666' }}>
-                        {entry.streak > 0 ? `${entry.streak} week${entry.streak !== 1 ? 's' : ''}` : '—'}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+          <div style={{ border: '1px solid #000', overflow: 'hidden' }}>
+            {entries.map((entry, i) => (
+              <div key={entry.userId} style={{
+                display: 'flex', alignItems: 'center',
+                padding: '12px 20px', gap: 12,
+                borderBottom: i < entries.length - 1 ? '1px solid #e0e0e0' : 'none',
+              }}>
+                <span style={{ flex: 1, fontSize: 13, letterSpacing: '0.05em' }}>{entry.name}</span>
+                <span style={{ border: '1px solid #000', padding: '2px 10px', fontSize: 12, letterSpacing: '0.05em', minWidth: 64, textAlign: 'center' }}>
+                  {entry.total}/{weeksElapsed}
+                </span>
+                {entry.streak > 0 ? (
+                  <span style={{ border: '1px solid #000', padding: '2px 10px', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    STREAK
+                  </span>
+                ) : (
+                  <span style={{ border: '1px solid transparent', padding: '2px 10px', fontSize: 11, minWidth: 60 }} />
+                )}
+              </div>
+            ))}
           </div>
         )}
-      </div>
+      </main>
+
+      <Footer />
     </div>
   )
 }

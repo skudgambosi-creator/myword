@@ -1,43 +1,40 @@
 'use client'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
 
-export default function Nav({ userName }: { userName?: string }) {
-  const pathname = usePathname()
-  const router = useRouter()
+export default function Nav() {
   const supabase = createClient()
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/')
-    router.refresh()
-  }
-
   return (
-    <nav className="nav">
-      <Link href="/dashboard" className="nav-brand">[ MY WORD ]</Link>
-      <Link href="/dashboard" className={`nav-link ${pathname === '/dashboard' ? 'active' : ''}`}>
-        Dashboard
+    <nav style={{
+      display: 'flex', alignItems: 'center',
+      padding: '20px 40px', gap: 0,
+    }}>
+      <Link href="/profile" style={{
+        fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
+        textDecoration: 'none', color: '#000', whiteSpace: 'nowrap',
+      }}>
+        PROFILE
       </Link>
-      <Link href="/profile" className={`nav-link ${pathname === '/profile' ? 'active' : ''}`}>
-        Profile
-      </Link>
-      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
-        {userName && (
-          <span style={{ padding: '10px 16px', fontSize: 12, color: '#666', borderLeft: '1px solid #aaa' }}>
-            {userName}
-          </span>
-        )}
-        <button
-          onClick={handleSignOut}
-          className="nav-link"
-          style={{ border: 'none', cursor: 'pointer', background: 'none' }}
-        >
-          Sign Out
-        </button>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 20, margin: '0 20px' }}>
+        <div style={{ flex: 1, height: 1, background: '#000' }} />
+        <Link href="/dashboard" style={{
+          fontSize: 18, fontWeight: 700, letterSpacing: '0.2em',
+          textDecoration: 'none', color: '#000', textTransform: 'uppercase', whiteSpace: 'nowrap',
+        }}>
+          MY WORD
+        </Link>
+        <div style={{ flex: 1, height: 1, background: '#000' }} />
       </div>
+      <button
+        onClick={async () => { await supabase.auth.signOut(); window.location.href = '/' }}
+        style={{
+          fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
+          background: 'none', border: 'none', cursor: 'pointer', color: '#000',
+          whiteSpace: 'nowrap', padding: 0, fontFamily: 'inherit',
+        }}
+      >
+        SIGN OUT
+      </button>
     </nav>
   )
 }

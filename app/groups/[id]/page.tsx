@@ -3,32 +3,46 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import Nav from '@/components/layout/Nav'
 
 function Countdown({ closesAt }: { closesAt: string }) {
   const [timeLeft, setTimeLeft] = useState('')
-
   useEffect(() => {
     const tick = () => {
       const diff = new Date(closesAt).getTime() - Date.now()
       if (diff <= 0) { setTimeLeft('CLOSED'); return }
-      const d = Math.floor(diff / 86400000)
-      const h = Math.floor((diff % 86400000) / 3600000)
+      const h = Math.floor(diff / 3600000)
       const m = Math.floor((diff % 3600000) / 60000)
       const s = Math.floor((diff % 60000) / 1000)
-      setTimeLeft(`${String(d).padStart(2,'0')}:${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`)
+      setTimeLeft(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`)
     }
     tick()
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
   }, [closesAt])
+  return <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '0.1em' }}>{timeLeft}</div>
+}
 
+function Footer() {
   return (
-    <div>
-      <div className="timer">{timeLeft}</div>
-      <div className="timer-label">DD : HH : MM : SS</div>
-    </div>
+    <footer style={{ textAlign: 'center', padding: '60px 0 32px' }}>
+      <svg width="54" height="50" viewBox="0 0 54 50" fill="none" style={{ display: 'block', margin: '0 auto 6px' }}>
+        <circle cx="17" cy="16" r="14" stroke="#000" strokeWidth="0.75" />
+        <circle cx="37" cy="16" r="14" stroke="#000" strokeWidth="0.75" />
+        <circle cx="27" cy="32" r="14" stroke="#000" strokeWidth="0.75" />
+      </svg>
+      <div style={{ fontSize: 9, letterSpacing: '0.2em' }}>MOUNTFORD-GAMBOSI</div>
+    </footer>
   )
 }
+
+const RULES = [
+  ['One submission per letter', 'You get one entry per week. Everyone is anonymous by default, but you can choose to sign a submission if you like. You can add pictures and music as well.'],
+  ['Your word must start with the letter', 'Your title can be any word or phrase — it just has to begin with that week\'s letter. You can write whatever you like, however you like.'],
+  ['Edit until Wednesday 23:59', 'You can change your submission at any time before the window closes. After that, it\'s locked.'],
+  ['Hidden until midnight Wednesday', 'Nobody can see anyone else\'s submission until the reveal. Not the title, not the content. You will get an email every Wednesday with the week\'s submissions, as well as having them unlocked on here.'],
+  ['Scoring', 'You score points by keeping your word. Miss a week, miss a point.'],
+]
 
 export default function GroupPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -40,17 +54,16 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   const [mySubmission, setMySubmission] = useState<any>(null)
   const [memberCount, setMemberCount] = useState(0)
   const [submissionCount, setSubmissionCount] = useState(0)
-  const [myStats, setMyStats] = useState<{ total: number; rank: number; streak: number; weeksElapsed: number } | null>(null)
+  const [myScore, setMyScore] = useState(0)
   const [nextWeek, setNextWeek] = useState<any>(null)
+  const [isCompleted, setIsCompleted] = useState(false)
 
   useEffect(() => {
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.push('/login'); return }
-
       const userId = session.user.id
 
-      // Verify membership
       const { data: membership } = await supabase
         .from('group_members').select('*')
         .eq('group_id', params.id).eq('user_id', userId).single()
@@ -61,75 +74,41 @@ export default function GroupPage({ params }: { params: { id: string } }) {
 
       const { data: grp } = await supabase.from('groups').select('*').eq('id', params.id).single()
       setGroup(grp)
+      setIsCompleted(!!grp?.completed_at)
 
-      // Current open week — must be open NOW (opens_at in past, closes_at in future)
       const now = new Date().toISOString()
       const { data: week } = await supabase
         .from('weeks').select('*').eq('group_id', params.id)
-        .lte('opens_at', now)
-        .gte('closes_at', now)
+        .lte('opens_at', now).gte('closes_at', now)
         .order('week_num', { ascending: false }).limit(1).single()
       setCurrentWeek(week)
 
       if (!week) {
         const { data: upcoming } = await supabase
           .from('weeks').select('*').eq('group_id', params.id)
-          .gt('opens_at', now)
-          .order('week_num', { ascending: true }).limit(1).single()
+          .gt('opens_at', now).order('week_num', { ascending: true }).limit(1).single()
         setNextWeek(upcoming)
       }
 
       if (week) {
-        // My submission
         const { data: sub } = await supabase
           .from('submissions').select('*')
           .eq('user_id', userId).eq('week_id', week.id).eq('is_late_catchup', false).single()
         setMySubmission(sub)
-
-        // Submission count
         const { count } = await supabase
           .from('submissions').select('*', { count: 'exact', head: true })
           .eq('week_id', week.id).eq('is_late_catchup', false)
         setSubmissionCount(count || 0)
       }
 
-      // Member count
       const { count: mc } = await supabase
         .from('group_members').select('*', { count: 'exact', head: true })
         .eq('group_id', params.id)
       setMemberCount(mc || 0)
 
-      // My score, rank, streak
-      const { data: allMembers } = await supabase
-        .from('group_members').select('user_id').eq('group_id', params.id)
-      const { data: allScores } = await supabase
-        .from('scores').select('*').eq('group_id', params.id)
-      const { data: allWeeks } = await supabase
-        .from('weeks').select('*').eq('group_id', params.id)
-
-      const nowDate = new Date()
-      const revealedWeeks = (allWeeks || []).filter((w: any) => w.revealed_at && new Date(w.revealed_at) < nowDate)
-      const weeksElapsed = revealedWeeks.length
-
-      const revealedWeekIds = new Set(revealedWeeks.map((w: any) => w.id))
-      const totals = (allMembers || []).map((m: any) => ({
-        userId: m.user_id,
-        total: (allScores || []).filter((s: any) => s.user_id === m.user_id && revealedWeekIds.has(s.week_id)).reduce((sum: number, s: any) => sum + s.score, 0),
-      })).sort((a: any, b: any) => b.total - a.total)
-
-      const myTotal = totals.find((t: any) => t.userId === userId)?.total ?? 0
-      const rank = totals.findIndex((t: any) => t.userId === userId) + 1
-
-      const sortedRevealed = [...revealedWeeks].sort((a: any, b: any) => b.week_num - a.week_num)
-      const myScores = (allScores || []).filter((s: any) => s.user_id === userId)
-      let streak = 0
-      for (const w of sortedRevealed) {
-        const s = myScores.find((sc: any) => sc.week_id === w.id)
-        if (s && s.score === 1 && !s.is_late) streak++
-        else break
-      }
-
-      setMyStats({ total: myTotal, rank, streak, weeksElapsed })
+      const { data: scores } = await supabase
+        .from('scores').select('score').eq('group_id', params.id).eq('user_id', userId)
+      setMyScore((scores || []).reduce((s: number, r: any) => s + r.score, 0))
 
       setLoading(false)
     }
@@ -138,207 +117,156 @@ export default function GroupPage({ params }: { params: { id: string } }) {
 
   if (loading) return (
     <div style={{ minHeight: '100vh' }}>
-      <nav className="nav"><Link href="/dashboard" className="nav-brand">[ MY WORD ]</Link></nav>
-      <div className="page-container" style={{ paddingTop: 40 }}>Loading...</div>
+      <Nav />
+      <div style={{ padding: '40px', fontSize: 13, color: '#999' }}>Loading...</div>
     </div>
   )
 
-  const displayName = `Member #${profile?.member_number}`
-
+  const activeWeek = currentWeek || nextWeek
   const windowClosed = currentWeek ? new Date(currentWeek.closes_at) < new Date() : false
-  const isCompleted = !!group?.completed_at
 
   return (
-    <div style={{ minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {isCompleted && (
-        <div className="completed-banner">★ THE ALPHABET PROJECT IS COMPLETE — A TO Z ★</div>
+        <div style={{ background: '#000', color: '#fff', textAlign: 'center', padding: 8, fontSize: 11, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+          ★ THE ALPHABET PROJECT IS COMPLETE — A TO Z ★
+        </div>
       )}
 
-      <nav className="nav">
-        <Link href="/dashboard" className="nav-brand">[ MY WORD ]</Link>
-        <Link href="/dashboard" className="nav-link">Dashboard</Link>
-        <Link href="/profile" className="nav-link">Profile</Link>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
-          <span style={{ padding: '10px 16px', fontSize: 12, color: '#666', borderLeft: '1px solid #aaa' }}>
-            {displayName}
-          </span>
-          <button onClick={async () => {
-            await supabase.auth.signOut()
-            window.location.href = '/'
-          }} className="nav-link" style={{ border: 'none', cursor: 'pointer', background: 'none' }}>
-            Sign Out
-          </button>
-        </div>
-      </nav>
+      <Nav />
 
-      <div className="page-container" style={{ paddingTop: 40, paddingBottom: 60 }}>
+      <main style={{ flex: 1, padding: '24px 40px 0', maxWidth: 900, width: '100%', margin: '0 auto' }}>
 
-        {/* Header */}
-        <div style={{ marginBottom: 32 }}>
-          <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
-            Season 1
-          </div>
-          <h1 style={{ fontSize: 28, fontWeight: 'bold' }}>The Alphabet Project</h1>
+        {/* Season label */}
+        <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.15em', color: '#C85A5A', textTransform: 'uppercase', marginBottom: 16 }}>
+          SEASON 1
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        {/* Project title box */}
+        <div style={{ border: '1px solid #000', padding: '24px 32px', marginBottom: 24, textAlign: 'center' }}>
+          <span style={{ fontSize: 22, letterSpacing: '0.2em', textTransform: 'uppercase' }}>THE ALPHABET PROJECT</span>
+        </div>
 
-          {/* 1. Submission block */}
-          {currentWeek && !isCompleted && (
-            <div className="box">
-              <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                {/* Big letter */}
-                <div>
-                  <div style={{ fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#999', marginBottom: 4 }}>
-                    Week {currentWeek.week_num} of 26
-                  </div>
-                  <span style={{ fontSize: 140, fontWeight: 'bold', lineHeight: 1, color: '#CC0000', display: 'block' }}>
-                    {currentWeek.letter}
-                  </span>
-                </div>
+        {/* Main action card */}
+        <div style={{ border: '1px solid #000', padding: '32px', marginBottom: 24 }}>
 
-                {/* Timer + status + CTA */}
-                <div style={{ flex: 1, paddingTop: 8 }}>
-                  {!windowClosed ? (
-                    <>
-                      <div style={{ marginBottom: 16 }}>
-                        <div className="section-header">Submission closes in</div>
-                        <Countdown closesAt={currentWeek.closes_at} />
-                      </div>
-                      <div style={{ marginBottom: 20 }}>
-                        <span className="submission-counter">
-                          <strong>{submissionCount}</strong> / {memberCount} submitted
-                        </span>
-                      </div>
-                      {mySubmission ? (
-                        <div>
-                          <div style={{ marginBottom: 8 }}>
-                            <span className="tag tag-complete">✓ Submitted</span>
-                            <span style={{ fontSize: 12, color: '#666', marginLeft: 8 }}>
-                              {mySubmission.word_title} · {mySubmission.word_count} words
-                            </span>
-                          </div>
-                          <Link href={`/groups/${params.id}/submit?edit=1`} className="btn">
-                            Edit Submission
-                          </Link>
-                        </div>
-                      ) : (
-                        <Link href={`/groups/${params.id}/submit`} className="btn btn-accent" style={{ fontSize: 15, padding: '10px 28px' }}>
-                          Submit Letter {currentWeek.letter}
-                        </Link>
-                      )}
-                    </>
-                  ) : (
-                    <div className="box-shaded" style={{ fontSize: 13 }}>
-                      Window closed. Reveal pending at midnight Wednesday.
+          {/* Letter + countdown + submit */}
+          {(currentWeek || nextWeek) && !isCompleted && (
+            <div style={{ display: 'flex', gap: 32, alignItems: 'center', marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
+              {/* Letter circle */}
+              <div style={{
+                width: 130, height: 130, borderRadius: '50%', background: '#C85A5A', flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#fff', fontSize: 72, fontWeight: 900, letterSpacing: '-0.02em',
+              }}>
+                {(currentWeek || nextWeek).letter}
+              </div>
+
+              {/* Timer + CTA */}
+              <div style={{ flex: 1 }}>
+                {currentWeek && !windowClosed ? (
+                  <>
+                    <Countdown closesAt={currentWeek.closes_at} />
+                    <div style={{ fontSize: 11, color: '#999', letterSpacing: '0.1em', marginBottom: 16 }}>HH : MM : SS</div>
+                    <div style={{ fontSize: 12, letterSpacing: '0.05em', marginBottom: 16 }}>
+                      <span style={{ border: '1px solid #000', padding: '2px 10px' }}>{submissionCount}/{memberCount}</span>
                     </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {!currentWeek && !isCompleted && nextWeek && nextWeek.week_num === 1 && (
-            <div className="box">
-              <div className="box-header">AWAITING START</div>
-              <div style={{ padding: '16px 0 0', fontSize: 14, color: '#555' }}>
-                The project starts on {new Date(group.start_date).toLocaleDateString('en-GB', {
-                  weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-                })}. Week 1 will be Letter A.
-              </div>
-            </div>
-          )}
-
-          {!currentWeek && !isCompleted && nextWeek && nextWeek.week_num > 1 && (
-            <div className="box">
-              <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                <div>
-                  <div style={{ fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#999', marginBottom: 4 }}>
-                    Week {nextWeek.week_num} of 26
-                  </div>
-                  <span style={{ fontSize: 140, fontWeight: 'bold', lineHeight: 1, color: '#CC0000', display: 'block' }}>
-                    {nextWeek.letter}
-                  </span>
-                </div>
-                <div style={{ flex: 1, paddingTop: 8 }}>
-                  <div className="section-header">Submission opens in</div>
-                  <Countdown closesAt={nextWeek.opens_at} />
-                  <div style={{ fontSize: 13, color: '#555', marginTop: 16 }}>
-                    Opens {new Date(nextWeek.opens_at).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
-                  </div>
-                </div>
+                    {mySubmission ? (
+                      <Link
+                        href={`/groups/${params.id}/submit?edit=1`}
+                        style={{
+                          display: 'inline-block', background: '#C85A5A', color: '#fff',
+                          padding: '10px 24px', fontSize: 13, fontWeight: 700,
+                          letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none',
+                        }}
+                      >
+                        SUBMIT / EDIT
+                      </Link>
+                    ) : (
+                      <Link
+                        href={`/groups/${params.id}/submit`}
+                        style={{
+                          display: 'inline-block', background: '#C85A5A', color: '#fff',
+                          padding: '10px 24px', fontSize: 13, fontWeight: 700,
+                          letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none',
+                        }}
+                      >
+                        SUBMIT / EDIT
+                      </Link>
+                    )}
+                  </>
+                ) : currentWeek && windowClosed ? (
+                  <div style={{ fontSize: 13, color: '#666' }}>Window closed. Reveal pending at midnight Wednesday.</div>
+                ) : nextWeek ? (
+                  <>
+                    <Countdown closesAt={nextWeek.opens_at} />
+                    <div style={{ fontSize: 11, color: '#999', letterSpacing: '0.1em', marginTop: 4 }}>until next letter opens</div>
+                  </>
+                ) : null}
               </div>
             </div>
           )}
 
           {isCompleted && (
-            <div className="box" style={{ textAlign: 'center', padding: 48 }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>A — Z</div>
-              <h2 style={{ fontSize: 20, marginBottom: 20 }}>The Alphabet Project is complete.</h2>
-              <Link href={`/groups/${params.id}/submissions`} className="btn btn-accent">
-                Browse the Archive →
+            <div style={{ textAlign: 'center', padding: '20px 0 24px', borderBottom: '1px solid #eee', marginBottom: 24 }}>
+              <div style={{ fontSize: 32, marginBottom: 12, letterSpacing: '0.2em' }}>A — Z</div>
+              <Link href={`/groups/${params.id}/submissions`} style={{
+                display: 'inline-block', background: '#C85A5A', color: '#fff',
+                padding: '10px 24px', fontSize: 13, fontWeight: 700,
+                letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none',
+              }}>
+                BROWSE THE ARCHIVE
               </Link>
             </div>
           )}
 
-          {/* 2. Leaderboard + Submissions side by side */}
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-            <Link href={`/groups/${params.id}/leaderboard`} style={{ flex: 1, minWidth: 200, textDecoration: 'none' }}>
-              <div className="box" style={{ cursor: 'pointer', borderLeft: '4px solid #CC0000', height: '100%' }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#f9f9f9')}
-                onMouseLeave={e => (e.currentTarget.style.background = '#fff')}>
-                {(() => {
-                  const revealedTotal = myStats?.total ?? 0
-                  const pendingPoint = mySubmission && !currentWeek?.revealed_at ? 1 : 0
-                  const displayTotal = revealedTotal + pendingPoint
-                  const displayPossible = (myStats?.weeksElapsed ?? 0) + (currentWeek && !currentWeek.revealed_at ? 1 : 0)
-                  return (
-                    <>
-                      <div style={{ fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#999', marginBottom: 8 }}>Your Score</div>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 8 }}>
-                        <span style={{ fontSize: 40, fontWeight: 'bold', lineHeight: 1, color: '#CC0000' }}>{displayTotal}</span>
-                        <span style={{ fontSize: 14, color: '#999' }}>/ {displayPossible}</span>
-                      </div>
-                      {myStats && myStats.streak > 0 && (
-                        <div style={{ marginBottom: 4 }}>
-                          <span style={{ fontSize: 12, color: '#CC0000', fontWeight: 'bold' }}>{myStats.streak} week streak</span>
-                        </div>
-                      )}
-                      <div style={{ fontSize: 11, color: '#999', marginTop: 8 }}>Leaderboard →</div>
-                    </>
-                  )
-                })()}
-              </div>
+          {/* Score row: LEADERBOARD — score — SUBMISSIONS */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
+            <div style={{ flex: 1, height: 1, background: '#000' }} />
+            <Link href={`/groups/${params.id}/leaderboard`} style={{
+              background: '#000', color: '#fff', padding: '8px 20px', fontSize: 12,
+              fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
+              textDecoration: 'none', margin: '0 16px',
+            }}>
+              LEADERBOARD
             </Link>
+            <div style={{ flex: 1, height: 1, background: '#000' }} />
 
-            <Link href={`/groups/${params.id}/submissions`} style={{ flex: 1, minWidth: 200, textDecoration: 'none' }}>
-              <div className="box" style={{ cursor: 'pointer', borderLeft: '4px solid #000', height: '100%' }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#f9f9f9')}
-                onMouseLeave={e => (e.currentTarget.style.background = '#fff')}>
-                <div style={{ fontWeight: 'bold', fontSize: 15, marginBottom: 4 }}>Submissions →</div>
-                <div style={{ fontSize: 12, color: '#666' }}>Browse the archive — A to Z</div>
-              </div>
+            <div style={{ width: 56, height: 56, borderRadius: '50%', border: '2px solid #C85A5A',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#C85A5A', fontSize: 22, fontWeight: 700, margin: '0 16px', flexShrink: 0,
+            }}>
+              {myScore}
+            </div>
+
+            <div style={{ flex: 1, height: 1, background: '#000' }} />
+            <Link href={`/groups/${params.id}/submissions`} style={{
+              background: '#000', color: '#fff', padding: '8px 20px', fontSize: 12,
+              fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
+              textDecoration: 'none', margin: '0 16px',
+            }}>
+              SUBMISSIONS
             </Link>
+            <div style={{ flex: 1, height: 1, background: '#000' }} />
           </div>
 
-          {/* 3. Progress */}
-          {(currentWeek || nextWeek) && (
-            <div className="box">
-              <div className="section-header">Progress</div>
-              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 8 }}>
+          {/* Alphabet grid */}
+          {activeWeek && (
+            <div>
+              <div style={{ fontSize: 11, color: '#999', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>YOUR SCORE</div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter, i) => {
                   const weekNum = i + 1
-                  const activeWeek = currentWeek || nextWeek
                   const isPast = weekNum < activeWeek.week_num
                   const isCurrent = weekNum === activeWeek.week_num
                   return (
                     <div key={letter} style={{
-                      width: 28, height: 28,
+                      width: 32, height: 32, borderRadius: '50%',
+                      border: `2px solid ${isPast ? '#000' : '#C85A5A'}`,
+                      background: isPast ? '#000' : isCurrent ? '#C85A5A' : 'transparent',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 11, fontWeight: 'bold',
-                      border: isCurrent ? '2px solid #CC0000' : '1px solid #eee',
-                      background: isPast ? '#000' : isCurrent ? '#fff' : '#fafafa',
-                      color: isPast ? '#fff' : isCurrent ? '#CC0000' : '#ccc',
+                      fontSize: 11, fontWeight: 700,
+                      color: isPast || isCurrent ? '#fff' : '#C85A5A',
                     }}>
                       {letter}
                     </div>
@@ -347,43 +275,24 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               </div>
             </div>
           )}
-
-          {/* 4. Rules */}
-          <div className="box">
-            <div className="box-header">RULES</div>
-            <div style={{ padding: '16px 0 0' }}>
-              {[
-                ['One submission per letter', 'You get one entry per week. You can choose to sign a submission or remain anonymous. You can add pictures and sounds too.'],
-                ['Your word must start with the letter', 'Your title can be any word or phrase — it just has to begin with that week\'s letter.'],
-                ['Edit until Wednesday 23:59', 'You can change your submission at any time before the window closes. After that, it\'s locked.'],
-                ['Hidden until midnight Wednesday', 'Nobody can see anyone else\'s submission until the reveal. Not the title, not the content. You will get an email every Wednesday with the week\'s submissions, in no particular order.'],
-                ['Scoring', 'You score points by keeping your word. Miss a week, miss a point.'],
-              ].map(([title, desc], i) => (
-                <div key={i} style={{ display: 'flex', gap: 12, marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #eee' }}>
-                  <div style={{ fontWeight: 'bold', fontSize: 11, color: '#CC0000', minWidth: 20 }}>{i + 1}</div>
-                  <div>
-                    <div style={{ fontWeight: 'bold', fontSize: 13, marginBottom: 2 }}>{title}</div>
-                    <div style={{ fontSize: 12, color: '#555', lineHeight: 1.6 }}>{desc}</div>
-                  </div>
-                </div>
-              ))}
-              <div style={{ display: 'flex', gap: 12, marginBottom: 4, paddingBottom: 4 }}>
-                <div style={{ fontWeight: 'bold', fontSize: 11, color: '#CC0000', minWidth: 20 }}>—</div>
-                <div style={{ fontSize: 12, color: '#555', lineHeight: 1.6 }}>
-                  One last thing. The project will lock on week C. No-one can join after this time. A good secret should stay secret after all.
-                </div>
-              </div>
-            </div>
-          </div>
-
         </div>
 
-        {/* Bottom rule */}
-        <hr className="rule" style={{ marginTop: 60 }} />
-        <p style={{ fontSize: 11, color: '#999', textAlign: 'center' }}>
-          MOUNTFORD - GAMBOSI
-        </p>
-      </div>
+        {/* Rules box */}
+        <div style={{ border: '1px solid #000', padding: '28px 32px', marginBottom: 0 }}>
+          <div style={{ fontSize: 18, letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center', marginBottom: 24 }}>RULES</div>
+          {RULES.map(([title, desc], i) => (
+            <div key={i} style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 13, marginBottom: 4 }}>
+                <strong>{i + 1} {title}</strong>
+              </div>
+              <div style={{ fontSize: 12, lineHeight: 1.7 }}>{desc}</div>
+            </div>
+          ))}
+        </div>
+
+      </main>
+
+      <Footer />
     </div>
   )
 }

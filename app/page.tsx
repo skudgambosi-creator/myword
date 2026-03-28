@@ -1,77 +1,70 @@
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
-export default function LandingPage() {
+const ALPHABET_PROJECT_ID = '00000000-0000-0000-0000-000000000001'
+
+function PreAuthHeader({ title }: { title: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', padding: '28px 40px 0', gap: 16 }}>
+      <div style={{ flex: 1, height: 1, background: '#000' }} />
+      <span style={{ fontSize: 15, letterSpacing: '0.22em', fontWeight: 400, whiteSpace: 'nowrap' }}>{title}</span>
+      <div style={{ flex: 1, height: 1, background: '#000' }} />
+    </div>
+  )
+}
+
+function Footer() {
+  return (
+    <footer style={{ textAlign: 'center', padding: '60px 0 32px' }}>
+      <svg width="54" height="50" viewBox="0 0 54 50" fill="none" style={{ display: 'block', margin: '0 auto 6px' }}>
+        <circle cx="17" cy="16" r="14" stroke="#000" strokeWidth="0.75" />
+        <circle cx="37" cy="16" r="14" stroke="#000" strokeWidth="0.75" />
+        <circle cx="27" cy="32" r="14" stroke="#000" strokeWidth="0.75" />
+      </svg>
+      <div style={{ fontSize: 9, letterSpacing: '0.2em' }}>MOUNTFORD-GAMBOSI</div>
+    </footer>
+  )
+}
+
+export default async function LandingPage() {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (user) {
+    const { data: membership } = await supabase
+      .from('group_members').select('group_id')
+      .eq('group_id', ALPHABET_PROJECT_ID).eq('user_id', user.id).maybeSingle()
+    if (membership) redirect(`/groups/${ALPHABET_PROJECT_ID}`)
+    else redirect('/dashboard')
+  }
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Header */}
-      <nav className="nav">
-        <span className="nav-brand">[ MY WORD ]</span>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, alignItems: 'center', paddingRight: 20 }}>
-          <Link href="/register" className="btn btn-accent">
-            Create Account
-          </Link>
-          <Link href="/login" className="btn">
-            Log In
-          </Link>
-        </div>
-      </nav>
+      <PreAuthHeader title="OH MY WORD" />
 
-      {/* Hero */}
-      <main className="page-container" style={{ paddingTop: 32, paddingBottom: 60, flex: 1 }}>
-
-        {/* Season 1 callout */}
-        <div className="box" style={{ borderLeft: '4px solid #CC0000', marginBottom: 24 }}>
-          <div style={{ fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.12em', color: '#CC0000', marginBottom: 8 }}>
-            Season 1
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, marginBottom: 12 }}>
-            <span style={{ fontSize: 52, fontWeight: 'bold', lineHeight: 1, color: '#CC0000' }}>A</span>
-            <div>
-              <div style={{ fontSize: 18, fontWeight: 'bold' }}>The Alphabet Project</div>
-              <div style={{ fontSize: 12, color: '#666' }}>26 letters · 26 weeks · one piece each</div>
-            </div>
-          </div>
-          <p style={{ fontSize: 13, color: '#555', lineHeight: 1.7, margin: 0 }}>
-            Each week, a letter. Pick a word. Write whatever it brings up —
-            no rules on style or subject. Submissions stay hidden until midnight Wednesday,
-            when everyone's pieces are revealed at once. You can add pictures and sounds too.
-          </p>
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 40px 0', maxWidth: 800, width: '100%', margin: '0 auto' }}>
+        {/* Saturn symbol card */}
+        <div style={{ border: '1px solid #000', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 0', marginBottom: 24 }}>
+          <span style={{ fontSize: 200, lineHeight: 1, color: '#C85A5A', fontFamily: 'Georgia, serif', display: 'block' }}>
+            ħ
+          </span>
         </div>
 
-        {/* How it works */}
-        <div className="box">
-          <div className="box-header">HOW THE ALPHABET PROJECT WORKS</div>
-          <div style={{ padding: '16px 0 0' }}>
-            {[
-              ['1', 'One submission per letter', 'You get one entry per week. You can choose to sign a submission or remain anonymous.'],
-              ['2', 'Your word must start with the letter', 'Your title can be any word or phrase — it just has to begin with that week\'s letter.'],
-              ['3', 'Edit until Wednesday 23:59', 'You can change your submission at any time before the window closes. After that, it\'s locked.'],
-              ['4', 'Hidden until midnight Wednesday', 'Nobody can see anyone else\'s submission until the reveal. Not the title, not the content. You will get an email every Wednesday with the week\'s submissions, in no particular order.'],
-              ['5', 'Scoring', 'You score points by keeping your word. Miss a week, miss a point.'],
-            ].map(([num, title, desc]) => (
-              <div key={num} style={{ display: 'flex', gap: 12, marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #eee' }}>
-                <div style={{ fontWeight: 'bold', fontSize: 11, color: '#CC0000', minWidth: 24, paddingTop: 2 }}>{num}</div>
-                <div>
-                  <div style={{ fontWeight: 'bold', fontSize: 13, marginBottom: 2 }}>{title}</div>
-                  <div style={{ fontSize: 12, color: '#555', lineHeight: 1.6 }}>{desc}</div>
-                </div>
-              </div>
-            ))}
-            <div style={{ display: 'flex', gap: 12, marginBottom: 4, paddingBottom: 4 }}>
-              <div style={{ fontWeight: 'bold', fontSize: 11, color: '#CC0000', minWidth: 24 }}>—</div>
-              <div style={{ fontSize: 12, color: '#555', lineHeight: 1.6 }}>
-                One last thing. The project will lock on week C. No-one can join after this time. A good secret should stay secret after all.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom rule */}
-        <hr className="rule" style={{ marginTop: 60 }} />
-        <p style={{ fontSize: 11, color: '#999', textAlign: 'center' }}>
-          MOUNTFORD - GAMBOSI
-        </p>
+        {/* COME IN button */}
+        <Link
+          href="/dashboard"
+          style={{
+            display: 'block', width: '100%', background: '#C85A5A', color: '#fff',
+            textAlign: 'center', padding: '18px', fontSize: 15, fontWeight: 700,
+            letterSpacing: '0.2em', textTransform: 'uppercase', textDecoration: 'none',
+          }}
+        >
+          COME IN
+        </Link>
       </main>
+
+      <Footer />
     </div>
   )
 }

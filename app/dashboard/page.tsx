@@ -3,179 +3,139 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import Nav from '@/components/layout/Nav'
 
 const ALPHABET_PROJECT_ID = '00000000-0000-0000-0000-000000000001'
+
+function Footer() {
+  return (
+    <footer style={{ textAlign: 'center', padding: '60px 0 32px' }}>
+      <svg width="54" height="50" viewBox="0 0 54 50" fill="none" style={{ display: 'block', margin: '0 auto 6px' }}>
+        <circle cx="17" cy="16" r="14" stroke="#000" strokeWidth="0.75" />
+        <circle cx="37" cy="16" r="14" stroke="#000" strokeWidth="0.75" />
+        <circle cx="27" cy="32" r="14" stroke="#000" strokeWidth="0.75" />
+      </svg>
+      <div style={{ fontSize: 9, letterSpacing: '0.2em' }}>MOUNTFORD-GAMBOSI</div>
+    </footer>
+  )
+}
+
+const RULES = [
+  ['One submission per letter', 'You get one entry per week. Everyone is anonymous by default, but you can choose to sign a submission if you like. You can add pictures and music as well.'],
+  ['Your word must start with the letter', 'Your title can be any word or phrase — it just has to begin with that week\'s letter. You can write whatever you like, however you like.'],
+  ['Edit until Wednesday 23:59', 'You can change your submission at any time before the window closes. After that, it\'s locked.'],
+  ['Hidden until midnight Wednesday', 'Nobody can see anyone else\'s submission until the reveal. Not the title, not the content. You will get an email every Wednesday with the week\'s submissions, as well as having them unlocked on here.'],
+  ['Scoring', 'You score points by keeping your word. Miss a week, miss a point.'],
+]
 
 export default function DashboardPage() {
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(true)
-  const [profile, setProfile] = useState<any>(null)
   const [isMember, setIsMember] = useState(false)
-  const [currentWeek, setCurrentWeek] = useState<any>(null)
-  const [memberCount, setMemberCount] = useState(0)
-  const [submissionCount, setSubmissionCount] = useState(0)
-  const [hasSubmitted, setHasSubmitted] = useState(false)
   const [registrationOpen, setRegistrationOpen] = useState(true)
+  const [joining, setJoining] = useState(false)
 
   useEffect(() => {
-    async function loadDashboard() {
+    async function load() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.push('/login'); return }
 
-      const userId = session.user.id
-
-      const { data: prof } = await supabase.from('users').select('*').eq('id', userId).single()
-      setProfile(prof)
-
       const { data: membership } = await supabase
         .from('group_members').select('*')
-        .eq('group_id', ALPHABET_PROJECT_ID).eq('user_id', userId).maybeSingle()
-      setIsMember(!!membership)
+        .eq('group_id', ALPHABET_PROJECT_ID).eq('user_id', session.user.id).maybeSingle()
 
-      const now = new Date().toISOString()
-      const { data: week } = await supabase
-        .from('weeks').select('*').eq('group_id', ALPHABET_PROJECT_ID)
-        .lte('opens_at', now).order('week_num', { ascending: false }).limit(1).maybeSingle()
-      setCurrentWeek(week)
-
-      if (week) {
-        const { data: sub } = await supabase
-          .from('submissions').select('id')
-          .eq('user_id', userId).eq('week_id', week.id).eq('is_late_catchup', false).maybeSingle()
-        setHasSubmitted(!!sub)
-
-        const { count: subCount } = await supabase
-          .from('submissions').select('*', { count: 'exact', head: true })
-          .eq('week_id', week.id).eq('is_late_catchup', false)
-        setSubmissionCount(subCount || 0)
+      if (membership) {
+        router.push(`/groups/${ALPHABET_PROJECT_ID}`)
+        return
       }
 
-      const { count: mc } = await supabase
-        .from('group_members').select('*', { count: 'exact', head: true })
-        .eq('group_id', ALPHABET_PROJECT_ID)
-      setMemberCount(mc || 0)
+      setIsMember(false)
 
       const { data: weekThree } = await supabase
         .from('weeks').select('closes_at').eq('group_id', ALPHABET_PROJECT_ID)
         .eq('week_num', 3).maybeSingle()
-      if (weekThree) {
-        setRegistrationOpen(new Date(weekThree.closes_at) > new Date())
-      }
+      if (weekThree) setRegistrationOpen(new Date(weekThree.closes_at) > new Date())
 
       setLoading(false)
     }
-
-    loadDashboard()
+    load()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_OUT') { router.push('/login') }
+      if (event === 'SIGNED_OUT') router.push('/login')
     })
     return () => subscription.unsubscribe()
   }, [])
 
   const handleJoin = async () => {
+    setJoining(true)
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) return
     await supabase.from('group_members').insert({
       group_id: ALPHABET_PROJECT_ID,
       user_id: session.user.id,
     })
-    setIsMember(true)
+    router.push(`/groups/${ALPHABET_PROJECT_ID}`)
   }
 
   if (loading) return (
     <div style={{ minHeight: '100vh' }}>
-      <nav className="nav"><span className="nav-brand">[ MY WORD ]</span></nav>
-      <div className="page-container" style={{ paddingTop: 40 }}>Loading...</div>
+      <Nav />
+      <div style={{ padding: '40px', fontSize: 13, color: '#999' }}>Loading...</div>
     </div>
   )
 
-  const weekClosed = currentWeek ? new Date(currentWeek.closes_at) < new Date() : false
-
   return (
-    <div style={{ minHeight: '100vh' }}>
-      <nav className="nav">
-        <Link href="/dashboard" className="nav-brand">[ MY WORD ]</Link>
-        <Link href="/dashboard" className="nav-link active">Dashboard</Link>
-        <Link href="/profile" className="nav-link">Profile</Link>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
-          <span style={{ padding: '10px 16px', fontSize: 12, color: '#666', borderLeft: '1px solid #aaa' }}>
-            #{profile?.member_number}
-          </span>
-          <button onClick={async () => {
-            await supabase.auth.signOut()
-            window.location.href = '/'
-          }} className="nav-link" style={{ border: 'none', cursor: 'pointer', background: 'none' }}>
-            Sign Out
-          </button>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Nav />
+
+      <main style={{ flex: 1, padding: '24px 40px 0', maxWidth: 900, width: '100%', margin: '0 auto' }}>
+
+        {/* Season label */}
+        <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.15em', color: '#C85A5A', textTransform: 'uppercase', marginBottom: 16 }}>
+          SEASON 1
         </div>
-      </nav>
 
-      <div className="page-container" style={{ paddingTop: 40, paddingBottom: 60 }}>
-        <h1 className="page-title">Dashboard</h1>
+        {/* Project title box */}
+        <div style={{ border: '1px solid #000', padding: '24px 32px', marginBottom: 24, textAlign: 'center' }}>
+          <span style={{ fontSize: 22, letterSpacing: '0.2em', textTransform: 'uppercase' }}>THE ALPHABET PROJECT</span>
+        </div>
 
-        {!isMember ? (
-          <div className="box" style={{ maxWidth: 600 }}>
-            <div className="box-header">THE ALPHABET PROJECT — SEASON 1</div>
-            <div style={{ padding: '20px 0 0' }}>
-              <p style={{ fontSize: 14, color: '#555', lineHeight: 1.8, marginBottom: 20 }}>
-                26 weeks. 26 letters. One submission per week, starting with A. 
-                Write anything — the only rule is your title starts with that week's letter.
-              </p>
-              {registrationOpen ? (
-                <button className="btn btn-accent" onClick={handleJoin}>
-                  Get Amongst →
-                </button>
-              ) : (
-                <div className="box-shaded" style={{ fontSize: 13 }}>
-                  Registration is now closed.
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="box">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-                  <h2 style={{ fontSize: 18, fontWeight: 'bold' }}>The Alphabet Project</h2>
-                  <span className="tag" style={{ color: '#CC0000', borderColor: '#CC0000' }}>ACTIVE</span>
-                </div>
-
-                {currentWeek && (
-                  <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center' }}>
-                    <div>
-                      <span className="section-header" style={{ display: 'block', marginBottom: 2 }}>This Week</span>
-                      <span style={{ fontSize: 32, fontWeight: 'bold' }}>{currentWeek.letter}</span>
-                      <span style={{ fontSize: 12, color: '#666', marginLeft: 8 }}>Week {currentWeek.week_num} of 26</span>
-                    </div>
-                    <div>
-                      <span className="section-header" style={{ display: 'block', marginBottom: 2 }}>Submissions</span>
-                      <span className="submission-counter">
-                        <strong>{submissionCount}</strong> / {memberCount}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="section-header" style={{ display: 'block', marginBottom: 2 }}>Your Status</span>
-                      {hasSubmitted
-                        ? <span className="tag tag-complete">✓ Submitted</span>
-                        : weekClosed
-                        ? <span className="tag tag-late">Window Closed</span>
-                        : <span className="tag" style={{ color: '#CC0000', borderColor: '#CC0000' }}>Not submitted</span>
-                      }
-                    </div>
-                  </div>
-                )}
+        {/* Rules box */}
+        <div style={{ border: '1px solid #000', padding: '28px 32px', marginBottom: 24 }}>
+          <div style={{ fontSize: 18, letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center', marginBottom: 24 }}>RULES</div>
+          {RULES.map(([title, desc], i) => (
+            <div key={i} style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 13, marginBottom: 4 }}>
+                <strong>{i + 1} {title}</strong>
               </div>
-
-              <Link href={`/groups/${ALPHABET_PROJECT_ID}`} className="btn">
-                Open →
-              </Link>
+              <div style={{ fontSize: 12, lineHeight: 1.7 }}>{desc}</div>
             </div>
+          ))}
+        </div>
+
+        {/* GET AMONGST */}
+        {registrationOpen ? (
+          <button
+            onClick={handleJoin}
+            disabled={joining}
+            style={{
+              display: 'block', width: '100%', background: '#C85A5A', color: '#fff',
+              border: 'none', padding: '20px', fontSize: 15, fontWeight: 700,
+              letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            {joining ? '...' : 'GET AMONGST'}
+          </button>
+        ) : (
+          <div style={{ border: '1px solid #999', padding: '20px', textAlign: 'center', fontSize: 13, color: '#666', letterSpacing: '0.05em' }}>
+            Registration is now closed.
           </div>
         )}
-      </div>
+      </main>
+
+      <Footer />
     </div>
   )
 }

@@ -3,6 +3,29 @@ import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
+function Header({ title }: { title: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', padding: '28px 40px 0', gap: 16 }}>
+      <div style={{ flex: 1, height: 1, background: '#000' }} />
+      <span style={{ fontSize: 15, letterSpacing: '0.22em', fontWeight: 400, whiteSpace: 'nowrap' }}>{title}</span>
+      <div style={{ flex: 1, height: 1, background: '#000' }} />
+    </div>
+  )
+}
+
+function Footer() {
+  return (
+    <footer style={{ textAlign: 'center', padding: '60px 0 32px' }}>
+      <svg width="54" height="50" viewBox="0 0 54 50" fill="none" style={{ display: 'block', margin: '0 auto 6px' }}>
+        <circle cx="17" cy="16" r="14" stroke="#000" strokeWidth="0.75" />
+        <circle cx="37" cy="16" r="14" stroke="#000" strokeWidth="0.75" />
+        <circle cx="27" cy="32" r="14" stroke="#000" strokeWidth="0.75" />
+      </svg>
+      <div style={{ fontSize: 9, letterSpacing: '0.2em' }}>MOUNTFORD-GAMBOSI</div>
+    </footer>
+  )
+}
+
 export default function LoginPage() {
   const supabase = createClient()
   const emailRef = useRef<HTMLInputElement>(null)
@@ -13,72 +36,76 @@ export default function LoginPage() {
   const handleLogin = async () => {
     const email = emailRef.current?.value ?? ''
     const password = passwordRef.current?.value ?? ''
-
-    if (!email || !password) {
-      setError('Please enter your email and password')
-      return
-    }
-
+    if (!email || !password) { setError('Please enter your email and password'); return }
     setLoading(true)
     setError('')
-
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-      return
-    }
-
-    if (!data.session) {
-      setError('Login succeeded but no session was created — contact support.')
-      setLoading(false)
-      return
-    }
-
+    if (error) { setError(error.message); setLoading(false); return }
+    if (!data.session) { setError('Login succeeded but no session was created — contact support.'); setLoading(false); return }
     window.location.href = '/dashboard'
   }
 
   return (
-    <div style={{ minHeight: '100vh' }}>
-      <nav className="nav">
-        <Link href="/" className="nav-brand">[ MY WORD ]</Link>
-      </nav>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Header title="OH MY WORD" />
 
-      <div className="page-container" style={{ paddingTop: 48, maxWidth: 480 }}>
-        <h1 className="page-title">Log In</h1>
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 40px 0', maxWidth: 800, width: '100%', margin: '0 auto' }}>
 
-        <div className="box">
-          <div className="box-header">SIGN IN TO MY WORD</div>
-          <div style={{ padding: '20px 0 0' }}>
-            {error && (
-              <div style={{ border: '2px solid #CC0000', padding: '8px 12px', marginBottom: 16, fontSize: 13, color: '#CC0000' }}>
-                {error}
-              </div>
-            )}
-            <div style={{ marginBottom: 16 }}>
-              <label className="field-label">Email Address</label>
-              <input ref={emailRef} className="field-input" type="email"
-                onKeyDown={e => e.key === 'Enter' && handleLogin()}
-                placeholder="your@email.com" />
-            </div>
-            <div style={{ marginBottom: 24 }}>
-              <label className="field-label">Password</label>
-              <input ref={passwordRef} className="field-input" type="password"
-                onKeyDown={e => e.key === 'Enter' && handleLogin()}
-                placeholder="••••••••" />
-            </div>
-            <button className="btn btn-accent" style={{ width: '100%' }}
-              onClick={handleLogin} disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign In →'}
-            </button>
+        {/* Saturn symbol card */}
+        <div style={{ border: '1px solid #000', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 0', marginBottom: 16 }}>
+          <span style={{ fontSize: 160, lineHeight: 1, color: '#C85A5A', fontFamily: 'Georgia, serif', display: 'block' }}>
+            ħ
+          </span>
+        </div>
+
+        {/* Login form card */}
+        <div style={{ border: '1px solid #000', width: '100%', padding: '28px 32px', marginBottom: 16 }}>
+          {error && (
+            <div style={{ color: '#C85A5A', fontSize: 12, marginBottom: 16, letterSpacing: '0.05em' }}>{error}</div>
+          )}
+          <div style={{ marginBottom: 20 }}>
+            <span style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', marginRight: 12 }}>YOUR EMAIL:...</span>
+            <input
+              ref={emailRef}
+              type="email"
+              onKeyDown={e => e.key === 'Enter' && handleLogin()}
+              style={{ border: 'none', borderBottom: '1px solid #000', outline: 'none', fontSize: 13, width: 'calc(100% - 160px)', fontFamily: 'inherit', background: 'transparent' }}
+            />
+          </div>
+          <div>
+            <span style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', marginRight: 12 }}>YOUR PASSWORD:</span>
+            <input
+              ref={passwordRef}
+              type="password"
+              onKeyDown={e => e.key === 'Enter' && handleLogin()}
+              style={{ border: 'none', borderBottom: '1px solid #000', outline: 'none', fontSize: 13, width: 'calc(100% - 160px)', fontFamily: 'inherit', background: 'transparent' }}
+            />
           </div>
         </div>
 
-        <p style={{ marginTop: 20, fontSize: 13, textAlign: 'center' }}>
-          No account? <Link href="/register">Create one</Link> · <Link href="/forgot-password">Forgot password?</Link>
+        {/* COME IN button */}
+        <button
+          onClick={handleLogin}
+          disabled={loading}
+          style={{
+            display: 'block', width: '100%', background: '#C85A5A', color: '#fff',
+            border: 'none', padding: '18px', fontSize: 15, fontWeight: 700,
+            letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer',
+            fontFamily: 'inherit', marginBottom: 16,
+          }}
+        >
+          {loading ? '...' : 'COME IN'}
+        </button>
+
+        <p style={{ fontSize: 11, color: '#999', letterSpacing: '0.05em', textAlign: 'center' }}>
+          No account?{' '}
+          <Link href="/register" style={{ color: '#000', textDecoration: 'underline' }}>Create one</Link>
+          {' · '}
+          <Link href="/forgot-password" style={{ color: '#000', textDecoration: 'underline' }}>Forgot password?</Link>
         </p>
-      </div>
+      </main>
+
+      <Footer />
     </div>
   )
 }
