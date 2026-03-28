@@ -32,7 +32,7 @@ export default async function GroupSettingsPage({ params }: { params: { id: stri
 
   return (
     <div style={{ minHeight: '100vh' }}>
-      <Nav userName={displayName} />
+      <Nav />
 
       <div className="page-container" style={{ paddingTop: 40, paddingBottom: 60, maxWidth: 720 }}>
         <div style={{ marginBottom: 8, fontSize: 11, color: '#999', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
