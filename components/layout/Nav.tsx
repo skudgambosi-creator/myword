@@ -5,9 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 export default function Nav() {
   const supabase = createClient()
   return (
-    <nav style={{
-      display: 'flex', alignItems: 'center',
-      padding: '20px 40px', gap: 0,
+    <nav className="site-nav" style={{
+      display: 'flex', alignItems: 'center', gap: 0,
     }}>
       <Link href="/profile" style={{
         fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',

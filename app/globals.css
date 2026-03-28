@@ -220,7 +220,26 @@ a:hover {
   margin-bottom: 8px;
 }
 
+/* ── PAGE MAIN (responsive padding) ── */
+.page-main {
+  flex: 1;
+  padding: 28px 40px 0;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.site-nav {
+  padding: 20px 40px;
+}
+
 @media (max-width: 640px) {
+  .page-main {
+    padding: 20px 16px 0;
+  }
+  .site-nav {
+    padding: 14px 16px;
+  }
   .landing-grid {
     grid-template-columns: 1fr;
   }

@@ -220,7 +220,7 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <PreAuthHeader title="MY WORD" />
 
-      <main style={{ flex: 1, padding: '32px 40px 0', maxWidth: 900, width: '100%', margin: '0 auto' }}>
+      <main className="page-main">
 
         {/* Big letter */}
         <div style={{ textAlign: 'center', marginBottom: 24 }}>

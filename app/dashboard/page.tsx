@@ -88,7 +88,7 @@ export default function DashboardPage() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Nav />
 
-      <main style={{ flex: 1, padding: '24px 40px 0', maxWidth: 900, width: '100%', margin: '0 auto' }}>
+      <main className="page-main">
 
         {/* Season label */}
         <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.15em', color: '#C85A5A', textTransform: 'uppercase', marginBottom: 16 }}>

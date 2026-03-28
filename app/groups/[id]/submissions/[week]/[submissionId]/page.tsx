@@ -80,7 +80,7 @@ export default async function SubmissionReadPage({
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Nav />
 
-      <main style={{ flex: 1, padding: '28px 40px 0', maxWidth: 900, width: '100%', margin: '0 auto' }}>
+      <main className="page-main">
 
         {/* GO BACK + Letter */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', position: 'relative', marginBottom: 0 }}>

@@ -222,7 +222,7 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Nav />
 
-      <main style={{ flex: 1, padding: '28px 40px 0', maxWidth: 900, width: '100%', margin: '0 auto' }}>
+      <main className="page-main">
 
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 20, marginBottom: 24 }}>
           <Link href={`/groups/${params.id}`} style={{ fontSize: 11, color: '#999', letterSpacing: '0.1em', textTransform: 'uppercase', textDecoration: 'none' }}>

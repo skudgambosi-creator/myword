@@ -49,7 +49,7 @@ export default function ProfilePage() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Nav />
 
-      <main style={{ flex: 1, padding: '28px 40px 0', maxWidth: 900, width: '100%', margin: '0 auto' }}>
+      <main className="page-main">
 
         {/* GO BACK + PROFILE heading */}
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 20, marginBottom: 20 }}>

@@ -134,7 +134,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
 
       <Nav />
 
-      <main style={{ flex: 1, padding: '24px 40px 0', maxWidth: 900, width: '100%', margin: '0 auto' }}>
+      <main className="page-main">
 
         {/* Season label */}
         <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.15em', color: '#C85A5A', textTransform: 'uppercase', marginBottom: 16 }}>
@@ -154,9 +154,9 @@ export default function GroupPage({ params }: { params: { id: string } }) {
             <div style={{ display: 'flex', gap: 32, alignItems: 'center', marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
               {/* Letter circle */}
               <div style={{
-                width: 130, height: 130, borderRadius: '50%', background: '#C85A5A', flexShrink: 0,
+                width: 150, height: 150, borderRadius: '50%', background: '#C85A5A', flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', fontSize: 72, fontWeight: 900, letterSpacing: '-0.02em',
+                color: '#fff', fontSize: 88, fontWeight: 900, letterSpacing: '-0.02em',
               }}>
                 {(currentWeek || nextWeek).letter}
               </div>
@@ -166,33 +166,20 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                 {currentWeek && !windowClosed ? (
                   <>
                     <Countdown closesAt={currentWeek.closes_at} />
-                    <div style={{ fontSize: 11, color: '#999', letterSpacing: '0.1em', marginBottom: 16 }}>DD : HH : MM</div>
-                    <div style={{ fontSize: 12, letterSpacing: '0.05em', marginBottom: 16 }}>
+                    <Link
+                      href={`/groups/${params.id}/submit${mySubmission ? '?edit=1' : ''}`}
+                      style={{
+                        display: 'inline-block', background: '#C85A5A', color: '#fff',
+                        padding: '10px 24px', fontSize: 13, fontWeight: 700,
+                        letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none',
+                        marginTop: 12, marginBottom: 8,
+                      }}
+                    >
+                      SUBMIT / EDIT
+                    </Link>
+                    <div style={{ fontSize: 12, letterSpacing: '0.05em' }}>
                       <span style={{ border: '1px solid #000', padding: '2px 10px' }}>{submissionCount}/{memberCount}</span>
                     </div>
-                    {mySubmission ? (
-                      <Link
-                        href={`/groups/${params.id}/submit?edit=1`}
-                        style={{
-                          display: 'inline-block', background: '#C85A5A', color: '#fff',
-                          padding: '10px 24px', fontSize: 13, fontWeight: 700,
-                          letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none',
-                        }}
-                      >
-                        SUBMIT / EDIT
-                      </Link>
-                    ) : (
-                      <Link
-                        href={`/groups/${params.id}/submit`}
-                        style={{
-                          display: 'inline-block', background: '#C85A5A', color: '#fff',
-                          padding: '10px 24px', fontSize: 13, fontWeight: 700,
-                          letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none',
-                        }}
-                      >
-                        SUBMIT / EDIT
-                      </Link>
-                    )}
                   </>
                 ) : currentWeek && windowClosed ? (
                   <div style={{ fontSize: 13, color: '#666' }}>Window closed. Reveal pending at midnight Wednesday.</div>
@@ -219,7 +206,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
             </div>
           )}
 
-          {/* Score row: LEADERBOARD — score — SUBMISSIONS */}
+          {/* LEADERBOARD — score — SUBMISSIONS */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
             <div style={{ flex: 1, height: 1, background: '#000' }} />
             <Link href={`/groups/${params.id}/leaderboard`} style={{
@@ -231,11 +218,14 @@ export default function GroupPage({ params }: { params: { id: string } }) {
             </Link>
             <div style={{ flex: 1, height: 1, background: '#000' }} />
 
-            <div style={{ width: 56, height: 56, borderRadius: '50%', border: '2px solid #C85A5A',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#C85A5A', fontSize: 22, fontWeight: 700, margin: '0 16px', flexShrink: 0,
-            }}>
-              {myScore}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0 16px', flexShrink: 0 }}>
+              <div style={{ fontSize: 10, color: '#999', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>YOUR SCORE</div>
+              <div style={{ width: 56, height: 56, borderRadius: '50%', border: '2px solid #C85A5A',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#C85A5A', fontSize: 22, fontWeight: 700,
+              }}>
+                {myScore}
+              </div>
             </div>
 
             <div style={{ flex: 1, height: 1, background: '#000' }} />
@@ -249,29 +239,25 @@ export default function GroupPage({ params }: { params: { id: string } }) {
             <div style={{ flex: 1, height: 1, background: '#000' }} />
           </div>
 
-          {/* Alphabet grid */}
+          {/* Alphabet grid — 13 per row */}
           {activeWeek && (
-            <div>
-              <div style={{ fontSize: 11, color: '#999', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>YOUR SCORE</div>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter, i) => {
-                  const weekNum = i + 1
-                  const isPast = weekNum < activeWeek.week_num
-                  const isCurrent = weekNum === activeWeek.week_num
-                  return (
-                    <div key={letter} style={{
-                      width: 32, height: 32, borderRadius: '50%',
-                      border: `2px solid ${isPast ? '#000' : '#C85A5A'}`,
-                      background: isPast ? '#000' : isCurrent ? '#C85A5A' : 'transparent',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 11, fontWeight: 700,
-                      color: isPast || isCurrent ? '#fff' : '#C85A5A',
-                    }}>
-                      {letter}
-                    </div>
-                  )
-                })}
-              </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(13, 1fr)', gap: 6 }}>
+              {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter, i) => {
+                const weekNum = i + 1
+                const isPast = weekNum < activeWeek.week_num
+                return (
+                  <div key={letter} style={{
+                    aspectRatio: '1', borderRadius: '50%',
+                    border: `2px solid ${isPast ? '#000' : '#C85A5A'}`,
+                    background: isPast ? '#000' : '#C85A5A',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 11, fontWeight: 700,
+                    color: '#fff',
+                  }}>
+                    {letter}
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>
