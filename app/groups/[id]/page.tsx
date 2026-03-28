@@ -11,13 +11,13 @@ function Countdown({ closesAt }: { closesAt: string }) {
     const tick = () => {
       const diff = new Date(closesAt).getTime() - Date.now()
       if (diff <= 0) { setTimeLeft('CLOSED'); return }
-      const h = Math.floor(diff / 3600000)
+      const d = Math.floor(diff / 86400000)
+      const h = Math.floor((diff % 86400000) / 3600000)
       const m = Math.floor((diff % 3600000) / 60000)
-      const s = Math.floor((diff % 60000) / 1000)
-      setTimeLeft(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`)
+      setTimeLeft(`${String(d).padStart(2,'0')}:${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`)
     }
     tick()
-    const id = setInterval(tick, 1000)
+    const id = setInterval(tick, 60000)
     return () => clearInterval(id)
   }, [closesAt])
   return <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '0.1em' }}>{timeLeft}</div>
@@ -26,12 +26,11 @@ function Countdown({ closesAt }: { closesAt: string }) {
 function Footer() {
   return (
     <footer style={{ textAlign: 'center', padding: '60px 0 32px' }}>
-      <svg width="54" height="50" viewBox="0 0 54 50" fill="none" style={{ display: 'block', margin: '0 auto 6px' }}>
-        <circle cx="17" cy="16" r="14" stroke="#000" strokeWidth="0.75" />
-        <circle cx="37" cy="16" r="14" stroke="#000" strokeWidth="0.75" />
-        <circle cx="27" cy="32" r="14" stroke="#000" strokeWidth="0.75" />
+      <svg width="240" height="120" viewBox="0 0 300 150" fill="none" style={{ display: 'block', margin: '0 auto' }}>
+        <circle cx="105" cy="75" r="68" stroke="#000" strokeWidth="0.8" />
+        <circle cx="195" cy="75" r="68" stroke="#000" strokeWidth="0.8" />
+        <text x="150" y="80" textAnchor="middle" fontFamily="Inconsolata, monospace" fontSize="12" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
       </svg>
-      <div style={{ fontSize: 9, letterSpacing: '0.2em' }}>MOUNTFORD-GAMBOSI</div>
     </footer>
   )
 }
@@ -167,7 +166,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                 {currentWeek && !windowClosed ? (
                   <>
                     <Countdown closesAt={currentWeek.closes_at} />
-                    <div style={{ fontSize: 11, color: '#999', letterSpacing: '0.1em', marginBottom: 16 }}>HH : MM : SS</div>
+                    <div style={{ fontSize: 11, color: '#999', letterSpacing: '0.1em', marginBottom: 16 }}>DD : HH : MM</div>
                     <div style={{ fontSize: 12, letterSpacing: '0.05em', marginBottom: 16 }}>
                       <span style={{ border: '1px solid #000', padding: '2px 10px' }}>{submissionCount}/{memberCount}</span>
                     </div>

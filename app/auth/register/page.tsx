@@ -17,12 +17,11 @@ function Header({ title }: { title: string }) {
 function Footer() {
   return (
     <footer style={{ textAlign: 'center', padding: '60px 0 32px' }}>
-      <svg width="54" height="50" viewBox="0 0 54 50" fill="none" style={{ display: 'block', margin: '0 auto 6px' }}>
-        <circle cx="17" cy="16" r="14" stroke="#000" strokeWidth="0.75" />
-        <circle cx="37" cy="16" r="14" stroke="#000" strokeWidth="0.75" />
-        <circle cx="27" cy="32" r="14" stroke="#000" strokeWidth="0.75" />
+      <svg width="240" height="120" viewBox="0 0 300 150" fill="none" style={{ display: 'block', margin: '0 auto' }}>
+        <circle cx="105" cy="75" r="68" stroke="#000" strokeWidth="0.8" />
+        <circle cx="195" cy="75" r="68" stroke="#000" strokeWidth="0.8" />
+        <text x="150" y="80" textAnchor="middle" fontFamily="Inconsolata, monospace" fontSize="12" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
       </svg>
-      <div style={{ fontSize: 9, letterSpacing: '0.2em' }}>MOUNTFORD-GAMBOSI</div>
     </footer>
   )
 }
