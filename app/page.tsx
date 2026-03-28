@@ -17,10 +17,10 @@ function PreAuthHeader({ title }: { title: string }) {
 function Footer() {
   return (
     <footer style={{ textAlign: 'center', padding: '60px 0 32px' }}>
-      <svg width="240" height="120" viewBox="0 0 300 150" fill="none" style={{ display: 'block', margin: '0 auto' }}>
-        <circle cx="105" cy="75" r="68" stroke="#000" strokeWidth="0.8" />
-        <circle cx="195" cy="75" r="68" stroke="#000" strokeWidth="0.8" />
-        <text x="150" y="80" textAnchor="middle" fontFamily="Inconsolata, monospace" fontSize="12" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
+      <svg width="260" height="112" viewBox="0 0 320 140" fill="none" style={{ display: 'block', margin: '0 auto' }}>
+        <ellipse cx="95" cy="70" rx="100" ry="58" stroke="#000" strokeWidth="0.8" />
+        <ellipse cx="225" cy="70" rx="100" ry="58" stroke="#000" strokeWidth="0.8" />
+        <text x="160" y="76" textAnchor="middle" fontFamily="Inconsolata, monospace" fontSize="12" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
       </svg>
     </footer>
   )
@@ -45,9 +45,22 @@ export default async function LandingPage() {
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 40px 0', maxWidth: 800, width: '100%', margin: '0 auto' }}>
         {/* Saturn symbol card */}
         <div style={{ border: '1px solid #000', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 0', marginBottom: 24 }}>
-          <span style={{ fontSize: 200, lineHeight: 1, color: '#C85A5A', fontFamily: 'Arial, sans-serif', display: 'block' }}>
-            ħ
-          </span>
+          <svg viewBox="0 0 200 285" fill="none" style={{ width: 200, height: 285, display: 'block' }} xmlns="http://www.w3.org/2000/svg">
+            {/* Crossbar */}
+            <rect x="22" y="55" width="122" height="16" rx="3" fill="#C85A5A" />
+            {/* Vertical stem */}
+            <rect x="64" y="55" width="16" height="88" fill="#C85A5A" />
+            {/* Main sickle curve */}
+            <path
+              d="M 72 143 C 138 140 164 164 161 202 C 158 238 124 262 76 260 C 42 259 18 238 22 214"
+              stroke="#C85A5A" strokeWidth="16" strokeLinecap="round" fill="none"
+            />
+            {/* Bottom curl */}
+            <path
+              d="M 22 214 C 6 192 14 170 36 177 C 58 184 60 214 44 220"
+              stroke="#C85A5A" strokeWidth="15" strokeLinecap="round" fill="none"
+            />
+          </svg>
         </div>
 
         {/* COME IN button */}

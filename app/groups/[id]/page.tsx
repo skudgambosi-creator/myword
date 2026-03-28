@@ -26,10 +26,10 @@ function Countdown({ closesAt }: { closesAt: string }) {
 function Footer() {
   return (
     <footer style={{ textAlign: 'center', padding: '60px 0 32px' }}>
-      <svg width="240" height="120" viewBox="0 0 300 150" fill="none" style={{ display: 'block', margin: '0 auto' }}>
-        <circle cx="105" cy="75" r="68" stroke="#000" strokeWidth="0.8" />
-        <circle cx="195" cy="75" r="68" stroke="#000" strokeWidth="0.8" />
-        <text x="150" y="80" textAnchor="middle" fontFamily="Inconsolata, monospace" fontSize="12" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
+      <svg width="260" height="112" viewBox="0 0 320 140" fill="none" style={{ display: 'block', margin: '0 auto' }}>
+        <ellipse cx="95" cy="70" rx="100" ry="58" stroke="#000" strokeWidth="0.8" />
+        <ellipse cx="225" cy="70" rx="100" ry="58" stroke="#000" strokeWidth="0.8" />
+        <text x="160" y="76" textAnchor="middle" fontFamily="Inconsolata, monospace" fontSize="12" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
       </svg>
     </footer>
   )
@@ -207,36 +207,25 @@ export default function GroupPage({ params }: { params: { id: string } }) {
           )}
 
           {/* LEADERBOARD — score — SUBMISSIONS */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
-            <div style={{ flex: 1, height: 1, background: '#000' }} />
-            <Link href={`/groups/${params.id}/leaderboard`} style={{
-              background: '#000', color: '#fff', padding: '8px 20px', fontSize: 12,
-              fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
-              textDecoration: 'none', margin: '0 16px',
-            }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
+            <div className="score-row-line" />
+            <Link href={`/groups/${params.id}/leaderboard`} className="score-row-btn">
               LEADERBOARD
             </Link>
-            <div style={{ flex: 1, height: 1, background: '#000' }} />
+            <div className="score-row-line" />
 
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0 16px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
               <div style={{ fontSize: 10, color: '#999', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>YOUR SCORE</div>
-              <div style={{ width: 56, height: 56, borderRadius: '50%', border: '2px solid #C85A5A',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#C85A5A', fontSize: 22, fontWeight: 700,
-              }}>
+              <div className="score-row-circle">
                 {myScore}
               </div>
             </div>
 
-            <div style={{ flex: 1, height: 1, background: '#000' }} />
-            <Link href={`/groups/${params.id}/submissions`} style={{
-              background: '#000', color: '#fff', padding: '8px 20px', fontSize: 12,
-              fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
-              textDecoration: 'none', margin: '0 16px',
-            }}>
+            <div className="score-row-line" />
+            <Link href={`/groups/${params.id}/submissions`} className="score-row-btn">
               SUBMISSIONS
             </Link>
-            <div style={{ flex: 1, height: 1, background: '#000' }} />
+            <div className="score-row-line" />
           </div>
 
           {/* Alphabet grid — 13 per row */}
