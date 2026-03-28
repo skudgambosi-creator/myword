@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     const result = await sendEmail({
       to: email,
       subject: 'Oh My Word.',
-      html: `<pre style="font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.8;">Say less x\n\nDon't lose your login:\n${email}</pre>`,
+      html: `<style>@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');</style><pre style="font-family: 'Inconsolata', 'Courier New', Courier, monospace; font-size: 14px; line-height: 1.8;">Say less x\n\nDon't lose your login:\n${email}</pre>`,
     })
 
     if (result.error) return NextResponse.json({ error: result.error }, { status: 500 })

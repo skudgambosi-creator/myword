@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
         </div>
         <div style="font-size: 20px; font-weight: bold; margin-bottom: 12px;">${s.word_title}</div>
         <div style="font-size: 13px; color: #444; line-height: 1.8;">${preview}${truncated ? '...' : ''}</div>
-        <a href="${archiveUrl}" style="font-size: 12px; color: #CC0000; margin-top: 8px; display: inline-block;">Read full piece →</a>
+        <a href="${archiveUrl}" style="font-size: 12px; color: #C85A5A; margin-top: 8px; display: inline-block;">Read full piece →</a>
       </div>
     `
   }).join('')
@@ -82,7 +82,8 @@ export async function POST(req: NextRequest) {
   ` : ''
 
   const html = `
-    <div style="font-family: 'Courier New', monospace; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #000;">
+    <style>@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');</style>
+    <div style="font-family: 'Inconsolata', 'Courier New', Courier, monospace; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #000;">
       <h1 style="font-size: 32px; font-weight: bold; margin-bottom: 4px;">[ MY WORD ]</h1>
       <p style="font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 32px;">
         Week ${week.week_num} of 26 · Letter ${week.letter}
@@ -91,7 +92,7 @@ export async function POST(req: NextRequest) {
       ${submissionsHtml}
       ${missedHtml}
       <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 24px;">
-        <a href="${archiveUrl}" style="display: inline-block; background: #CC0000; color: #fff; padding: 12px 24px; font-family: 'Courier New', monospace; font-size: 12px; font-weight: bold; text-decoration: none; text-transform: uppercase; letter-spacing: 0.05em;">
+        <a href="${archiveUrl}" style="display: inline-block; background: #C85A5A; color: #fff; padding: 12px 24px; font-family: 'Inconsolata', 'Courier New', Courier, monospace; font-size: 12px; font-weight: bold; text-decoration: none; text-transform: uppercase; letter-spacing: 0.05em;">
           READ IN FULL →
         </a>
       </div>

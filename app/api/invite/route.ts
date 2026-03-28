@@ -21,7 +21,8 @@ export async function POST(req: NextRequest) {
     to: email,
     subject: `You've been invited to My Word — ${groupName}`,
     html: `
-      <div style="font-family: 'Courier New', monospace; max-width: 560px; margin: 0 auto; padding: 40px 20px; color: #000;">
+      <style>@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');</style>
+      <div style="font-family: 'Inconsolata', 'Courier New', Courier, monospace; max-width: 560px; margin: 0 auto; padding: 40px 20px; color: #000;">
         <h1 style="font-size: 28px; font-weight: bold; border-bottom: 3px solid #000; padding-bottom: 12px; margin-bottom: 24px;">
           [ MY WORD ]
         </h1>
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
           Accept your invitation to create your account and join the group.
         </p>
 
-        <a href="${joinUrl}" style="display: inline-block; background: #CC0000; color: #fff; padding: 12px 28px; font-family: 'Courier New', monospace; font-size: 14px; font-weight: bold; text-decoration: none; text-transform: uppercase; letter-spacing: 0.05em; border: 2px solid #CC0000;">
+        <a href="${joinUrl}" style="display: inline-block; background: #C85A5A; color: #fff; padding: 12px 28px; font-family: 'Inconsolata', 'Courier New', Courier, monospace; font-size: 14px; font-weight: bold; text-decoration: none; text-transform: uppercase; letter-spacing: 0.05em; border: 2px solid #C85A5A;">
           ACCEPT INVITATION →
         </a>
 
