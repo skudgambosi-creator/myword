@@ -20,7 +20,7 @@ function Footer() {
       <svg width="260" height="100" viewBox="0 0 260 100" fill="none" style={{ display: 'block', margin: '0 auto' }}>
         <circle cx="96" cy="50" r="44" stroke="#000" strokeWidth="0.8" />
         <circle cx="164" cy="50" r="44" stroke="#000" strokeWidth="0.8" />
-        <text x="52" y="53" textAnchor="start" fontFamily="Inconsolata, monospace" fontSize="14" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
+        <text x="130" y="55" textAnchor="middle" fontFamily="Inconsolata, monospace" fontSize="14" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
       </svg>
     </footer>
   )
@@ -45,15 +45,15 @@ export default async function LandingPage() {
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 40px 0', maxWidth: 800, width: '100%', margin: '0 auto' }}>
         {/* Saturn symbol card */}
         <div style={{ border: '1px solid #000', width: '100%', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
-          <svg viewBox="0 0 200 285" fill="none" style={{ height: '65%', width: 'auto', display: 'block' }} xmlns="http://www.w3.org/2000/svg">
-            {/* Small crossbar at top */}
-            <rect x="28" y="28" width="88" height="16" rx="2" fill="#C85A5A" />
+          <svg viewBox="0 0 210 295" fill="none" style={{ height: '65%', width: 'auto', display: 'block' }} xmlns="http://www.w3.org/2000/svg">
+            {/* Crossbar */}
+            <path d="M 25 45 L 162 45" stroke="#C85A5A" strokeWidth="17" strokeLinecap="round"/>
             {/* Vertical stem */}
-            <rect x="52" y="28" width="22" height="152" fill="#C85A5A" />
-            {/* S-curve body — starts from right edge of stem, curves right then sickle tail */}
+            <path d="M 90 45 L 90 175" stroke="#C85A5A" strokeWidth="17" strokeLinecap="round"/>
+            {/* Sickle — single arc from mid-stem, sweeps right/down/left with terminal curl */}
             <path
-              d="M 74 82 C 158 80 168 130 150 168 C 132 206 94 222 80 252 C 72 270 98 282 132 270"
-              stroke="#C85A5A" strokeWidth="20" strokeLinecap="round" fill="none"
+              d="M 90 115 C 165 110 182 162 163 208 C 144 254 82 272 62 292 C 54 304 82 312 114 302"
+              stroke="#C85A5A" strokeWidth="17" strokeLinecap="round" fill="none"
             />
           </svg>
         </div>

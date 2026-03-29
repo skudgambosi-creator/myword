@@ -21,7 +21,7 @@ function Countdown({ closesAt }: { closesAt: string }) {
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
   }, [closesAt])
-  return <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '0.1em' }}>{timeLeft}</div>
+  return <div style={{ fontSize: 22, fontWeight: 400, letterSpacing: '0.1em' }}>{timeLeft}</div>
 }
 
 function Footer() {
@@ -30,7 +30,7 @@ function Footer() {
       <svg width="260" height="100" viewBox="0 0 260 100" fill="none" style={{ display: 'block', margin: '0 auto' }}>
         <circle cx="96" cy="50" r="44" stroke="#000" strokeWidth="0.8" />
         <circle cx="164" cy="50" r="44" stroke="#000" strokeWidth="0.8" />
-        <text x="52" y="53" textAnchor="start" fontFamily="Inconsolata, monospace" fontSize="14" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
+        <text x="130" y="55" textAnchor="middle" fontFamily="Inconsolata, monospace" fontSize="14" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
       </svg>
     </footer>
   )
@@ -263,19 +263,29 @@ export default function GroupPage({ params }: { params: { id: string } }) {
 
           {/* Alphabet grid — 13 per row */}
           {activeWeek && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(13, 1fr)', gap: 6 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(13, 1fr)', gap: 4 }}>
               {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter, i) => {
                 const weekNum = i + 1
                 const isPast = weekNum < activeWeek.week_num
-                const didSubmit = submittedWeekNums.has(weekNum)
+                const isCurrent = weekNum === activeWeek.week_num
+
+                let bg: string, border: string, color: string
+                if (isPast) {
+                  bg = '#000'; border = '#000'; color = '#fff'
+                } else if (isCurrent) {
+                  bg = '#C85A5A'; border = '#C85A5A'; color = '#fff'
+                } else {
+                  bg = 'transparent'; border = '#000'; color = '#000'
+                }
+
                 return (
                   <div key={letter} style={{
                     aspectRatio: '1', borderRadius: '50%',
-                    border: `2px solid ${isPast ? '#000' : '#C85A5A'}`,
-                    background: isPast ? '#000' : '#C85A5A',
+                    border: `2px solid ${border}`,
+                    background: bg,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 11, fontWeight: 700,
-                    color: isPast && !didSubmit ? '#000' : '#fff',
+                    fontSize: 13, fontWeight: 700,
+                    color,
                   }}>
                     {letter}
                   </div>
