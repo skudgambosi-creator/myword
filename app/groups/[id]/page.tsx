@@ -168,7 +168,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                   width: 'clamp(90px, 22vw, 130px)', height: 'clamp(90px, 22vw, 130px)',
                   borderRadius: '50%', background: '#C85A5A',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#fff', fontSize: 'clamp(56px, 14vw, 80px)', fontWeight: 900, letterSpacing: '-0.02em',
+                  color: '#fff', fontSize: 'clamp(56px, 14vw, 80px)', fontWeight: 900, letterSpacing: 0, lineHeight: 1,
                 }}>
                   {(currentWeek || nextWeek).letter}
                 </div>
