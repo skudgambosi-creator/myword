@@ -60,9 +60,10 @@ export default async function SubmissionReadPage({
   const navBtnStyle = {
     display: 'inline-block',
     background: '#000', color: '#fff',
-    padding: '10px 24px', fontSize: 12, fontWeight: 700,
+    padding: '10px 0', fontSize: 12, fontWeight: 700,
     letterSpacing: '0.15em', textTransform: 'uppercase' as const,
-    textDecoration: 'none',
+    textDecoration: 'none', borderRadius: 4,
+    width: 120, textAlign: 'center' as const,
   }
 
   return (
