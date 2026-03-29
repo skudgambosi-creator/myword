@@ -279,10 +279,10 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                 return (
                   <div key={letter} style={{
                     aspectRatio: '1', borderRadius: '50%',
-                    border: `2px solid ${border}`,
+                    border: `1px solid ${border}`,
                     background: bg,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 13, fontWeight: 700,
+                    fontSize: 'clamp(11px, 2.2vw, 20px)', fontWeight: 700,
                     color,
                   }}>
                     {letter}
