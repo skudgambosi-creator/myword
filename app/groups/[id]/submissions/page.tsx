@@ -219,7 +219,7 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
               GO BACK
             </Link>
           </div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', margin: 0, textAlign: 'center' }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', margin: 0, textAlign: 'center', fontFamily: 'inherit' }}>
             SUBMISSIONS
           </h1>
           <div />
