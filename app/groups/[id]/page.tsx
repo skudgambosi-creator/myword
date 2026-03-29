@@ -188,6 +188,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                         display: 'inline-block', background: '#C85A5A', color: '#fff',
                         padding: '10px 24px', fontSize: 13, fontWeight: 700,
                         letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none',
+                        borderRadius: 4,
                       }}
                     >
                       SUBMIT / EDIT

@@ -239,6 +239,7 @@ a:hover {
   white-space: nowrap;
   flex-shrink: 0;
   font-family: inherit;
+  border-radius: 4px;
 }
 .score-row-circle {
   width: 56px;
