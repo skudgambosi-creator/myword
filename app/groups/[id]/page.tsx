@@ -160,7 +160,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
         </div>
 
         {/* Main action card */}
-        <div style={{ border: '1px solid #000', padding: '32px', marginBottom: 24 }}>
+        <div className="action-card">
 
           {/* Letter + countdown + submit — grid aligned with score row below */}
           {(currentWeek || nextWeek) && !isCompleted && (
@@ -169,9 +169,10 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               {/* Row 1 Col 1: Letter circle */}
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingBottom: 20 }}>
                 <div style={{
-                  width: 130, height: 130, borderRadius: '50%', background: '#C85A5A',
+                  width: 'clamp(90px, 22vw, 130px)', height: 'clamp(90px, 22vw, 130px)',
+                  borderRadius: '50%', background: '#C85A5A',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#fff', fontSize: 80, fontWeight: 900, letterSpacing: '-0.02em',
+                  color: '#fff', fontSize: 'clamp(56px, 14vw, 80px)', fontWeight: 900, letterSpacing: '-0.02em',
                 }}>
                   {(currentWeek || nextWeek).letter}
                 </div>

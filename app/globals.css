@@ -653,6 +653,19 @@ input:-webkit-autofill:active {
   transition: background-color 5000s ease-in-out 0s;
 }
 
+/* ── ACTION CARD ── */
+.action-card {
+  border: 1px solid #000;
+  padding: 32px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 640px) {
+  .action-card {
+    padding: 16px;
+  }
+}
+
 /* ── COMPLETED STATE ── */
 .completed-banner {
   background: var(--black);
