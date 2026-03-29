@@ -46,13 +46,13 @@ export default async function LandingPage() {
         {/* Saturn symbol card */}
         <div style={{ border: '1px solid #000', width: '100%', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
           <svg viewBox="0 0 200 285" fill="none" style={{ height: '65%', width: 'auto', display: 'block' }} xmlns="http://www.w3.org/2000/svg">
-            {/* Crossbar at top */}
-            <rect x="18" y="28" width="120" height="18" rx="3" fill="#C85A5A" />
+            {/* Small crossbar at top */}
+            <rect x="28" y="28" width="88" height="16" rx="2" fill="#C85A5A" />
             {/* Vertical stem */}
-            <rect x="48" y="28" width="22" height="172" fill="#C85A5A" />
-            {/* S-curve body */}
+            <rect x="52" y="28" width="22" height="152" fill="#C85A5A" />
+            {/* S-curve body — starts from right edge of stem, curves right then sickle tail */}
             <path
-              d="M 112 46 C 155 46 173 72 172 110 C 171 149 149 175 116 188 C 87 200 70 219 75 248 C 80 270 109 282 138 270"
+              d="M 74 82 C 158 80 168 130 150 168 C 132 206 94 222 80 252 C 72 270 98 282 132 270"
               stroke="#C85A5A" strokeWidth="20" strokeLinecap="round" fill="none"
             />
           </svg>
