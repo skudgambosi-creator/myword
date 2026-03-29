@@ -54,10 +54,13 @@ export default function ProfilePage() {
         </div>
 
         {/* Profile card — two columns */}
-        <div style={{ border: '1px solid #000', padding: '40px 32px', marginBottom: 0, display: 'flex', gap: 0 }}>
+        <div style={{ border: '1px solid #000', padding: '40px 32px', marginBottom: 0, display: 'flex', gap: 0, position: 'relative' }}>
+
+          {/* Vertical divider line — top aligns with email, bottom with ellipses */}
+          <div style={{ position: 'absolute', left: '50%', top: 40, bottom: 40, width: 1, background: '#ddd', transform: 'translateX(-0.5px)' }} />
 
           {/* Left: email / password / member# */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', paddingRight: 32 }}>
             <div style={{ marginBottom: 20 }}>
               <span style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', marginRight: 12 }}>YOUR EMAIL:...</span>
               <span style={{ fontSize: 13, borderBottom: '1px solid #000', display: 'inline-block', minWidth: 180, paddingBottom: 2 }}>
@@ -72,10 +75,10 @@ export default function ProfilePage() {
               </span>
             </div>
 
-            {/* Member number Venn — centred, width matches content above */}
-            <div style={{ textAlign: 'center' }}>
+            {/* Member number Venn — wrapper sized to SVG so label centres correctly */}
+            <div style={{ margin: '0 auto', width: 220, textAlign: 'center' }}>
               <div style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8 }}>MEMBER #</div>
-              <svg width="100%" viewBox="0 0 240 110" fill="none" style={{ maxWidth: 300 }}>
+              <svg width="220" viewBox="0 0 240 110" fill="none">
                 <circle cx="96" cy="55" r="48" stroke="#000" strokeWidth="0.75" />
                 <circle cx="144" cy="55" r="48" stroke="#000" strokeWidth="0.75" />
                 <text x="120" y="62" textAnchor="middle" fill="#C85A5A" fontSize="16" fontFamily="Inconsolata, monospace" fontWeight="400">
@@ -85,11 +88,8 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Divider */}
-          <div style={{ width: 1, background: '#eee', margin: '0 32px' }} />
-
           {/* Right: Saturn symbol centred */}
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingLeft: 32 }}>
             <img src="/saturn.svg" alt="Saturn symbol" style={{ width: '55%', height: 'auto', display: 'block' }} />
           </div>
         </div>
