@@ -87,16 +87,11 @@ export default async function SubmissionReadPage({
 
         <hr style={{ border: 'none', borderTop: '1px solid #000', margin: '16px 0' }} />
 
-        {/* Title + Author */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 24 }}>
+        {/* Title */}
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <span style={{ fontSize: 16, fontWeight: 700, color: '#C85A5A', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
             {sub.word_title}
           </span>
-          {authorName && (
-            <span style={{ fontSize: 13, color: '#C85A5A', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              {authorName}
-            </span>
-          )}
         </div>
 
         {/* Body */}
@@ -124,6 +119,13 @@ export default async function SubmissionReadPage({
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Author — right-aligned, above nav */}
+        {authorName && (
+          <div style={{ textAlign: 'right', marginBottom: 24, fontSize: 13, color: '#C85A5A', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            {authorName}
           </div>
         )}
 
