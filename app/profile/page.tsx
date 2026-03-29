@@ -7,17 +7,6 @@ import Nav from '@/components/layout/Nav'
 
 const ALPHABET_PROJECT_ID = '00000000-0000-0000-0000-000000000001'
 
-function Footer() {
-  return (
-    <footer style={{ textAlign: 'center', padding: '60px 0 32px' }}>
-      <svg width="260" height="100" viewBox="0 0 260 100" fill="none" style={{ display: 'block', margin: '0 auto' }}>
-        <circle cx="96" cy="50" r="44" stroke="#000" strokeWidth="0.8" />
-        <circle cx="164" cy="50" r="44" stroke="#000" strokeWidth="0.8" />
-        <text x="52" y="53" textAnchor="start" fontFamily="Inconsolata, monospace" fontSize="14" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
-      </svg>
-    </footer>
-  )
-}
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -107,7 +96,6 @@ export default function ProfilePage() {
         </Link>
       </main>
 
-      <Footer />
     </div>
   )
 }
