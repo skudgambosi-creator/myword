@@ -14,10 +14,11 @@ function Countdown({ closesAt }: { closesAt: string }) {
       const d = Math.floor(diff / 86400000)
       const h = Math.floor((diff % 86400000) / 3600000)
       const m = Math.floor((diff % 3600000) / 60000)
-      setTimeLeft(`${String(d).padStart(2,'0')}:${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`)
+      const s = Math.floor((diff % 60000) / 1000)
+      setTimeLeft(`${String(d).padStart(2,'0')}:${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`)
     }
     tick()
-    const id = setInterval(tick, 60000)
+    const id = setInterval(tick, 1000)
     return () => clearInterval(id)
   }, [closesAt])
   return <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '0.1em' }}>{timeLeft}</div>
@@ -26,10 +27,10 @@ function Countdown({ closesAt }: { closesAt: string }) {
 function Footer() {
   return (
     <footer style={{ textAlign: 'center', padding: '60px 0 32px' }}>
-      <svg width="260" height="112" viewBox="0 0 320 140" fill="none" style={{ display: 'block', margin: '0 auto' }}>
-        <ellipse cx="95" cy="70" rx="100" ry="58" stroke="#000" strokeWidth="0.8" />
-        <ellipse cx="225" cy="70" rx="100" ry="58" stroke="#000" strokeWidth="0.8" />
-        <text x="160" y="76" textAnchor="middle" fontFamily="Inconsolata, monospace" fontSize="12" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
+      <svg width="260" height="100" viewBox="0 0 260 100" fill="none" style={{ display: 'block', margin: '0 auto' }}>
+        <circle cx="96" cy="50" r="44" stroke="#000" strokeWidth="0.8" />
+        <circle cx="164" cy="50" r="44" stroke="#000" strokeWidth="0.8" />
+        <text x="120" y="53" textAnchor="start" fontFamily="Inconsolata, monospace" fontSize="11" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
       </svg>
     </footer>
   )
@@ -56,6 +57,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   const [myScore, setMyScore] = useState(0)
   const [nextWeek, setNextWeek] = useState<any>(null)
   const [isCompleted, setIsCompleted] = useState(false)
+  const [rulesExpanded, setRulesExpanded] = useState(false)
 
   useEffect(() => {
     const init = async () => {
@@ -149,20 +151,26 @@ export default function GroupPage({ params }: { params: { id: string } }) {
         {/* Main action card */}
         <div style={{ border: '1px solid #000', padding: '32px', marginBottom: 24 }}>
 
-          {/* Letter + countdown + submit */}
+          {/* Letter + countdown + submit — grid aligned with score row below */}
           {(currentWeek || nextWeek) && !isCompleted && (
-            <div style={{ display: 'flex', gap: 32, alignItems: 'center', marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
-              {/* Letter circle */}
-              <div style={{
-                width: 150, height: 150, borderRadius: '50%', background: '#C85A5A', flexShrink: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', fontSize: 88, fontWeight: 900, letterSpacing: '-0.02em',
-              }}>
-                {(currentWeek || nextWeek).letter}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
+
+              {/* Row 1 Col 1: Letter circle */}
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingBottom: 20 }}>
+                <div style={{
+                  width: 130, height: 130, borderRadius: '50%', background: '#C85A5A',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#fff', fontSize: 80, fontWeight: 900, letterSpacing: '-0.02em',
+                }}>
+                  {(currentWeek || nextWeek).letter}
+                </div>
               </div>
 
-              {/* Timer + CTA */}
-              <div style={{ flex: 1 }}>
+              {/* Row 1 Col 2: spacer matching score circle width */}
+              <div style={{ width: 88 }} />
+
+              {/* Row 1 Col 3: Timer + CTA + count */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, paddingBottom: 20 }}>
                 {currentWeek && !windowClosed ? (
                   <>
                     <Countdown closesAt={currentWeek.closes_at} />
@@ -172,23 +180,45 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                         display: 'inline-block', background: '#C85A5A', color: '#fff',
                         padding: '10px 24px', fontSize: 13, fontWeight: 700,
                         letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none',
-                        marginTop: 12, marginBottom: 8,
                       }}
                     >
                       SUBMIT / EDIT
                     </Link>
-                    <div style={{ fontSize: 12, letterSpacing: '0.05em' }}>
-                      <span style={{ border: '1px solid #000', padding: '2px 10px' }}>{submissionCount}/{memberCount}</span>
+                    <div style={{ fontSize: 12, letterSpacing: '0.05em', color: '#666' }}>
+                      {submissionCount}/{memberCount}
                     </div>
                   </>
                 ) : currentWeek && windowClosed ? (
-                  <div style={{ fontSize: 13, color: '#666' }}>Window closed. Reveal pending at midnight Wednesday.</div>
+                  <div style={{ fontSize: 13, color: '#666', textAlign: 'center' }}>Window closed. Reveal pending at midnight Wednesday.</div>
                 ) : nextWeek ? (
                   <>
                     <Countdown closesAt={nextWeek.opens_at} />
-                    <div style={{ fontSize: 11, color: '#999', letterSpacing: '0.1em', marginTop: 4 }}>until next letter opens</div>
+                    <div style={{ fontSize: 11, color: '#999', letterSpacing: '0.1em', textAlign: 'center' }}>until next letter opens</div>
                   </>
                 ) : null}
+              </div>
+
+              {/* Row 2 Col 1: LEADERBOARD */}
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div className="score-row-line" />
+                <Link href={`/groups/${params.id}/leaderboard`} className="score-row-btn">
+                  LEADERBOARD
+                </Link>
+                <div className="score-row-line" />
+              </div>
+
+              {/* Row 2 Col 2: Score circle */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="score-row-circle">{myScore}</div>
+              </div>
+
+              {/* Row 2 Col 3: SUBMISSIONS */}
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div className="score-row-line" />
+                <Link href={`/groups/${params.id}/submissions`} className="score-row-btn">
+                  SUBMISSIONS
+                </Link>
+                <div className="score-row-line" />
               </div>
             </div>
           )}
@@ -206,27 +236,18 @@ export default function GroupPage({ params }: { params: { id: string } }) {
             </div>
           )}
 
-          {/* LEADERBOARD — score — SUBMISSIONS */}
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
-            <div className="score-row-line" />
-            <Link href={`/groups/${params.id}/leaderboard`} className="score-row-btn">
-              LEADERBOARD
-            </Link>
-            <div className="score-row-line" />
-
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
-              <div style={{ fontSize: 10, color: '#999', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>YOUR SCORE</div>
-              <div className="score-row-circle">
-                {myScore}
-              </div>
+          {/* LEADERBOARD — score — SUBMISSIONS (standalone, when no active/upcoming week or completed) */}
+          {(!(currentWeek || nextWeek) || isCompleted) && (
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
+              <div className="score-row-line" />
+              <Link href={`/groups/${params.id}/leaderboard`} className="score-row-btn">LEADERBOARD</Link>
+              <div className="score-row-line" />
+              <div className="score-row-circle">{myScore}</div>
+              <div className="score-row-line" />
+              <Link href={`/groups/${params.id}/submissions`} className="score-row-btn">SUBMISSIONS</Link>
+              <div className="score-row-line" />
             </div>
-
-            <div className="score-row-line" />
-            <Link href={`/groups/${params.id}/submissions`} className="score-row-btn">
-              SUBMISSIONS
-            </Link>
-            <div className="score-row-line" />
-          </div>
+          )}
 
           {/* Alphabet grid — 13 per row */}
           {activeWeek && (
@@ -253,11 +274,21 @@ export default function GroupPage({ params }: { params: { id: string } }) {
 
         {/* Rules box */}
         <div style={{ border: '1px solid #000', padding: '28px 32px', marginBottom: 0 }}>
-          <div style={{ fontSize: 18, letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center', marginBottom: 24 }}>RULES</div>
-          {RULES.map(([title, desc], i) => (
+          <button
+            onClick={() => setRulesExpanded(!rulesExpanded)}
+            style={{
+              display: 'block', width: '100%', background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: 18, letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center',
+              fontFamily: 'inherit', fontWeight: 'normal', padding: 0,
+              marginBottom: rulesExpanded ? 24 : 0,
+            }}
+          >
+            RULES
+          </button>
+          {rulesExpanded && RULES.map(([title, desc], i) => (
             <div key={i} style={{ marginBottom: 20 }}>
               <div style={{ fontSize: 13, marginBottom: 4 }}>
-                <strong>{i + 1} {title}</strong>
+                <strong>{i + 1}. {title}</strong>
               </div>
               <div style={{ fontSize: 12, lineHeight: 1.7 }}>{desc}</div>
             </div>

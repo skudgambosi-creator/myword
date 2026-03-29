@@ -17,10 +17,10 @@ function PreAuthHeader({ title }: { title: string }) {
 function Footer() {
   return (
     <footer style={{ textAlign: 'center', padding: '60px 0 32px' }}>
-      <svg width="260" height="112" viewBox="0 0 320 140" fill="none" style={{ display: 'block', margin: '0 auto' }}>
-        <ellipse cx="95" cy="70" rx="100" ry="58" stroke="#000" strokeWidth="0.8" />
-        <ellipse cx="225" cy="70" rx="100" ry="58" stroke="#000" strokeWidth="0.8" />
-        <text x="160" y="76" textAnchor="middle" fontFamily="Inconsolata, monospace" fontSize="12" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
+      <svg width="260" height="100" viewBox="0 0 260 100" fill="none" style={{ display: 'block', margin: '0 auto' }}>
+        <circle cx="96" cy="50" r="44" stroke="#000" strokeWidth="0.8" />
+        <circle cx="164" cy="50" r="44" stroke="#000" strokeWidth="0.8" />
+        <text x="120" y="53" textAnchor="start" fontFamily="Inconsolata, monospace" fontSize="11" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
       </svg>
     </footer>
   )
@@ -44,8 +44,8 @@ export default async function LandingPage() {
 
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 40px 0', maxWidth: 800, width: '100%', margin: '0 auto' }}>
         {/* Saturn symbol card */}
-        <div style={{ border: '1px solid #000', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 0', marginBottom: 24 }}>
-          <svg viewBox="0 0 200 285" fill="none" style={{ width: 200, height: 285, display: 'block' }} xmlns="http://www.w3.org/2000/svg">
+        <div style={{ border: '1px solid #000', width: '100%', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+          <svg viewBox="0 0 200 285" fill="none" style={{ height: '65%', width: 'auto', display: 'block' }} xmlns="http://www.w3.org/2000/svg">
             {/* Crossbar */}
             <rect x="22" y="55" width="122" height="16" rx="3" fill="#C85A5A" />
             {/* Vertical stem */}

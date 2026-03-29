@@ -17,10 +17,10 @@ function Header({ title }: { title: string }) {
 function Footer() {
   return (
     <footer style={{ textAlign: 'center', padding: '60px 0 32px' }}>
-      <svg width="260" height="112" viewBox="0 0 320 140" fill="none" style={{ display: 'block', margin: '0 auto' }}>
-        <ellipse cx="95" cy="70" rx="100" ry="58" stroke="#000" strokeWidth="0.8" />
-        <ellipse cx="225" cy="70" rx="100" ry="58" stroke="#000" strokeWidth="0.8" />
-        <text x="160" y="76" textAnchor="middle" fontFamily="Inconsolata, monospace" fontSize="12" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
+      <svg width="260" height="100" viewBox="0 0 260 100" fill="none" style={{ display: 'block', margin: '0 auto' }}>
+        <circle cx="96" cy="50" r="44" stroke="#000" strokeWidth="0.8" />
+        <circle cx="164" cy="50" r="44" stroke="#000" strokeWidth="0.8" />
+        <text x="120" y="53" textAnchor="start" fontFamily="Inconsolata, monospace" fontSize="11" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
       </svg>
     </footer>
   )
@@ -86,7 +86,7 @@ export default function RegisterPage() {
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              style={{ border: 'none', borderBottom: '1px solid #000', outline: 'none', fontSize: 13, width: 'calc(100% - 160px)', fontFamily: 'inherit', background: 'transparent' }}
+              style={{ border: 'none', borderBottom: '1px solid #000', outline: 'none', fontSize: 13, width: 'calc(100% - 160px)', fontFamily: 'inherit', background: 'transparent', color: '#C85A5A' }}
             />
           </div>
           <div style={{ marginBottom: 48 }}>
@@ -96,7 +96,7 @@ export default function RegisterPage() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-              style={{ border: 'none', borderBottom: '1px solid #000', outline: 'none', fontSize: 13, width: 'calc(100% - 160px)', fontFamily: 'inherit', background: 'transparent' }}
+              style={{ border: 'none', borderBottom: '1px solid #000', outline: 'none', fontSize: 13, width: 'calc(100% - 160px)', fontFamily: 'inherit', background: 'transparent', color: '#C85A5A' }}
             />
           </div>
 
