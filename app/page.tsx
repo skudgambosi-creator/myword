@@ -45,17 +45,7 @@ export default async function LandingPage() {
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 40px 0', maxWidth: 800, width: '100%', margin: '0 auto' }}>
         {/* Saturn symbol card */}
         <div style={{ border: '1px solid #000', width: '100%', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
-          <svg viewBox="0 0 210 295" fill="none" style={{ height: '65%', width: 'auto', display: 'block' }} xmlns="http://www.w3.org/2000/svg">
-            {/* Crossbar */}
-            <path d="M 25 45 L 162 45" stroke="#C85A5A" strokeWidth="17" strokeLinecap="round"/>
-            {/* Vertical stem */}
-            <path d="M 90 45 L 90 175" stroke="#C85A5A" strokeWidth="17" strokeLinecap="round"/>
-            {/* Sickle — single arc from mid-stem, sweeps right/down/left with terminal curl */}
-            <path
-              d="M 90 115 C 165 110 182 162 163 208 C 144 254 82 272 62 292 C 54 304 82 312 114 302"
-              stroke="#C85A5A" strokeWidth="17" strokeLinecap="round" fill="none"
-            />
-          </svg>
+          <img src="/saturn.svg" alt="Saturn symbol" style={{ height: '65%', width: 'auto', display: 'block' }} />
         </div>
 
         {/* COME IN button */}
