@@ -42,8 +42,6 @@ export async function POST(req: NextRequest) {
 
           <p style="font-size: 15px; line-height: 1.9; margin-bottom: 16px;">You can also add pictures. Once a week, you'll get an email from us with the week's submissions in no particular order.</p>
 
-          <p style="font-size: 15px; line-height: 1.9; margin-bottom: 16px;">Entry closes on week C. (Purely by accident, April 1st.) Whoever has their hands on the link before then can get amongst, after that, just us.</p>
-
           <p style="font-size: 15px; line-height: 1.9; margin-bottom: 32px;">We look forward to reading your words, and you keeping them.</p>
 
           <p style="font-size: 15px; line-height: 1.9; margin-bottom: 32px;">Love.</p>

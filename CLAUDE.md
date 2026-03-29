@@ -96,7 +96,7 @@ WHERE group_id = '00000000-0000-0000-0000-000000000001' AND week_num = 1;
 ```
 
 ## Key decisions / things to remember
-- Registration locks after week C closes (week_num = 3)
+- Registration closes when the last week (week_num = 26) closes — anyone with the link can join until the very end
 - Anonymous submissions show as Member #N, signed show their signed_name
 - Old columns (identity_mode, noname_number, display_name) were removed — do not reference them
 - The `@supabase/ssr` package must stay at v0.9.0 or higher — v0.3.0 broke auth

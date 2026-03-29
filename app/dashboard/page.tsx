@@ -47,10 +47,10 @@ export default function DashboardPage() {
 
       setIsMember(false)
 
-      const { data: weekThree } = await supabase
+      const { data: lastWeek } = await supabase
         .from('weeks').select('closes_at').eq('group_id', ALPHABET_PROJECT_ID)
-        .eq('week_num', 3).maybeSingle()
-      if (weekThree) setRegistrationOpen(new Date(weekThree.closes_at) > new Date())
+        .order('week_num', { ascending: false }).limit(1).maybeSingle()
+      if (lastWeek) setRegistrationOpen(new Date(lastWeek.closes_at) > new Date())
 
       setLoading(false)
     }
