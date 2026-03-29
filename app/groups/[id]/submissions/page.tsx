@@ -231,7 +231,7 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
           <div style={{ display: 'flex', margin: '0 0' }}>
             <button onClick={() => setView('all')} style={tabBtn(view === 'all')}>ALL</button>
             <button onClick={switchToMine} style={tabBtn(view === 'mine')}>MINE</button>
-            <button onClick={() => setView('favourite')} style={tabBtn(view === 'favourite')}>TASTIEST</button>
+            <button onClick={() => setView('favourite')} style={tabBtn(view === 'favourite')}>♥</button>
           </div>
           <div style={{ flex: 1, height: 1, background: '#000' }} />
         </div>
