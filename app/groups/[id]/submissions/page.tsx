@@ -11,7 +11,7 @@ function Footer() {
       <svg width="260" height="100" viewBox="0 0 260 100" fill="none" style={{ display: 'block', margin: '0 auto' }}>
         <circle cx="96" cy="50" r="44" stroke="#000" strokeWidth="0.8" />
         <circle cx="164" cy="50" r="44" stroke="#000" strokeWidth="0.8" />
-        <text x="120" y="53" textAnchor="start" fontFamily="Inconsolata, monospace" fontSize="11" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
+        <text x="52" y="53" textAnchor="start" fontFamily="Inconsolata, monospace" fontSize="14" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
       </svg>
     </footer>
   )
@@ -242,7 +242,7 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
           <div style={{ display: 'flex', margin: '0 0' }}>
             <button onClick={() => setView('all')} style={tabBtn(view === 'all')}>ALL</button>
             <button onClick={switchToMine} style={tabBtn(view === 'mine')}>MINE</button>
-            <button onClick={() => setView('favourite')} style={tabBtn(view === 'favourite')}>FAVOURITE</button>
+            <button onClick={() => setView('favourite')} style={tabBtn(view === 'favourite')}>TASTIEST</button>
           </div>
           <div style={{ flex: 1, height: 1, background: '#000' }} />
         </div>
@@ -259,7 +259,7 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
         )}
 
         {view === 'favourite' && (
-          favouriteSubs.length === 0 ? empty('No community favourites yet.') :
+          favouriteSubs.length === 0 ? empty('No tastiest picks yet.') :
           <Cabinet subs={favouriteSubs} groupId={params.id} myFavourites={myFavourites} />
         )}
 
