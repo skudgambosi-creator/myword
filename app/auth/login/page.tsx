@@ -19,7 +19,7 @@ function Footer() {
       <svg width="260" height="100" viewBox="0 0 260 100" fill="none" style={{ display: 'block', margin: '0 auto' }}>
         <circle cx="96" cy="50" r="44" stroke="#000" strokeWidth="0.8" />
         <circle cx="164" cy="50" r="44" stroke="#000" strokeWidth="0.8" />
-        <text x="52" y="53" textAnchor="start" fontFamily="Inconsolata, monospace" fontSize="14" fill="#000" letterSpacing="1">MOUNTFORD - GAMBOSI</text>
+        <text x="52" y="53" textAnchor="start" fontFamily="Inconsolata, monospace" fontSize="14" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
       </svg>
     </footer>
   )
@@ -53,19 +53,14 @@ export default function LoginPage() {
         {/* Saturn symbol card */}
         <div style={{ border: '1px solid #000', width: '100%', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
           <svg viewBox="0 0 200 285" fill="none" style={{ height: '65%', width: 'auto', display: 'block' }} xmlns="http://www.w3.org/2000/svg">
-            {/* Crossbar */}
-            <rect x="22" y="55" width="122" height="16" rx="3" fill="#C85A5A" />
+            {/* Crossbar at top */}
+            <rect x="18" y="28" width="120" height="18" rx="3" fill="#C85A5A" />
             {/* Vertical stem */}
-            <rect x="64" y="55" width="16" height="88" fill="#C85A5A" />
-            {/* Main sickle curve */}
+            <rect x="48" y="28" width="22" height="172" fill="#C85A5A" />
+            {/* S-curve body */}
             <path
-              d="M 72 143 C 138 140 164 164 161 202 C 158 238 124 262 76 260 C 42 259 18 238 22 214"
-              stroke="#C85A5A" strokeWidth="16" strokeLinecap="round" fill="none"
-            />
-            {/* Bottom curl */}
-            <path
-              d="M 22 214 C 6 192 14 170 36 177 C 58 184 60 214 44 220"
-              stroke="#C85A5A" strokeWidth="15" strokeLinecap="round" fill="none"
+              d="M 112 46 C 155 46 173 72 172 110 C 171 149 149 175 116 188 C 87 200 70 219 75 248 C 80 270 109 282 138 270"
+              stroke="#C85A5A" strokeWidth="20" strokeLinecap="round" fill="none"
             />
           </svg>
         </div>
