@@ -182,15 +182,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                 {currentWeek && !windowClosed ? (
                   <>
                     <Countdown closesAt={currentWeek.closes_at} />
-                    <Link
-                      href={`/groups/${params.id}/submit${mySubmission ? '?edit=1' : ''}`}
-                      style={{
-                        display: 'inline-block', background: '#C85A5A', color: '#fff',
-                        padding: '10px 24px', fontSize: 13, fontWeight: 700,
-                        letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none',
-                        borderRadius: 4,
-                      }}
-                    >
+                    <Link href={`/groups/${params.id}/submit${mySubmission ? '?edit=1' : ''}`} className="btn-accent">
                       SUBMIT / EDIT
                     </Link>
                     <div style={{ fontSize: 12, letterSpacing: '0.05em', color: '#666' }}>
@@ -236,11 +228,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
           {isCompleted && (
             <div style={{ textAlign: 'center', padding: '20px 0 24px', borderBottom: '1px solid #eee', marginBottom: 24 }}>
               <div style={{ fontSize: 32, marginBottom: 12, letterSpacing: '0.2em' }}>A — Z</div>
-              <Link href={`/groups/${params.id}/submissions`} style={{
-                display: 'inline-block', background: '#C85A5A', color: '#fff',
-                padding: '10px 24px', fontSize: 13, fontWeight: 700,
-                letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none',
-              }}>
+              <Link href={`/groups/${params.id}/submissions`} className="btn-accent">
                 BROWSE THE ARCHIVE
               </Link>
             </div>

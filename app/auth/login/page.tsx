@@ -80,12 +80,8 @@ export default function LoginPage() {
         <button
           onClick={handleLogin}
           disabled={loading}
-          style={{
-            display: 'block', width: '100%', background: '#C85A5A', color: '#fff',
-            border: 'none', padding: '18px', fontSize: 15, fontWeight: 700,
-            letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer',
-            fontFamily: 'inherit', marginBottom: 16,
-          }}
+          className="btn-accent"
+          style={{ display: 'block', width: '100%', padding: '18px', fontSize: 15, marginBottom: 16 }}
         >
           {loading ? '...' : 'COME IN'}
         </button>

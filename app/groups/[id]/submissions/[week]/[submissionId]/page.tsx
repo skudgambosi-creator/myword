@@ -57,14 +57,7 @@ export default async function SubmissionReadPage({
   const { images, audios } = extractMedia(sub.body_html ?? '')
   const authorName = sub.is_signed ? sub.signed_name : null
 
-  const navBtnStyle = {
-    display: 'inline-block',
-    background: '#000', color: '#fff',
-    padding: '10px 0', fontSize: 12, fontWeight: 700,
-    letterSpacing: '0.15em', textTransform: 'uppercase' as const,
-    textDecoration: 'none', borderRadius: 4,
-    width: 120, textAlign: 'center' as const,
-  }
+  const navBtnInline = { margin: '0 16px', width: 120 }
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -133,19 +126,19 @@ export default async function SubmissionReadPage({
         <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
           <div style={{ flex: 1, height: 1, background: '#000' }} />
           {prevSub ? (
-            <Link href={`/groups/${params.id}/submissions/${prevSub.week_id}/${prevSub.id}`} style={{ ...navBtnStyle, margin: '0 16px' }}>
+            <Link href={`/groups/${params.id}/submissions/${prevSub.week_id}/${prevSub.id}`} className="btn-black" style={navBtnInline}>
               PREVIOUS
             </Link>
           ) : (
-            <span style={{ ...navBtnStyle, margin: '0 16px', opacity: 0.25, cursor: 'default', pointerEvents: 'none' }}>PREVIOUS</span>
+            <span className="btn-black" style={{ ...navBtnInline, opacity: 0.25, cursor: 'default', pointerEvents: 'none' }}>PREVIOUS</span>
           )}
           <div style={{ flex: 1, height: 1, background: '#000' }} />
           {nextSub ? (
-            <Link href={`/groups/${params.id}/submissions/${nextSub.week_id}/${nextSub.id}`} style={{ ...navBtnStyle, margin: '0 16px' }}>
+            <Link href={`/groups/${params.id}/submissions/${nextSub.week_id}/${nextSub.id}`} className="btn-black" style={navBtnInline}>
               NEXT
             </Link>
           ) : (
-            <span style={{ ...navBtnStyle, margin: '0 16px', opacity: 0.25, cursor: 'default', pointerEvents: 'none' }}>NEXT</span>
+            <span className="btn-black" style={{ ...navBtnInline, opacity: 0.25, cursor: 'default', pointerEvents: 'none' }}>NEXT</span>
           )}
           <div style={{ flex: 1, height: 1, background: '#000' }} />
         </div>

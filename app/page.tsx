@@ -45,14 +45,7 @@ export default async function LandingPage() {
         </div>
 
         {/* COME IN button */}
-        <Link
-          href="/dashboard"
-          style={{
-            display: 'block', width: '100%', background: '#C85A5A', color: '#fff',
-            textAlign: 'center', padding: '18px', fontSize: 15, fontWeight: 700,
-            letterSpacing: '0.2em', textTransform: 'uppercase', textDecoration: 'none',
-          }}
-        >
+        <Link href="/dashboard" className="btn-accent" style={{ display: 'block', width: '100%', padding: '18px', fontSize: 15 }}>
           COME IN
         </Link>
       </main>

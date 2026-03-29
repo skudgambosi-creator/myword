@@ -227,8 +227,10 @@ a:hover {
   background: #000;
 }
 .score-row-btn {
-  background: #000;
-  color: #fff;
+  background: transparent;
+  color: #000;
+  border: 1px solid #000;
+  border-radius: 4px;
   padding: 8px 20px;
   font-size: 12px;
   font-weight: 700;
@@ -239,8 +241,10 @@ a:hover {
   white-space: nowrap;
   flex-shrink: 0;
   font-family: inherit;
-  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
 }
+.score-row-btn:hover { background: #000; color: #fff; text-decoration: none; }
+.score-row-btn:active { transform: scale(0.97); }
 .score-row-circle {
   width: 56px;
   height: 56px;
@@ -653,6 +657,39 @@ input:-webkit-autofill:active {
   -webkit-text-fill-color: #C85A5A !important;
   transition: background-color 5000s ease-in-out 0s;
 }
+
+/* ── INTERACTIVE BUTTONS (outline resting → filled on hover/press) ── */
+.btn-black, .btn-accent {
+  display: inline-block;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 10px 24px;
+  text-align: center;
+  transition: background 0.15s, color 0.15s;
+  appearance: none;
+  -webkit-appearance: none;
+  line-height: normal;
+}
+.btn-black {
+  background: transparent;
+  color: #000;
+  border: 1px solid #000;
+}
+.btn-black:hover { background: #000; color: #fff; text-decoration: none; }
+.btn-black:active { transform: scale(0.97); }
+.btn-accent {
+  background: transparent;
+  color: #C85A5A;
+  border: 1px solid #C85A5A;
+}
+.btn-accent:hover { background: #C85A5A; color: #fff; text-decoration: none; }
+.btn-accent:active { transform: scale(0.97); }
 
 /* ── ACTION CARD ── */
 .action-card {
