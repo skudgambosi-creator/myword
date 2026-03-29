@@ -30,7 +30,7 @@ function Footer() {
       <svg width="260" height="100" viewBox="0 0 260 100" fill="none" style={{ display: 'block', margin: '0 auto' }}>
         <circle cx="96" cy="50" r="44" stroke="#000" strokeWidth="0.8" />
         <circle cx="164" cy="50" r="44" stroke="#000" strokeWidth="0.8" />
-        <text x="52" y="53" textAnchor="start" fontFamily="Inconsolata, monospace" fontSize="14" fill="#000" letterSpacing="1">MOUNTFORD-GAMBOSI</text>
+        <text x="52" y="53" textAnchor="start" fontFamily="Inconsolata, monospace" fontSize="14" fill="#000" letterSpacing="1">MOUNTFORD - GAMBOSI</text>
       </svg>
     </footer>
   )
@@ -58,6 +58,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   const [nextWeek, setNextWeek] = useState<any>(null)
   const [isCompleted, setIsCompleted] = useState(false)
   const [rulesExpanded, setRulesExpanded] = useState(false)
+  const [submittedWeekNums, setSubmittedWeekNums] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     const init = async () => {
@@ -110,6 +111,16 @@ export default function GroupPage({ params }: { params: { id: string } }) {
       const { data: scores } = await supabase
         .from('scores').select('score').eq('group_id', params.id).eq('user_id', userId)
       setMyScore((scores || []).reduce((s: number, r: any) => s + r.score, 0))
+
+      const { data: allWeeks } = await supabase
+        .from('weeks').select('id, week_num').eq('group_id', params.id)
+      const { data: userSubs } = await supabase
+        .from('submissions').select('week_id').eq('user_id', userId).eq('is_late_catchup', false)
+      const submittedIds = new Set((userSubs || []).map((s: any) => s.week_id))
+      const weekNumSet = new Set(
+        (allWeeks || []).filter((w: any) => submittedIds.has(w.id)).map((w: any) => w.week_num as number)
+      )
+      setSubmittedWeekNums(weekNumSet)
 
       setLoading(false)
     }
@@ -207,9 +218,9 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                 <div className="score-row-line" />
               </div>
 
-              {/* Row 2 Col 2: Score circle */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ fontSize: 10, color: '#999', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>YOUR SCORE</div>
+              {/* Row 2 Col 2: Score circle — label floats above row via absolute */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                <div style={{ fontSize: 10, color: '#999', letterSpacing: '0.08em', textTransform: 'uppercase', position: 'absolute', top: -18, whiteSpace: 'nowrap' }}>YOUR SCORE</div>
                 <div className="score-row-circle">{myScore}</div>
               </div>
 
@@ -256,6 +267,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter, i) => {
                 const weekNum = i + 1
                 const isPast = weekNum < activeWeek.week_num
+                const didSubmit = submittedWeekNums.has(weekNum)
                 return (
                   <div key={letter} style={{
                     aspectRatio: '1', borderRadius: '50%',
@@ -263,7 +275,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                     background: isPast ? '#000' : '#C85A5A',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 11, fontWeight: 700,
-                    color: '#fff',
+                    color: isPast && !didSubmit ? '#000' : '#fff',
                   }}>
                     {letter}
                   </div>
