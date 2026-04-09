@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email'
 
+export const maxDuration = 60
+
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 export async function GET(req: NextRequest) {
