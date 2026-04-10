@@ -23,26 +23,27 @@ function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, clos
   }, [closesAt])
 
   // Planet geometry
-  const cx = 150, cy = 90, r = 74
-  // Inner ring sits tight to the planet
-  const irx = 120, iry = 14
-  // Outer ring with a gap — timer lives in the band between them
-  const orx = 144, ory = 28
+  const cx = 170, cy = 108, r = 90
+  // Wide flat rings like Saturn — inner is tighter, outer creates the band
+  const irx = 156, iry = 14
+  const orx = 170, ory = 29
+  // Timer panel sits in the band between the two front arcs
+  const panelY = cy + iry - 1
+  const panelH = ory - iry + 2
+  const panelW = 190
 
   return (
-    <svg width="300" height="180" viewBox="0 0 300 180" style={{ display: 'block', margin: '0 auto', overflow: 'visible' }}>
+    <svg width="342" height="220" viewBox="0 0 342 220" style={{ display: 'block', margin: '0 auto', overflow: 'visible' }}>
       <defs>
-        {/* Top half = behind the planet */}
         <clipPath id="satBackClip">
-          <rect x="-10" y="-10" width="320" height={cy + 10} />
+          <rect x="-5" y="-5" width="352" height={cy + 5} />
         </clipPath>
-        {/* Bottom half = in front of the planet */}
         <clipPath id="satFrontClip">
-          <rect x="-10" y={cy} width="320" height="210" />
+          <rect x="-5" y={cy} width="352" height="230" />
         </clipPath>
       </defs>
 
-      {/* Back arcs of both rings (top half, behind planet) */}
+      {/* Back arcs of both rings (top half, hidden behind planet) */}
       <ellipse cx={cx} cy={cy} rx={irx} ry={iry}
         fill="none" stroke="#000" strokeWidth="1.5"
         clipPath="url(#satBackClip)" />
@@ -61,22 +62,29 @@ function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, clos
         fill="none" stroke="#000" strokeWidth="1.5"
         clipPath="url(#satFrontClip)" />
 
-      {/* Letter — centred in the planet */}
-      <text x={cx} y={cy}
-        textAnchor="middle" dominantBaseline="middle"
-        fontFamily="'Inconsolata', 'Courier New', monospace"
-        fontSize="66" fontWeight="900"
-        fill={hasSubmitted ? '#C85A5A' : '#ccc'}>
-        {letter}
-      </text>
+      {/* White panel breaks the ring lines at centre — timer lives here */}
+      <rect
+        x={cx - panelW / 2} y={panelY}
+        width={panelW} height={panelH}
+        fill="white" stroke="none"
+      />
 
-      {/* Timer — sits in the gap between the two front ring arcs */}
-      <text x={cx} y={cy + iry + Math.round((ory - iry) / 2) + 1}
+      {/* Timer text inside the panel */}
+      <text x={cx} y={panelY + panelH / 2}
         textAnchor="middle" dominantBaseline="middle"
         fontFamily="'Inconsolata', 'Courier New', monospace"
-        fontSize="12"
+        fontSize="13" fontWeight="700"
         fill="#000">
         {timeLeft}
+      </text>
+
+      {/* Letter — always red, centred in upper half of planet */}
+      <text x={cx} y={cy - 20}
+        textAnchor="middle" dominantBaseline="middle"
+        fontFamily="'Inconsolata', 'Courier New', monospace"
+        fontSize="72" fontWeight="900"
+        fill="#C85A5A">
+        {letter}
       </text>
     </svg>
   )
