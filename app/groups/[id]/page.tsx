@@ -5,23 +5,86 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Nav from '@/components/layout/Nav'
 
-function Countdown({ closesAt }: { closesAt: string }) {
+function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, closesAt: string, hasSubmitted: boolean }) {
   const [timeLeft, setTimeLeft] = useState('')
   useEffect(() => {
     const tick = () => {
       const diff = new Date(closesAt).getTime() - Date.now()
       if (diff <= 0) { setTimeLeft('CLOSED'); return }
-      const d = Math.floor(diff / 86400000)
-      const h = Math.floor((diff % 86400000) / 3600000)
+      const h = Math.floor(diff / 3600000)
       const m = Math.floor((diff % 3600000) / 60000)
       const s = Math.floor((diff % 60000) / 1000)
-      setTimeLeft(`${String(d).padStart(2,'0')}:${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`)
+      setTimeLeft(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`)
     }
     tick()
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
   }, [closesAt])
-  return <div style={{ fontSize: 22, fontWeight: 400, letterSpacing: '0.1em' }}>{timeLeft}</div>
+
+  const cx = 140, cy = 105, r = 78
+  const ringRx = 132, ringRy = 22
+
+  return (
+    <svg width="280" height="210" viewBox="0 0 280 210" style={{ display: 'block', margin: '0 auto', overflow: 'visible' }}>
+      <defs>
+        <clipPath id="ringBack">
+          <rect x="-20" y="-20" width="320" height={cy + 20} />
+        </clipPath>
+        <clipPath id="ringFront">
+          <rect x="-20" y={cy} width="320" height="250" />
+        </clipPath>
+      </defs>
+
+      {/* Back half of ring (top arc, behind planet) */}
+      <ellipse cx={cx} cy={cy} rx={ringRx} ry={ringRy}
+        fill="none" stroke="#000" strokeWidth="1.5"
+        clipPath="url(#ringBack)" />
+
+      {/* Planet body */}
+      <circle cx={cx} cy={cy} r={r} fill="white" stroke="#000" strokeWidth="1.5" />
+
+      {/* Front half of ring (bottom arc, in front of planet) */}
+      <ellipse cx={cx} cy={cy} rx={ringRx} ry={ringRy}
+        fill="none" stroke="#000" strokeWidth="1.5"
+        clipPath="url(#ringFront)" />
+
+      {/* Letter */}
+      <text x={cx} y={cy - 8}
+        textAnchor="middle" dominantBaseline="middle"
+        fontFamily="'Inconsolata', 'Courier New', monospace"
+        fontSize="62" fontWeight="900"
+        fill={hasSubmitted ? '#C85A5A' : '#ccc'}>
+        {letter}
+      </text>
+
+      {/* Timer */}
+      <text x={cx} y={cy + 34}
+        textAnchor="middle"
+        fontFamily="'Inconsolata', 'Courier New', monospace"
+        fontSize="13"
+        fill="#444">
+        {timeLeft}
+      </text>
+    </svg>
+  )
+}
+
+function SimpleCountdown({ targetAt }: { targetAt: string }) {
+  const [timeLeft, setTimeLeft] = useState('')
+  useEffect(() => {
+    const tick = () => {
+      const diff = new Date(targetAt).getTime() - Date.now()
+      if (diff <= 0) { setTimeLeft('00:00:00'); return }
+      const h = Math.floor(diff / 3600000)
+      const m = Math.floor((diff % 3600000) / 60000)
+      const s = Math.floor((diff % 60000) / 1000)
+      setTimeLeft(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`)
+    }
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [targetAt])
+  return <span>{timeLeft}</span>
 }
 
 function Footer() {
@@ -44,12 +107,9 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(true)
-  const [profile, setProfile] = useState<any>(null)
   const [group, setGroup] = useState<any>(null)
   const [currentWeek, setCurrentWeek] = useState<any>(null)
   const [mySubmission, setMySubmission] = useState<any>(null)
-  const [memberCount, setMemberCount] = useState(0)
-  const [submissionCount, setSubmissionCount] = useState(0)
   const [myScore, setMyScore] = useState(0)
   const [nextWeek, setNextWeek] = useState<any>(null)
   const [isCompleted, setIsCompleted] = useState(false)
@@ -66,9 +126,6 @@ export default function GroupPage({ params }: { params: { id: string } }) {
         .from('group_members').select('*')
         .eq('group_id', params.id).eq('user_id', userId).single()
       if (!membership) { router.push('/dashboard'); return }
-
-      const { data: prof } = await supabase.from('users').select('*').eq('id', userId).single()
-      setProfile(prof)
 
       const { data: grp } = await supabase.from('groups').select('*').eq('id', params.id).single()
       setGroup(grp)
@@ -93,16 +150,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
           .from('submissions').select('*')
           .eq('user_id', userId).eq('week_id', week.id).eq('is_late_catchup', false).single()
         setMySubmission(sub)
-        const { count } = await supabase
-          .from('submissions').select('*', { count: 'exact', head: true })
-          .eq('week_id', week.id).eq('is_late_catchup', false)
-        setSubmissionCount(count || 0)
       }
-
-      const { count: mc } = await supabase
-        .from('group_members').select('*', { count: 'exact', head: true })
-        .eq('group_id', params.id)
-      setMemberCount(mc || 0)
 
       const { data: scores } = await supabase
         .from('scores').select('score').eq('group_id', params.id).eq('user_id', userId)
@@ -145,110 +193,107 @@ export default function GroupPage({ params }: { params: { id: string } }) {
 
       <main className="page-main">
 
-        {/* Season label */}
-        <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.15em', color: '#C85A5A', textTransform: 'uppercase', marginBottom: 16 }}>
-          SEASON 1
+        {/* Header box — title + season inside the rectangle */}
+        <div style={{ border: '1px solid #000', padding: '20px 32px', marginBottom: 32, textAlign: 'center' }}>
+          <div style={{ fontSize: 22, letterSpacing: '0.2em', textTransform: 'uppercase' }}>THE ALPHABET PROJECT</div>
+          <div style={{ fontSize: 11, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: 6 }}>SEASON 1</div>
         </div>
 
-        {/* Project title box */}
-        <div style={{ border: '1px solid #000', padding: '24px 32px', marginBottom: 24, textAlign: 'center' }}>
-          <span style={{ fontSize: 22, letterSpacing: '0.2em', textTransform: 'uppercase' }}>THE ALPHABET PROJECT</span>
-        </div>
-
-        {/* Main action card */}
-        <div className="action-card">
-
-          {/* Letter + countdown + submit — grid aligned with score row below */}
-          {(currentWeek || nextWeek) && !isCompleted && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
-
-              {/* Row 1 Col 1: Letter circle */}
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingBottom: 20 }}>
-                <div style={{
-                  width: 'clamp(90px, 22vw, 130px)', height: 'clamp(90px, 22vw, 130px)',
-                  borderRadius: '50%', background: '#C85A5A',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#fff', fontSize: 'clamp(56px, 14vw, 80px)', fontWeight: 900, letterSpacing: 0, lineHeight: 1,
-                }}>
-                  {(currentWeek || nextWeek).letter}
+        {/* Planet widget + ENTER/EDIT button */}
+        {!isCompleted && (
+          <div style={{ marginBottom: 32, textAlign: 'center' }}>
+            {currentWeek && !windowClosed ? (
+              <>
+                <PlanetWidget
+                  letter={currentWeek.letter}
+                  closesAt={currentWeek.closes_at}
+                  hasSubmitted={!!mySubmission}
+                />
+                <div style={{ marginTop: 24 }}>
+                  <Link
+                    href={`/groups/${params.id}/submit${mySubmission ? '?edit=1' : ''}`}
+                    style={{
+                      display: 'inline-block',
+                      border: '1px solid #000',
+                      padding: '14px 64px',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      letterSpacing: '0.15em',
+                      textTransform: 'uppercase',
+                      textDecoration: 'none',
+                      color: '#000',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    {mySubmission ? 'EDIT' : 'ENTER'}
+                  </Link>
+                </div>
+              </>
+            ) : currentWeek && windowClosed ? (
+              <div style={{ fontSize: 13, color: '#666', padding: '40px 0' }}>
+                Window closed. Reveal pending at midnight Wednesday.
+              </div>
+            ) : nextWeek ? (
+              <div style={{ padding: '40px 0' }}>
+                <div style={{ fontSize: 11, color: '#999', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Next letter opens in</div>
+                <div style={{ fontSize: 22, fontWeight: 400, letterSpacing: '0.1em' }}>
+                  <SimpleCountdown targetAt={nextWeek.opens_at} />
                 </div>
               </div>
+            ) : null}
+          </div>
+        )}
 
-              {/* Row 1 Col 2: spacer matching score circle width */}
-              <div style={{ width: 88 }} />
+        {isCompleted && (
+          <div style={{ textAlign: 'center', padding: '20px 0 32px' }}>
+            <div style={{ fontSize: 32, marginBottom: 12, letterSpacing: '0.2em' }}>A — Z</div>
+          </div>
+        )}
 
-              {/* Row 1 Col 3: Timer + CTA + count */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, paddingBottom: 20 }}>
-                {currentWeek && !windowClosed ? (
-                  <>
-                    <Countdown closesAt={currentWeek.closes_at} />
-                    <Link href={`/groups/${params.id}/submit${mySubmission ? '?edit=1' : ''}`} className="btn-accent">
-                      SUBMIT / EDIT
-                    </Link>
-                    <div style={{ fontSize: 12, letterSpacing: '0.05em', color: '#666' }}>
-                      {submissionCount}/{memberCount}
-                    </div>
-                  </>
-                ) : currentWeek && windowClosed ? (
-                  <div style={{ fontSize: 13, color: '#666', textAlign: 'center' }}>Window closed. Reveal pending at midnight Wednesday.</div>
-                ) : nextWeek ? (
-                  <>
-                    <Countdown closesAt={nextWeek.opens_at} />
-                    <div style={{ fontSize: 11, color: '#999', letterSpacing: '0.1em', textAlign: 'center' }}>until next letter opens</div>
-                  </>
-                ) : null}
-              </div>
+        {/* Score + Grid box */}
+        {activeWeek && (
+          <div style={{ border: '1px solid #000', padding: '24px', marginBottom: 24 }}>
 
-              {/* Row 2 Col 1: LEADERBOARD */}
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <div className="score-row-line" />
-                <Link href={`/groups/${params.id}/leaderboard`} className="score-row-btn">
-                  LEADERBOARD
-                </Link>
-                <div className="score-row-line" />
-              </div>
-
-              {/* Row 2 Col 2: Score circle — label floats above row via absolute */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                <div style={{ fontSize: 10, color: '#999', letterSpacing: '0.08em', textTransform: 'uppercase', position: 'absolute', top: -18, whiteSpace: 'nowrap' }}>YOUR SCORE</div>
-                <div className="score-row-circle">{myScore}</div>
-              </div>
-
-              {/* Row 2 Col 3: SUBMISSIONS */}
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <div className="score-row-line" />
-                <Link href={`/groups/${params.id}/submissions`} className="score-row-btn">
-                  SUBMISSIONS
-                </Link>
-                <div className="score-row-line" />
-              </div>
+            {/* YOUR SCORE label */}
+            <div style={{ textAlign: 'center', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#999', marginBottom: 16 }}>
+              YOUR SCORE
             </div>
-          )}
 
-          {isCompleted && (
-            <div style={{ textAlign: 'center', padding: '20px 0 24px', borderBottom: '1px solid #eee', marginBottom: 24 }}>
-              <div style={{ fontSize: 32, marginBottom: 12, letterSpacing: '0.2em' }}>A — Z</div>
-              <Link href={`/groups/${params.id}/submissions`} className="btn-accent">
-                BROWSE THE ARCHIVE
+            {/* LEADERBOARD — score circle — SUBMISSIONS row */}
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24 }}>
+              <div style={{ flex: 1, height: 1, background: '#000' }} />
+              <Link href={`/groups/${params.id}/leaderboard`} style={{
+                border: '1px solid #000', padding: '6px 16px', fontSize: 11, fontWeight: 700,
+                letterSpacing: '0.1em', textTransform: 'uppercase', textDecoration: 'none',
+                color: '#000', margin: '0 8px', fontFamily: 'inherit',
+              }}>
+                LEADERBOARD
               </Link>
+              <div style={{ flex: 1, height: 1, background: '#000' }} />
+              <div style={{
+                width: 52, height: 52, borderRadius: '50%',
+                border: '2px solid #C85A5A',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 22, fontWeight: 700, color: '#C85A5A',
+                margin: '0 8px', flexShrink: 0,
+              }}>
+                {myScore}
+              </div>
+              <div style={{ flex: 1, height: 1, background: '#000' }} />
+              <Link href={`/groups/${params.id}/submissions`} style={{
+                border: '1px solid #000', padding: '6px 16px', fontSize: 11, fontWeight: 700,
+                letterSpacing: '0.1em', textTransform: 'uppercase', textDecoration: 'none',
+                color: '#000', margin: '0 8px', fontFamily: 'inherit',
+              }}>
+                SUBMISSIONS
+              </Link>
+              <div style={{ flex: 1, height: 1, background: '#000' }} />
             </div>
-          )}
 
-          {/* LEADERBOARD — score — SUBMISSIONS (standalone, when no active/upcoming week or completed) */}
-          {(!(currentWeek || nextWeek) || isCompleted) && (
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
-              <div className="score-row-line" />
-              <Link href={`/groups/${params.id}/leaderboard`} className="score-row-btn">LEADERBOARD</Link>
-              <div className="score-row-line" />
-              <div className="score-row-circle">{myScore}</div>
-              <div className="score-row-line" />
-              <Link href={`/groups/${params.id}/submissions`} className="score-row-btn">SUBMISSIONS</Link>
-              <div className="score-row-line" />
-            </div>
-          )}
+            {/* Divider */}
+            <div style={{ borderTop: '1px solid #eee', marginBottom: 20 }} />
 
-          {/* Alphabet grid — 13 per row */}
-          {activeWeek && (
+            {/* Alphabet grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(13, 1fr)', gap: 4 }}>
               {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter, i) => {
                 const weekNum = i + 1
@@ -258,10 +303,10 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                 let bg: string, border: string, color: string
                 if (isPast) {
                   bg = '#000'; border = '#000'; color = '#fff'
-                } else if (isCurrent) {
+                } else if (isCurrent && !!mySubmission) {
                   bg = '#C85A5A'; border = '#C85A5A'; color = '#fff'
                 } else {
-                  bg = 'transparent'; border = '#000'; color = '#000'
+                  bg = 'transparent'; border = '#ccc'; color = '#ccc'
                 }
 
                 return (
@@ -278,8 +323,8 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                 )
               })}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Rules box */}
         <div style={{ border: '1px solid #000', padding: '28px 32px', marginBottom: 0 }}>
