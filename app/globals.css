@@ -718,6 +718,33 @@ input:-webkit-autofill:active {
   }
 }
 
+/* Score row nav buttons (LEADERBOARD / SUBMISSIONS) */
+.score-nav-btn {
+  border: 1px solid #000;
+  border-radius: 8px;
+  padding: 6px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #000;
+  margin: 0 8px;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+.score-nav-btn:hover { background: #000; color: #fff; text-decoration: none; }
+@media (max-width: 480px) {
+  .score-nav-btn {
+    padding: 5px 8px;
+    font-size: 9px;
+    letter-spacing: 0.03em;
+    margin: 0 4px;
+  }
+}
+
 /* Score circle button — hover inverts to filled red */
 .score-circle-btn {
   transition: background 0.15s, color 0.15s;
@@ -725,6 +752,33 @@ input:-webkit-autofill:active {
 .score-circle-btn:not(.is-expanded):hover {
   background: #C85A5A !important;
   color: #fff !important;
+}
+@media (max-width: 480px) {
+  .score-circle-btn {
+    margin: 0 4px !important;
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 18px !important;
+  }
+}
+
+/* Rules section — responsive padding */
+.rules-section {
+  border: none;
+  padding: 8px 32px;
+  margin-bottom: 0;
+}
+.rules-section.is-expanded {
+  border: 1px solid #000;
+  padding: 20px 32px;
+}
+@media (max-width: 640px) {
+  .rules-section {
+    padding: 8px 0;
+  }
+  .rules-section.is-expanded {
+    padding: 16px;
+  }
 }
 
 /* ── COMPLETED STATE ── */

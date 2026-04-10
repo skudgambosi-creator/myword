@@ -292,11 +292,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
             {/* LEADERBOARD — score circle (clickable toggle) — SUBMISSIONS */}
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <div style={{ flex: 1, height: 1, background: '#000' }} />
-              <Link href={`/groups/${params.id}/leaderboard`} style={{
-                border: '1px solid #000', borderRadius: 8, padding: '6px 16px', fontSize: 11, fontWeight: 700,
-                letterSpacing: '0.1em', textTransform: 'uppercase', textDecoration: 'none',
-                color: '#000', margin: '0 8px', fontFamily: 'inherit',
-              }}>
+              <Link href={`/groups/${params.id}/leaderboard`} className="score-nav-btn">
                 LEADERBOARD
               </Link>
               <div style={{ flex: 1, height: 1, background: '#000' }} />
@@ -315,11 +311,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                 {myScore}
               </button>
               <div style={{ flex: 1, height: 1, background: '#000' }} />
-              <Link href={`/groups/${params.id}/submissions`} style={{
-                border: '1px solid #000', borderRadius: 8, padding: '6px 16px', fontSize: 11, fontWeight: 700,
-                letterSpacing: '0.1em', textTransform: 'uppercase', textDecoration: 'none',
-                color: '#000', margin: '0 8px', fontFamily: 'inherit',
-              }}>
+              <Link href={`/groups/${params.id}/submissions`} className="score-nav-btn">
                 SUBMISSIONS
               </Link>
               <div style={{ flex: 1, height: 1, background: '#000' }} />
@@ -364,7 +356,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
         )}
 
         {/* Rules box */}
-        <div style={{ border: rulesExpanded ? '1px solid #000' : 'none', padding: rulesExpanded ? '20px 32px' : '8px 32px', marginBottom: 0 }}>
+        <div className={`rules-section${rulesExpanded ? ' is-expanded' : ''}`}>
           <button
             onClick={() => setRulesExpanded(!rulesExpanded)}
             style={{
