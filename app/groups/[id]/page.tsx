@@ -44,7 +44,7 @@ function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, clos
         </clipPath>
       </defs>
 
-      {/* Back arcs — visible outside the planet on both sides */}
+      {/* Back arcs (top half) — visible outside the planet on both sides */}
       <ellipse cx={cx} cy={cy} rx={irx} ry={iry}
         fill="none" stroke="#000" strokeWidth="1.5"
         clipPath="url(#satBack)" />
@@ -52,25 +52,20 @@ function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, clos
         fill="none" stroke="#000" strokeWidth="1.5"
         clipPath="url(#satBack)" />
 
-      {/* Planet body */}
+      {/* Front arcs (bottom half) — drawn BEFORE the planet so the planet's
+          white fill naturally hides them inside the circle. Only the portions
+          outside the circle remain visible, giving a clean interior. */}
+      <ellipse cx={cx} cy={cy} rx={irx} ry={iry}
+        fill="none" stroke="#000" strokeWidth="1.5"
+        clipPath="url(#satFront)" />
+      <ellipse cx={cx} cy={cy} rx={orx} ry={ory}
+        fill="none" stroke="#000" strokeWidth="1.5"
+        clipPath="url(#satFront)" />
+
+      {/* Planet body — white fill covers both arc sets inside the circle */}
       <circle cx={cx} cy={cy} r={r} fill="white" stroke="#000" strokeWidth="1.5" />
 
-      {/* Front arcs — approach in parallel, small gap at centre */}
-      <ellipse cx={cx} cy={cy} rx={irx} ry={iry}
-        fill="none" stroke="#000" strokeWidth="1.5"
-        clipPath="url(#satFront)" />
-      <ellipse cx={cx} cy={cy} rx={orx} ry={ory}
-        fill="none" stroke="#000" strokeWidth="1.5"
-        clipPath="url(#satFront)" />
-
-      {/* White panel — interrupts both front arcs, timer sits inside */}
-      <rect
-        x={cx - panelW / 2} y={timerY - panelHalfH}
-        width={panelW} height={panelHalfH * 2}
-        fill="white"
-      />
-
-      {/* Timer */}
+      {/* Timer — sits cleanly inside the white planet interior */}
       <text x={cx} y={timerY}
         textAnchor="middle" dominantBaseline="middle"
         fontFamily="'Inconsolata', 'Courier New', monospace"
@@ -79,7 +74,7 @@ function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, clos
         {timeLeft}
       </text>
 
-      {/* Letter — equidistant between timer and circle top */}
+      {/* Letter */}
       <text x={cx} y={letterY}
         textAnchor="middle" dominantBaseline="middle"
         fontFamily="'Inconsolata', 'Courier New', monospace"
@@ -217,14 +212,14 @@ export default function GroupPage({ params }: { params: { id: string } }) {
       <main className="page-main">
 
         {/* Header box — title + season inside the rectangle */}
-        <div style={{ border: '1px solid #000', padding: '20px 32px', marginBottom: 32, textAlign: 'center' }}>
+        <div style={{ border: '1px solid #000', padding: '16px 32px', marginBottom: 20, textAlign: 'center' }}>
           <div style={{ fontSize: 22, letterSpacing: '0.2em', textTransform: 'uppercase' }}>THE ALPHABET PROJECT</div>
           <div style={{ fontSize: 11, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: 6 }}>SEASON 1</div>
         </div>
 
         {/* Planet widget + ENTER/EDIT button */}
         {!isCompleted && (
-          <div style={{ marginBottom: 32, textAlign: 'center' }}>
+          <div style={{ marginBottom: 20, textAlign: 'center' }}>
             {currentWeek && !windowClosed ? (
               <>
                 <PlanetWidget
@@ -232,7 +227,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                   closesAt={currentWeek.closes_at}
                   hasSubmitted={!!mySubmission}
                 />
-                <div style={{ marginTop: 24 }}>
+                <div style={{ marginTop: 16 }}>
                   <Link
                     href={`/groups/${params.id}/submit${mySubmission ? '?edit=1' : ''}`}
                     style={{
@@ -276,7 +271,12 @@ export default function GroupPage({ params }: { params: { id: string } }) {
 
         {/* Score box — collapsed: just the nav row. Expanded: adds A–Z grid. */}
         {activeWeek && (
-          <div style={{ border: '1px solid #000', padding: '24px', marginBottom: 24 }}>
+          <div style={{ border: scoreExpanded ? '1px solid #000' : 'none', padding: scoreExpanded ? '16px' : '8px 0', marginBottom: 12 }}>
+
+            {/* YOUR SCORE label */}
+            <div style={{ textAlign: 'center', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#999', marginBottom: 12 }}>
+              YOUR SCORE
+            </div>
 
             {/* LEADERBOARD — score circle (clickable toggle) — SUBMISSIONS */}
             <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -351,17 +351,17 @@ export default function GroupPage({ params }: { params: { id: string } }) {
         )}
 
         {/* Rules box */}
-        <div style={{ border: '1px solid #000', padding: '28px 32px', marginBottom: 0 }}>
+        <div style={{ border: rulesExpanded ? '1px solid #000' : 'none', padding: rulesExpanded ? '20px 32px' : '8px 32px', marginBottom: 0 }}>
           <button
             onClick={() => setRulesExpanded(!rulesExpanded)}
             style={{
               display: 'block', width: '100%', background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: 18, letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center',
+              fontSize: 22, letterSpacing: '0.08em', textAlign: 'center',
               fontFamily: 'inherit', fontWeight: 'normal', padding: 0,
-              marginBottom: rulesExpanded ? 24 : 0,
+              marginBottom: rulesExpanded ? 20 : 0,
             }}
           >
-            RULES
+            ?
           </button>
           {rulesExpanded && RULES.map(([title, desc], i) => (
             <div key={i} style={{ marginBottom: 20 }}>
