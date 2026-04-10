@@ -22,33 +22,35 @@ function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, clos
     return () => clearInterval(id)
   }, [closesAt])
 
-  // Planet: ~280px diameter. cx centred, ring extends to cx±orx within 600-wide viewBox.
+  // Planet: ~280px diameter
   const cx = 300, cy = 150, r = 140
 
-  // Ring centred at planet equator (cy). cx±288 = 12..588, fits in 600.
-  const irx = 255, iry = 14   // inner ring
-  const orx = 288, ory = 23   // outer ring
+  // Ring centred at planet equator (cy).
+  // irx/orx > r so ring extends outside the planet on both sides, flanking the timer.
+  const irx = 220, iry = 10   // inner ring  (cx±220 = 80..520)
+  const orx = 248, ory = 18   // outer ring  (cx±248 = 52..548)
 
-  // Timer sits just outside/below the planet circle
-  const timerY = cy + r + 18  // = 308
+  // Timer sits inline with the ring equator, inside the planet
+  const timerY = cy             // = 150
+  const timerMaskW = 152        // white rect width behind timer (DD:HH:MM:SS + padding)
 
-  // Letter in upper third of planet
-  const letterY = cy - 50     // = 100
+  // Letter in upper portion of planet, clear of the ring
+  const letterY = cy - 55       // = 95
 
   return (
-    <svg width="100%" viewBox="0 0 600 350" style={{ display: 'block', margin: '0 auto', maxWidth: 600 }}>
+    <svg width="100%" viewBox="0 0 600 310" style={{ display: 'block', margin: '0 auto', maxWidth: 600 }}>
       <defs>
-        {/* satBack shows only the upper half of the ring (behind the planet) */}
+        {/* satBack: upper half only — ring arcs that go behind the planet */}
         <clipPath id="satBack">
           <rect x="-5" y="-5" width="610" height={cy + 5} />
         </clipPath>
-        {/* satFront shows only the lower half of the ring (in front of the planet) */}
+        {/* satFront: lower half only — ring arcs that pass in front of the planet */}
         <clipPath id="satFront">
-          <rect x="-5" y={cy} width="610" height="365" />
+          <rect x="-5" y={cy} width="610" height="325" />
         </clipPath>
       </defs>
 
-      {/* 1. Back arcs — upper half of ring, hidden behind planet */}
+      {/* 1. Back arcs — upper half of ring, will be hidden behind the planet */}
       <ellipse cx={cx} cy={cy} rx={irx} ry={iry}
         fill="none" stroke="#000" strokeWidth="1.5"
         clipPath="url(#satBack)" />
@@ -56,10 +58,10 @@ function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, clos
         fill="none" stroke="#000" strokeWidth="1.5"
         clipPath="url(#satBack)" />
 
-      {/* 2. Planet sphere — white fill covers back arcs inside the circle */}
+      {/* 2. Planet sphere — white fill masks back arcs inside the circle */}
       <circle cx={cx} cy={cy} r={r} fill="white" stroke="#000" strokeWidth="1.5" />
 
-      {/* 3. Front arcs — lower half of ring, drawn on top of planet */}
+      {/* 3. Front arcs — lower half of ring, drawn on top of the planet */}
       <ellipse cx={cx} cy={cy} rx={irx} ry={iry}
         fill="none" stroke="#000" strokeWidth="1.5"
         clipPath="url(#satFront)" />
@@ -67,22 +69,29 @@ function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, clos
         fill="none" stroke="#000" strokeWidth="1.5"
         clipPath="url(#satFront)" />
 
-      {/* 4. Letter inside upper portion of planet */}
-      <text x={cx} y={letterY}
-        textAnchor="middle" dominantBaseline="middle"
-        fontFamily="'Inconsolata', 'Courier New', monospace"
-        fontSize="90" fontWeight="900"
-        fill={hasSubmitted ? '#246c46' : '#C85A5A'}>
-        {letter}
-      </text>
+      {/* 4. White mask — interrupts ring lines exactly where the timer text sits */}
+      <rect
+        x={cx - timerMaskW / 2} y={cy - 14}
+        width={timerMaskW} height={28}
+        fill="white"
+      />
 
-      {/* 5. Timer outside/below the planet */}
+      {/* 5. Timer — sits in the ring band, flanked by ring arcs on left and right */}
       <text x={cx} y={timerY}
         textAnchor="middle" dominantBaseline="middle"
         fontFamily="'Inconsolata', 'Courier New', monospace"
         fontSize="15" fontWeight="700"
         fill="#000">
         {timeLeft}
+      </text>
+
+      {/* 6. Letter in upper portion of planet */}
+      <text x={cx} y={letterY}
+        textAnchor="middle" dominantBaseline="middle"
+        fontFamily="'Inconsolata', 'Courier New', monospace"
+        fontSize="80" fontWeight="900"
+        fill={hasSubmitted ? '#246c46' : '#C85A5A'}>
+        {letter}
       </text>
     </svg>
   )
