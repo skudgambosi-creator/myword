@@ -24,28 +24,27 @@ function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, clos
 
   // Planet
   const cx = 180, cy = 108, r = 88
-  // Both rings share the same ry — the outer ring is just horizontally wider.
-  // This means they converge to the same point at the front/back centre and
-  // the gap between them is widest at the far left/right edges (disk geometry).
-  const irx = 154, iry = 20
-  const orx = 176, ory = 20  // same ry, wider rx
-  // Timer sits at the convergence point of both front arcs
-  const timerY = cy + iry   // 128
-  const panelHalfH = 10
+  // Rings: outer has proportionally larger rx AND ry so the band gap stays
+  // consistent as the arcs approach the front — they run parallel rather than
+  // converging to the same point.
+  const irx = 152, iry = 16
+  const orx = 176, ory = 26   // wider AND taller → parallel approach
+  // Timer sits midway between the two front arc tips
+  const timerY = cy + Math.round((iry + ory) / 2)  // ≈ 129
+  const panelHalfH = 11
   const panelW = 182
-  // Letter centred in the top half of the planet circle
-  const letterY = Math.round((cy - r + cy) / 2)  // midpoint of top half ≈ 64
+  // Letter: equidistant between timerY and the top of the circle
+  const circleTop = cy - r   // 20
+  const letterY = Math.round((timerY + circleTop) / 2)  // ≈ 75
 
   return (
-    <svg width="362" height="212" viewBox="0 0 362 212" style={{ display: 'block', margin: '0 auto', overflow: 'visible' }}>
+    <svg width="362" height="215" viewBox="0 0 362 215" style={{ display: 'block', margin: '0 auto', overflow: 'visible' }}>
       <defs>
-        {/* Back = top half of each ellipse (sits behind the planet) */}
         <clipPath id="satBack">
           <rect x="-5" y="-5" width="372" height={cy + 5} />
         </clipPath>
-        {/* Front = bottom half of each ellipse (sits in front of the planet) */}
         <clipPath id="satFront">
-          <rect x="-5" y={cy} width="372" height="220" />
+          <rect x="-5" y={cy} width="372" height="225" />
         </clipPath>
       </defs>
 
@@ -57,10 +56,10 @@ function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, clos
         fill="none" stroke="#000" strokeWidth="1.5"
         clipPath="url(#satBack)" />
 
-      {/* Planet body — white fill covers the back arcs where they pass through */}
+      {/* Planet body */}
       <circle cx={cx} cy={cy} r={r} fill="white" stroke="#000" strokeWidth="1.5" />
 
-      {/* Front arcs — converge to the same point at (cx, timerY) */}
+      {/* Front arcs — approach in parallel, small gap at centre */}
       <ellipse cx={cx} cy={cy} rx={irx} ry={iry}
         fill="none" stroke="#000" strokeWidth="1.5"
         clipPath="url(#satFront)" />
@@ -68,7 +67,7 @@ function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, clos
         fill="none" stroke="#000" strokeWidth="1.5"
         clipPath="url(#satFront)" />
 
-      {/* White panel — breaks both front arcs at the centre, timer sits here */}
+      {/* White panel — interrupts both front arcs, timer sits inside */}
       <rect
         x={cx - panelW / 2} y={timerY - panelHalfH}
         width={panelW} height={panelHalfH * 2}
@@ -84,7 +83,7 @@ function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, clos
         {timeLeft}
       </text>
 
-      {/* Letter — red when not yet submitted, green when submitted */}
+      {/* Letter — equidistant between timer and circle top */}
       <text x={cx} y={letterY}
         textAnchor="middle" dominantBaseline="middle"
         fontFamily="'Inconsolata', 'Courier New', monospace"
@@ -242,6 +241,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                     style={{
                       display: 'inline-block',
                       border: '1px solid #000',
+                      borderRadius: 8,
                       padding: '14px 64px',
                       fontSize: 13,
                       fontWeight: 700,
@@ -290,7 +290,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24 }}>
               <div style={{ flex: 1, height: 1, background: '#000' }} />
               <Link href={`/groups/${params.id}/leaderboard`} style={{
-                border: '1px solid #000', padding: '6px 16px', fontSize: 11, fontWeight: 700,
+                border: '1px solid #000', borderRadius: 8, padding: '6px 16px', fontSize: 11, fontWeight: 700,
                 letterSpacing: '0.1em', textTransform: 'uppercase', textDecoration: 'none',
                 color: '#000', margin: '0 8px', fontFamily: 'inherit',
               }}>
@@ -308,7 +308,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               </div>
               <div style={{ flex: 1, height: 1, background: '#000' }} />
               <Link href={`/groups/${params.id}/submissions`} style={{
-                border: '1px solid #000', padding: '6px 16px', fontSize: 11, fontWeight: 700,
+                border: '1px solid #000', borderRadius: 8, padding: '6px 16px', fontSize: 11, fontWeight: 700,
                 letterSpacing: '0.1em', textTransform: 'uppercase', textDecoration: 'none',
                 color: '#000', margin: '0 8px', fontFamily: 'inherit',
               }}>
