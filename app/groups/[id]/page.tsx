@@ -11,58 +11,71 @@ function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, clos
     const tick = () => {
       const diff = new Date(closesAt).getTime() - Date.now()
       if (diff <= 0) { setTimeLeft('CLOSED'); return }
-      const h = Math.floor(diff / 3600000)
+      const d = Math.floor(diff / 86400000)
+      const h = Math.floor((diff % 86400000) / 3600000)
       const m = Math.floor((diff % 3600000) / 60000)
       const s = Math.floor((diff % 60000) / 1000)
-      setTimeLeft(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`)
+      setTimeLeft(`${String(d).padStart(2, '0')}:${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`)
     }
     tick()
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
   }, [closesAt])
 
-  const cx = 140, cy = 105, r = 78
-  const ringRx = 132, ringRy = 22
+  // Planet geometry
+  const cx = 150, cy = 90, r = 74
+  // Inner ring sits tight to the planet
+  const irx = 120, iry = 14
+  // Outer ring with a gap — timer lives in the band between them
+  const orx = 144, ory = 28
 
   return (
-    <svg width="280" height="210" viewBox="0 0 280 210" style={{ display: 'block', margin: '0 auto', overflow: 'visible' }}>
+    <svg width="300" height="180" viewBox="0 0 300 180" style={{ display: 'block', margin: '0 auto', overflow: 'visible' }}>
       <defs>
-        <clipPath id="ringBack">
-          <rect x="-20" y="-20" width="320" height={cy + 20} />
+        {/* Top half = behind the planet */}
+        <clipPath id="satBackClip">
+          <rect x="-10" y="-10" width="320" height={cy + 10} />
         </clipPath>
-        <clipPath id="ringFront">
-          <rect x="-20" y={cy} width="320" height="250" />
+        {/* Bottom half = in front of the planet */}
+        <clipPath id="satFrontClip">
+          <rect x="-10" y={cy} width="320" height="210" />
         </clipPath>
       </defs>
 
-      {/* Back half of ring (top arc, behind planet) */}
-      <ellipse cx={cx} cy={cy} rx={ringRx} ry={ringRy}
+      {/* Back arcs of both rings (top half, behind planet) */}
+      <ellipse cx={cx} cy={cy} rx={irx} ry={iry}
         fill="none" stroke="#000" strokeWidth="1.5"
-        clipPath="url(#ringBack)" />
+        clipPath="url(#satBackClip)" />
+      <ellipse cx={cx} cy={cy} rx={orx} ry={ory}
+        fill="none" stroke="#000" strokeWidth="1.5"
+        clipPath="url(#satBackClip)" />
 
       {/* Planet body */}
       <circle cx={cx} cy={cy} r={r} fill="white" stroke="#000" strokeWidth="1.5" />
 
-      {/* Front half of ring (bottom arc, in front of planet) */}
-      <ellipse cx={cx} cy={cy} rx={ringRx} ry={ringRy}
+      {/* Front arcs of both rings (bottom half, in front of planet) */}
+      <ellipse cx={cx} cy={cy} rx={irx} ry={iry}
         fill="none" stroke="#000" strokeWidth="1.5"
-        clipPath="url(#ringFront)" />
+        clipPath="url(#satFrontClip)" />
+      <ellipse cx={cx} cy={cy} rx={orx} ry={ory}
+        fill="none" stroke="#000" strokeWidth="1.5"
+        clipPath="url(#satFrontClip)" />
 
-      {/* Letter */}
-      <text x={cx} y={cy - 8}
+      {/* Letter — centred in the planet */}
+      <text x={cx} y={cy}
         textAnchor="middle" dominantBaseline="middle"
         fontFamily="'Inconsolata', 'Courier New', monospace"
-        fontSize="62" fontWeight="900"
+        fontSize="66" fontWeight="900"
         fill={hasSubmitted ? '#C85A5A' : '#ccc'}>
         {letter}
       </text>
 
-      {/* Timer */}
-      <text x={cx} y={cy + 34}
-        textAnchor="middle"
+      {/* Timer — sits in the gap between the two front ring arcs */}
+      <text x={cx} y={cy + iry + Math.round((ory - iry) / 2) + 1}
+        textAnchor="middle" dominantBaseline="middle"
         fontFamily="'Inconsolata', 'Courier New', monospace"
-        fontSize="13"
-        fill="#444">
+        fontSize="12"
+        fill="#000">
         {timeLeft}
       </text>
     </svg>
