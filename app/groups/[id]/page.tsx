@@ -27,8 +27,6 @@ function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, clos
   const irx = 152, iry = 16
   const orx = 205, ory = 26
   const timerY = cy + Math.round((iry + ory) / 2)  // 129
-  const panelHalfH = 11
-  const panelW = 130
   const circleTop = cy - r   // 20
   const letterY = Math.round((timerY + circleTop) / 2)  // 75
 
@@ -52,9 +50,7 @@ function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, clos
         fill="none" stroke="#000" strokeWidth="1.5"
         clipPath="url(#satBack)" />
 
-      {/* Front arcs (bottom half) — drawn BEFORE the planet so the planet's
-          white fill naturally hides them inside the circle. Only the portions
-          outside the circle remain visible, giving a clean interior. */}
+      {/* Front arcs (bottom half) — drawn before planet so white fill hides interior portions */}
       <ellipse cx={cx} cy={cy} rx={irx} ry={iry}
         fill="none" stroke="#000" strokeWidth="1.5"
         clipPath="url(#satFront)" />
@@ -62,8 +58,15 @@ function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, clos
         fill="none" stroke="#000" strokeWidth="1.5"
         clipPath="url(#satFront)" />
 
-      {/* Planet body — white fill covers both arc sets inside the circle */}
-      <circle cx={cx} cy={cy} r={r} fill="white" stroke="#000" strokeWidth="1.5" />
+      {/* Planet fill — white covers ring arcs inside the circle, no stroke */}
+      <circle cx={cx} cy={cy} r={r} fill="white" stroke="none" />
+
+      {/* Gapped circle border — two arc paths that skip the band where the ring disk passes through.
+          Inner ring intersects circle at (cx±87, cy+13); outer at (cx±85, cy+24).
+          Upper arc: right inner → clockwise around top → left inner (large arc).
+          Lower arc: left outer → clockwise around bottom → right outer (small arc). */}
+      <path d={`M ${cx+87} ${cy+13} A 88 88 0 1 1 ${cx-87} ${cy+13}`} fill="none" stroke="#000" strokeWidth="1.5" />
+      <path d={`M ${cx-85} ${cy+24} A 88 88 0 0 1 ${cx+85} ${cy+24}`} fill="none" stroke="#000" strokeWidth="1.5" />
 
       {/* Timer — sits cleanly inside the white planet interior */}
       <text x={cx} y={timerY}
@@ -106,7 +109,7 @@ function SimpleCountdown({ targetAt }: { targetAt: string }) {
 
 function Footer() {
   return (
-    <footer style={{ textAlign: 'center', padding: '48px 0 28px' }}>
+    <footer style={{ textAlign: 'center', padding: '8px 0 8px' }}>
       <span style={{ fontSize: 12, color: '#ccc', letterSpacing: '0.18em' }}>MOUNTFORD-GAMBOSI</span>
     </footer>
   )
@@ -293,9 +296,10 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                 onClick={() => setScoreExpanded(v => !v)}
                 style={{
                   width: 52, height: 52, borderRadius: '50%',
-                  border: '2px solid #C85A5A', background: 'none', cursor: 'pointer',
+                  border: '2px solid #C85A5A',
+                  background: scoreExpanded ? '#C85A5A' : 'none', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 22, fontWeight: 700, color: '#C85A5A',
+                  fontSize: 22, fontWeight: 700, color: scoreExpanded ? '#fff' : '#C85A5A',
                   margin: '0 8px', flexShrink: 0, fontFamily: 'inherit',
                 }}
               >
