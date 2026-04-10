@@ -24,59 +24,49 @@ function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, clos
 
   // Planet — cx shifted right so outer ring fits within the viewBox on both sides
   const cx = 210, cy = 108, r = 88
-  const irx = 152, iry = 16
-  const orx = 205, ory = 26
 
-  // Timer sits in the ring band at the equator
-  const timerY = cy
+  // Ring is centered well below the planet equator (matches reference design)
+  const ringCY = cy + 55  // = 163
 
-  // Letter centered in upper half of circle
-  const circleTop = cy - r  // 20
-  const letterY = Math.round((circleTop + cy) / 2)  // 64
+  const irx = 185, iry = 11   // inner ring
+  const orx = 205, ory = 24   // outer ring (cx±205 = 5..415, fits in 420-wide viewBox)
 
-  // Exact outer-ellipse / circle intersection (solves X²/orx² + Y²/ory² = 1 and X²+Y² = r²)
-  const outerIY2 = ory * ory * (orx * orx - r * r) / (orx * orx - ory * ory)
-  const outerIY = Math.sqrt(outerIY2)
-  const outerIX = Math.sqrt(r * r - outerIY2)
+  // Timer sits in the band between the outer and inner ring tops (upper side of ring)
+  const timerY = Math.round(ringCY - (iry + ory) / 2)  // = 145
 
-  // Circle border: two arcs (top ~148° and bottom ~148°) with gaps left and right where ring passes through
-  const arcTop = `M ${cx - outerIX} ${cy - outerIY} A ${r} ${r} 0 0 1 ${cx + outerIX} ${cy - outerIY}`
-  const arcBot = `M ${cx + outerIX} ${cy + outerIY} A ${r} ${r} 0 0 1 ${cx - outerIX} ${cy + outerIY}`
+  // Letter in upper portion of circle
+  const letterY = cy - 28  // = 80
 
   return (
     // width="100%" + maxWidth lets it scale on narrow screens without clipping
     <svg width="100%" viewBox="0 0 420 215" style={{ display: 'block', margin: '0 auto', maxWidth: 420 }}>
       <defs>
         <clipPath id="satBack">
-          <rect x="-5" y="-5" width="430" height={cy + 5} />
+          <rect x="-5" y="-5" width="430" height={ringCY + 5} />
         </clipPath>
         <clipPath id="satFront">
-          <rect x="-5" y={cy} width="430" height="225" />
+          <rect x="-5" y={ringCY} width="430" height="225" />
         </clipPath>
       </defs>
 
-      {/* Back arcs (top half) — visible outside the planet on both sides */}
-      <ellipse cx={cx} cy={cy} rx={irx} ry={iry}
+      {/* Back arcs — upper half of ring ellipses, visible outside planet on both sides */}
+      <ellipse cx={cx} cy={ringCY} rx={irx} ry={iry}
         fill="none" stroke="#000" strokeWidth="1.5"
         clipPath="url(#satBack)" />
-      <ellipse cx={cx} cy={cy} rx={orx} ry={ory}
+      <ellipse cx={cx} cy={ringCY} rx={orx} ry={ory}
         fill="none" stroke="#000" strokeWidth="1.5"
         clipPath="url(#satBack)" />
 
-      {/* Front arcs (bottom half) — drawn before planet so white fill hides interior portions */}
-      <ellipse cx={cx} cy={cy} rx={irx} ry={iry}
+      {/* Planet — drawn over back arcs; white fill masks ring inside the circle */}
+      <circle cx={cx} cy={cy} r={r} fill="white" stroke="#000" strokeWidth="1.5" />
+
+      {/* Front arcs — lower half of ring ellipses, drawn on top of planet */}
+      <ellipse cx={cx} cy={ringCY} rx={irx} ry={iry}
         fill="none" stroke="#000" strokeWidth="1.5"
         clipPath="url(#satFront)" />
-      <ellipse cx={cx} cy={cy} rx={orx} ry={ory}
+      <ellipse cx={cx} cy={ringCY} rx={orx} ry={ory}
         fill="none" stroke="#000" strokeWidth="1.5"
         clipPath="url(#satFront)" />
-
-      {/* Planet fill — white covers ring arcs inside the circle */}
-      <circle cx={cx} cy={cy} r={r} fill="white" stroke="none" />
-
-      {/* Circle border: top arc + bottom arc, gaps left/right where ring disk passes through */}
-      <path d={arcTop} fill="none" stroke="#000" strokeWidth="1.5" />
-      <path d={arcBot} fill="none" stroke="#000" strokeWidth="1.5" />
 
       {/* Timer — sits cleanly inside the white planet interior */}
       <text x={cx} y={timerY}
