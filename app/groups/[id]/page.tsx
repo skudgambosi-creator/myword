@@ -26,9 +26,22 @@ function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, clos
   const cx = 210, cy = 108, r = 88
   const irx = 152, iry = 16
   const orx = 205, ory = 26
-  const timerY = cy + Math.round((iry + ory) / 2)  // 129
-  const circleTop = cy - r   // 20
-  const letterY = Math.round((timerY + circleTop) / 2)  // 75
+
+  // Timer sits in the ring band at the equator
+  const timerY = cy
+
+  // Letter centered in upper half of circle
+  const circleTop = cy - r  // 20
+  const letterY = Math.round((circleTop + cy) / 2)  // 64
+
+  // Exact outer-ellipse / circle intersection (solves X²/orx² + Y²/ory² = 1 and X²+Y² = r²)
+  const outerIY2 = ory * ory * (orx * orx - r * r) / (orx * orx - ory * ory)
+  const outerIY = Math.sqrt(outerIY2)
+  const outerIX = Math.sqrt(r * r - outerIY2)
+
+  // Circle border: two arcs (top ~148° and bottom ~148°) with gaps left and right where ring passes through
+  const arcTop = `M ${cx - outerIX} ${cy - outerIY} A ${r} ${r} 0 0 1 ${cx + outerIX} ${cy - outerIY}`
+  const arcBot = `M ${cx + outerIX} ${cy + outerIY} A ${r} ${r} 0 0 1 ${cx - outerIX} ${cy + outerIY}`
 
   return (
     // width="100%" + maxWidth lets it scale on narrow screens without clipping
@@ -58,15 +71,12 @@ function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, clos
         fill="none" stroke="#000" strokeWidth="1.5"
         clipPath="url(#satFront)" />
 
-      {/* Planet fill — white covers ring arcs inside the circle, no stroke */}
+      {/* Planet fill — white covers ring arcs inside the circle */}
       <circle cx={cx} cy={cy} r={r} fill="white" stroke="none" />
 
-      {/* Gapped circle border — two arc paths that skip the band where the ring disk passes through.
-          Inner ring intersects circle at (cx±87, cy+13); outer at (cx±85, cy+24).
-          Upper arc: right inner → clockwise around top → left inner (large arc).
-          Lower arc: left outer → clockwise around bottom → right outer (small arc). */}
-      <path d={`M ${cx+87} ${cy+13} A 88 88 0 1 1 ${cx-87} ${cy+13}`} fill="none" stroke="#000" strokeWidth="1.5" />
-      <path d={`M ${cx-85} ${cy+24} A 88 88 0 0 1 ${cx+85} ${cy+24}`} fill="none" stroke="#000" strokeWidth="1.5" />
+      {/* Circle border: top arc + bottom arc, gaps left/right where ring disk passes through */}
+      <path d={arcTop} fill="none" stroke="#000" strokeWidth="1.5" />
+      <path d={arcBot} fill="none" stroke="#000" strokeWidth="1.5" />
 
       {/* Timer — sits cleanly inside the white planet interior */}
       <text x={cx} y={timerY}
