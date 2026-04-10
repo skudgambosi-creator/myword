@@ -22,29 +22,25 @@ function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, clos
     return () => clearInterval(id)
   }, [closesAt])
 
-  // Planet
-  const cx = 180, cy = 108, r = 88
-  // Rings: outer has proportionally larger rx AND ry so the band gap stays
-  // consistent as the arcs approach the front — they run parallel rather than
-  // converging to the same point.
+  // Planet — cx shifted right so outer ring fits within the viewBox on both sides
+  const cx = 210, cy = 108, r = 88
   const irx = 152, iry = 16
-  const orx = 176, ory = 26   // wider AND taller → parallel approach
-  // Timer sits midway between the two front arc tips
-  const timerY = cy + Math.round((iry + ory) / 2)  // ≈ 129
+  const orx = 205, ory = 26
+  const timerY = cy + Math.round((iry + ory) / 2)  // 129
   const panelHalfH = 11
-  const panelW = 182
-  // Letter: equidistant between timerY and the top of the circle
+  const panelW = 130
   const circleTop = cy - r   // 20
-  const letterY = Math.round((timerY + circleTop) / 2)  // ≈ 75
+  const letterY = Math.round((timerY + circleTop) / 2)  // 75
 
   return (
-    <svg width="362" height="215" viewBox="0 0 362 215" style={{ display: 'block', margin: '0 auto', overflow: 'visible' }}>
+    // width="100%" + maxWidth lets it scale on narrow screens without clipping
+    <svg width="100%" viewBox="0 0 420 215" style={{ display: 'block', margin: '0 auto', maxWidth: 420 }}>
       <defs>
         <clipPath id="satBack">
-          <rect x="-5" y="-5" width="372" height={cy + 5} />
+          <rect x="-5" y="-5" width="430" height={cy + 5} />
         </clipPath>
         <clipPath id="satFront">
-          <rect x="-5" y={cy} width="372" height="225" />
+          <rect x="-5" y={cy} width="430" height="225" />
         </clipPath>
       </defs>
 
@@ -140,6 +136,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   const [nextWeek, setNextWeek] = useState<any>(null)
   const [isCompleted, setIsCompleted] = useState(false)
   const [rulesExpanded, setRulesExpanded] = useState(false)
+  const [scoreExpanded, setScoreExpanded] = useState(false)
   const [submittedWeekNums, setSubmittedWeekNums] = useState<Set<number>>(new Set())
 
   useEffect(() => {
@@ -277,17 +274,12 @@ export default function GroupPage({ params }: { params: { id: string } }) {
           </div>
         )}
 
-        {/* Score + Grid box */}
+        {/* Score box — collapsed: just the nav row. Expanded: adds A–Z grid. */}
         {activeWeek && (
           <div style={{ border: '1px solid #000', padding: '24px', marginBottom: 24 }}>
 
-            {/* YOUR SCORE label */}
-            <div style={{ textAlign: 'center', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#999', marginBottom: 16 }}>
-              YOUR SCORE
-            </div>
-
-            {/* LEADERBOARD — score circle — SUBMISSIONS row */}
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24 }}>
+            {/* LEADERBOARD — score circle (clickable toggle) — SUBMISSIONS */}
+            <div style={{ display: 'flex', alignItems: 'center' }}>
               <div style={{ flex: 1, height: 1, background: '#000' }} />
               <Link href={`/groups/${params.id}/leaderboard`} style={{
                 border: '1px solid #000', borderRadius: 8, padding: '6px 16px', fontSize: 11, fontWeight: 700,
@@ -297,15 +289,18 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                 LEADERBOARD
               </Link>
               <div style={{ flex: 1, height: 1, background: '#000' }} />
-              <div style={{
-                width: 52, height: 52, borderRadius: '50%',
-                border: '2px solid #C85A5A',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 22, fontWeight: 700, color: '#C85A5A',
-                margin: '0 8px', flexShrink: 0,
-              }}>
+              <button
+                onClick={() => setScoreExpanded(v => !v)}
+                style={{
+                  width: 52, height: 52, borderRadius: '50%',
+                  border: '2px solid #C85A5A', background: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 22, fontWeight: 700, color: '#C85A5A',
+                  margin: '0 8px', flexShrink: 0, fontFamily: 'inherit',
+                }}
+              >
                 {myScore}
-              </div>
+              </button>
               <div style={{ flex: 1, height: 1, background: '#000' }} />
               <Link href={`/groups/${params.id}/submissions`} style={{
                 border: '1px solid #000', borderRadius: 8, padding: '6px 16px', fontSize: 11, fontWeight: 700,
@@ -317,39 +312,41 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               <div style={{ flex: 1, height: 1, background: '#000' }} />
             </div>
 
-            {/* Divider */}
-            <div style={{ borderTop: '1px solid #eee', marginBottom: 20 }} />
+            {/* Expanded: A–Z grid */}
+            {scoreExpanded && (
+              <>
+                <div style={{ borderTop: '1px solid #eee', margin: '20px 0' }} />
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(13, 1fr)', gap: 4 }}>
+                  {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter, i) => {
+                    const weekNum = i + 1
+                    const isPast = weekNum < activeWeek.week_num
+                    const isCurrent = weekNum === activeWeek.week_num
 
-            {/* Alphabet grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(13, 1fr)', gap: 4 }}>
-              {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter, i) => {
-                const weekNum = i + 1
-                const isPast = weekNum < activeWeek.week_num
-                const isCurrent = weekNum === activeWeek.week_num
+                    let bg: string, border: string, color: string
+                    if (isPast) {
+                      bg = '#000'; border = '#000'; color = '#fff'
+                    } else if (isCurrent && !!mySubmission) {
+                      bg = '#C85A5A'; border = '#C85A5A'; color = '#fff'
+                    } else {
+                      bg = 'transparent'; border = '#ccc'; color = '#ccc'
+                    }
 
-                let bg: string, border: string, color: string
-                if (isPast) {
-                  bg = '#000'; border = '#000'; color = '#fff'
-                } else if (isCurrent && !!mySubmission) {
-                  bg = '#C85A5A'; border = '#C85A5A'; color = '#fff'
-                } else {
-                  bg = 'transparent'; border = '#ccc'; color = '#ccc'
-                }
-
-                return (
-                  <div key={letter} style={{
-                    aspectRatio: '1', borderRadius: '50%',
-                    border: `1px solid ${border}`,
-                    background: bg,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 'clamp(11px, 2.2vw, 20px)', fontWeight: 700,
-                    color,
-                  }}>
-                    {letter}
-                  </div>
-                )
-              })}
-            </div>
+                    return (
+                      <div key={letter} style={{
+                        aspectRatio: '1', borderRadius: '50%',
+                        border: `1px solid ${border}`,
+                        background: bg,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 'clamp(11px, 2.2vw, 20px)', fontWeight: 700,
+                        color,
+                      }}>
+                        {letter}
+                      </div>
+                    )
+                  })}
+                </div>
+              </>
+            )}
           </div>
         )}
 
