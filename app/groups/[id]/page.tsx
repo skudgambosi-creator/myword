@@ -223,7 +223,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
       <main className="page-main">
 
         {/* Header box — title + season inside the rectangle */}
-        <div style={{ border: '1px solid #000', padding: '16px 32px', marginBottom: 20, textAlign: 'center' }}>
+        <div className="group-title-box">
           <div style={{ fontSize: 22, letterSpacing: '0.2em', textTransform: 'uppercase' }}>THE ALPHABET PROJECT</div>
           <div style={{ fontSize: 11, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: 6 }}>SEASON 1</div>
         </div>
@@ -302,6 +302,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               <div style={{ flex: 1, height: 1, background: '#000' }} />
               <button
                 onClick={() => setScoreExpanded(v => !v)}
+                className={`score-circle-btn${scoreExpanded ? ' is-expanded' : ''}`}
                 style={{
                   width: 52, height: 52, borderRadius: '50%',
                   border: '2px solid #C85A5A',

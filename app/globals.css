@@ -704,6 +704,29 @@ input:-webkit-autofill:active {
   }
 }
 
+/* ── GROUP PAGE ── */
+.group-title-box {
+  border: 1px solid #000;
+  padding: 16px 32px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+@media (max-width: 640px) {
+  .group-title-box {
+    padding: 12px 16px;
+    margin-bottom: 16px;
+  }
+}
+
+/* Score circle button — hover inverts to filled red */
+.score-circle-btn {
+  transition: background 0.15s, color 0.15s;
+}
+.score-circle-btn:not(.is-expanded):hover {
+  background: #C85A5A !important;
+  color: #fff !important;
+}
+
 /* ── COMPLETED STATE ── */
 .completed-banner {
   background: var(--black);
