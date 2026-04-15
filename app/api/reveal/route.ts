@@ -85,11 +85,9 @@ async function revealWeek(supabase: any, week: any, group: any) {
     .single()
 
   if (nextWeek && new Date(nextWeek.opens_at) > new Date()) {
-    const opensAt = new Date()
-    const closesAt = new Date(opensAt.getTime() + 7 * 24 * 60 * 60 * 1000)
     await supabase
       .from('weeks')
-      .update({ opens_at: opensAt.toISOString(), closes_at: closesAt.toISOString() })
+      .update({ opens_at: new Date().toISOString() })
       .eq('id', nextWeek.id)
   }
 
