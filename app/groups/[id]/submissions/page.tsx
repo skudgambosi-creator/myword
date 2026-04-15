@@ -18,8 +18,8 @@ function buildWeekGroups(subs: any[]) {
 function hasImage(html: string) { return /<img[\s>]/i.test(html) }
 function hasAudio(html: string) { return /<audio[\s>]/i.test(html) }
 
-function SubmissionRow({ sub, groupId, isMyVote, onFavourite }: {
-  sub: any; groupId: string; isMyVote: boolean; onFavourite?: (submissionId: string, weekId: string) => void
+function SubmissionRow({ sub, groupId, isMyVote, onFavourite, onOpen }: {
+  sub: any; groupId: string; isMyVote: boolean; onFavourite?: (submissionId: string, weekId: string) => void; onOpen?: () => void
 }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderBottom: '1px solid #e8e8e8', flexWrap: 'wrap' }}>
@@ -41,6 +41,7 @@ function SubmissionRow({ sub, groupId, isMyVote, onFavourite }: {
       <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
         <Link
           href={`/groups/${groupId}/submissions/${sub.week_id}/${sub.id}`}
+          onClick={onOpen}
           style={{ border: '1px solid #ccc', padding: '2px 10px', fontSize: 10, letterSpacing: '0.06em', fontWeight: 700, textDecoration: 'none', color: '#000', textTransform: 'uppercase' }}
         >
           OPEN
@@ -58,15 +59,14 @@ function SubmissionRow({ sub, groupId, isMyVote, onFavourite }: {
   )
 }
 
-function Cabinet({ subs, groupId, myFavourites, onFavourite }: {
-  subs: any[]; groupId: string; myFavourites: Record<string, string>; onFavourite?: (id: string, weekId: string) => void
+function Cabinet({ subs, groupId, myFavourites, onFavourite, onOpen }: {
+  subs: any[]; groupId: string; myFavourites: Record<string, string>; onFavourite?: (id: string, weekId: string) => void; onOpen?: () => void
 }) {
   const groups = buildWeekGroups(subs)
   return (
     <div style={{ border: '1px solid #000', overflow: 'hidden' }}>
       {groups.map(({ week, subs: weekSubs }, gi) => (
         <div key={week?.id} style={{ borderTop: gi > 0 ? '2px solid #000' : 'none' }}>
-          {/* Letter header */}
           <div style={{ background: '#000', display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
             <div style={{
               width: 28, height: 28, borderRadius: '50%', border: '2px solid #C85A5A', background: '#C85A5A',
@@ -81,6 +81,7 @@ function Cabinet({ subs, groupId, myFavourites, onFavourite }: {
               key={sub.id} sub={sub} groupId={groupId}
               isMyVote={myFavourites[sub.week_id] === sub.id}
               onFavourite={onFavourite}
+              onOpen={onOpen}
             />
           ))}
         </div>
@@ -95,7 +96,8 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
   const [weeks, setWeeks] = useState<any[]>([])
-  const [view, setView] = useState<'all' | 'mine' | 'favourite'>('all')
+  const [view, setView] = useState<'all' | 'mine' | 'favourite' | 'read'>('all')
+  const [readWeekNum, setReadWeekNum] = useState<number>(1)
 
   const [azSubs, setAZSubs] = useState<any[]>([])
   const [mySubs, setMySubs] = useState<any[]>([])
@@ -157,6 +159,21 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
     init()
   }, [])
 
+  // Restore scroll position when returning from an individual submission page
+  useEffect(() => {
+    if (!loading) {
+      const saved = sessionStorage.getItem('submissionsScroll')
+      if (saved) {
+        window.scrollTo(0, parseInt(saved))
+        sessionStorage.removeItem('submissionsScroll')
+      }
+    }
+  }, [loading])
+
+  const saveScroll = () => {
+    sessionStorage.setItem('submissionsScroll', String(window.scrollY))
+  }
+
   const switchToMine = async () => {
     setView('mine')
     if (mineFetched || !userId) return
@@ -170,6 +187,17 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
     setMySubs((data || []).sort((a: any, b: any) => a.weeks?.week_num - b.weeks?.week_num))
     setMineFetched(true)
     setLoadingMine(false)
+  }
+
+  const switchToRead = () => {
+    const revealedWeeks = weeks
+      .filter(w => w.revealed_at && new Date(w.revealed_at) < new Date())
+      .sort((a, b) => a.week_num - b.week_num)
+    if (revealedWeeks.length > 0) {
+      setReadWeekNum(revealedWeeks[revealedWeeks.length - 1].week_num)
+    }
+    setView('read')
+    window.scrollTo(0, 0)
   }
 
   const handleFavourite = async (submissionId: string, weekId: string) => {
@@ -207,6 +235,24 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
     <div style={{ border: '1px solid #ccc', padding: '40px', textAlign: 'center', fontSize: 13, color: '#666' }}>{msg}</div>
   )
 
+  // READ view computed values
+  const revealedWeeks = weeks
+    .filter(w => w.revealed_at && new Date(w.revealed_at) < new Date())
+    .sort((a, b) => a.week_num - b.week_num)
+  const currentReadWeek = revealedWeeks.find(w => w.week_num === readWeekNum)
+  const readWeekSubs = azSubs
+    .filter(s => s.week_id === currentReadWeek?.id)
+    .sort((a, b) => a.word_title.localeCompare(b.word_title))
+  const readWeekIdx = revealedWeeks.findIndex(w => w.week_num === readWeekNum)
+  const prevReadWeek = readWeekIdx > 0 ? revealedWeeks[readWeekIdx - 1] : null
+  const nextReadWeek = readWeekIdx < revealedWeeks.length - 1 ? revealedWeeks[readWeekIdx + 1] : null
+  const navBtnInline = { margin: '0 16px', width: 120 }
+
+  const goToWeek = (weekNum: number) => {
+    setReadWeekNum(weekNum)
+    window.scrollTo(0, 0)
+  }
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Nav />
@@ -232,24 +278,104 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
             <button onClick={() => setView('all')} style={tabBtn(view === 'all')}>ALL</button>
             <button onClick={switchToMine} style={tabBtn(view === 'mine')}>MINE</button>
             <button onClick={() => setView('favourite')} style={tabBtn(view === 'favourite')}>♥</button>
+            <button onClick={switchToRead} style={tabBtn(view === 'read')}>READ</button>
           </div>
           <div style={{ flex: 1, height: 1, background: '#000' }} />
         </div>
 
         {view === 'all' && (
           azSubs.length === 0 ? empty('No revealed weeks yet.') :
-          <Cabinet subs={azSubs} groupId={params.id} myFavourites={myFavourites} onFavourite={handleFavourite} />
+          <Cabinet subs={azSubs} groupId={params.id} myFavourites={myFavourites} onFavourite={handleFavourite} onOpen={saveScroll} />
         )}
 
         {view === 'mine' && (
           loadingMine ? <div style={{ fontSize: 13, color: '#666' }}>Loading...</div> :
           mineFetched && mySubs.length === 0 ? empty("You haven't submitted anything yet.") :
-          <Cabinet subs={mySubs} groupId={params.id} myFavourites={myFavourites} />
+          <Cabinet subs={mySubs} groupId={params.id} myFavourites={myFavourites} onOpen={saveScroll} />
         )}
 
         {view === 'favourite' && (
           favouriteSubs.length === 0 ? empty('No tastiest picks yet.') :
-          <Cabinet subs={favouriteSubs} groupId={params.id} myFavourites={myFavourites} />
+          <Cabinet subs={favouriteSubs} groupId={params.id} myFavourites={myFavourites} onOpen={saveScroll} />
+        )}
+
+        {view === 'read' && (
+          revealedWeeks.length === 0 ? empty('No revealed weeks yet.') : (
+            <div>
+              {/* Big letter */}
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 0 }}>
+                <div style={{ fontSize: 80, fontWeight: 900, color: '#C85A5A', lineHeight: 1 }}>
+                  {currentReadWeek?.letter}
+                </div>
+              </div>
+
+              <hr style={{ border: 'none', borderTop: '1px solid #000', margin: '16px 0' }} />
+
+              {/* Submissions */}
+              {readWeekSubs.map(sub => (
+                <div key={sub.id}>
+                  {/* Title */}
+                  <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: '#C85A5A', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                      {sub.word_title}
+                    </span>
+                  </div>
+
+                  {/* Body */}
+                  <div
+                    className="submission-card-body"
+                    style={{ fontSize: 14, lineHeight: 1.9, marginBottom: 40 }}
+                    dangerouslySetInnerHTML={{ __html: (sub.body_html ?? '')
+                      .replace(/<img[^>]*>/gi, '')
+                      .replace(/<audio[^>]*>[\s\S]*?<\/audio>/gi, '')
+                    }}
+                  />
+
+                  {/* Author */}
+                  {sub.is_signed && sub.signed_name && (
+                    <div style={{ textAlign: 'right', marginBottom: 16, fontSize: 13, color: '#C85A5A', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                      {sub.signed_name}
+                    </div>
+                  )}
+
+                  {/* Heart */}
+                  <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                    <button
+                      onClick={() => handleFavourite(sub.id, sub.week_id)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: myFavourites[sub.week_id] === sub.id ? '#C85A5A' : '#ccc', padding: 0, fontFamily: 'inherit', lineHeight: 1 }}
+                    >
+                      {myFavourites[sub.week_id] === sub.id ? '♥' : '♡'}
+                    </button>
+                  </div>
+
+                  {/* Divider */}
+                  <hr style={{ border: 'none', borderTop: '1px solid #000', margin: '0 0 40px' }} />
+                </div>
+              ))}
+
+              {/* Week navigation */}
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div style={{ flex: 1, height: 1, background: '#000' }} />
+                {prevReadWeek ? (
+                  <button onClick={() => goToWeek(prevReadWeek.week_num)} className="btn-black" style={navBtnInline}>
+                    ← {prevReadWeek.letter}
+                  </button>
+                ) : (
+                  <div style={navBtnInline} />
+                )}
+                <div style={{ flex: 1, height: 1, background: '#000' }} />
+                {nextReadWeek ? (
+                  <button onClick={() => goToWeek(nextReadWeek.week_num)} className="btn-black" style={navBtnInline}>
+                    {nextReadWeek.letter} →
+                  </button>
+                ) : (
+                  <div style={navBtnInline} />
+                )}
+                <div style={{ flex: 1, height: 1, background: '#000' }} />
+              </div>
+
+            </div>
+          )
         )}
 
       </main>
