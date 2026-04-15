@@ -10,6 +10,7 @@ const inconsolata = Inconsolata({
 export const metadata: Metadata = {
   title: 'My Word',
   description: 'A collaborative writing project. 26 letters. 26 weeks.',
+  icons: { icon: '/saturn.svg' },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

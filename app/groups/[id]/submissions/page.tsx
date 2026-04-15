@@ -349,7 +349,7 @@ export default function SubmissionsPage({ params }: { params: { id: string } }) 
                   </div>
 
                   {/* Divider */}
-                  <hr style={{ border: 'none', borderTop: '1px solid #000', margin: '0 0 40px' }} />
+                  <hr style={{ border: 'none', borderTop: '1px solid #999', margin: '0 0 40px' }} />
                 </div>
               ))}
 
