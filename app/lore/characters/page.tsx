@@ -35,6 +35,7 @@ export default function LoreCharactersPage() {
   const [editingName, setEditingName] = useState(false)
   const [newName, setNewName] = useState('')
   const [savingName, setSavingName] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   const [follows, setFollows] = useState<any[]>([])
   const [allChars, setAllChars] = useState<any[]>([])
@@ -74,27 +75,26 @@ export default function LoreCharactersPage() {
     const trimmed = newName.trim()
     if (!trimmed || !userId) return
     setSavingName(true)
-    if (myChar) {
-      const { error } = await lore
-        .from('lore_characters')
-        .update({ character_name: trimmed, updated_at: new Date().toISOString() })
-        .eq('user_id', userId)
-      if (!error) {
-        setMyChar((prev: any) => ({ ...prev, character_name: trimmed }))
-        setEditingName(false)
-      }
-    } else {
-      const { data, error } = await lore
-        .from('lore_characters')
-        .insert({ user_id: userId, character_name: trimmed })
-        .select()
-        .single()
-      if (!error && data) {
-        setMyChar(data)
-        setEditingName(false)
-      }
-    }
+    setSaveError('')
+
+    const res = await fetch('/api/lore/character', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ characterName: trimmed }),
+    })
+
+    const data = await res.json()
     setSavingName(false)
+
+    if (!res.ok) {
+      setSaveError(data.error || 'Failed to save. Try again.')
+      return
+    }
+
+    setMyChar((prev: any) =>
+      prev ? { ...prev, character_name: trimmed } : { user_id: userId, character_name: trimmed }
+    )
+    setEditingName(false)
   }
 
   const addFollow = async (type: 'character' | 'tag' | 'place', value: string) => {
@@ -166,15 +166,18 @@ export default function LoreCharactersPage() {
                 {myChar?.character_name || <span style={{ color: '#999', fontSize: 13 }}>No character set yet.</span>}
               </div>
             ) : (
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                <input value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveName()}
-                  style={{ ...inputStyle, fontSize: 15, textTransform: 'uppercase', letterSpacing: '0.1em', flex: 1, minWidth: 160 }}
-                  autoFocus
-                />
-                <button onClick={() => setEditingName(false)} style={{ background: 'none', border: '1px solid #ccc', padding: '5px 14px', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.08em' }}>CANCEL</button>
-                <button onClick={saveName} disabled={savingName} style={{ background: '#000', color: '#fff', border: '1px solid #000', padding: '5px 14px', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.08em' }}>
-                  {savingName ? '...' : 'CONFIRM'}
-                </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <input value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveName()}
+                    style={{ ...inputStyle, fontSize: 15, textTransform: 'uppercase', letterSpacing: '0.1em', flex: 1, minWidth: 160 }}
+                    autoFocus
+                  />
+                  <button onClick={() => { setEditingName(false); setSaveError('') }} style={{ background: 'none', border: '1px solid #ccc', padding: '5px 14px', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.08em' }}>CANCEL</button>
+                  <button onClick={saveName} disabled={savingName} style={{ background: '#000', color: '#fff', border: '1px solid #000', padding: '5px 14px', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.08em' }}>
+                    {savingName ? '...' : 'CONFIRM'}
+                  </button>
+                </div>
+                {saveError && <div style={{ fontSize: 11, color: '#C85A5A', letterSpacing: '0.04em' }}>{saveError}</div>}
               </div>
             )}
           </div>
