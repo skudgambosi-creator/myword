@@ -27,11 +27,7 @@ export default async function LandingPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (user) {
-    const { data: membership } = await supabase
-      .from('group_members').select('group_id')
-      .eq('group_id', ALPHABET_PROJECT_ID).eq('user_id', user.id).maybeSingle()
-    if (membership) redirect(`/groups/${ALPHABET_PROJECT_ID}`)
-    else redirect('/dashboard')
+    redirect('/dashboard')
   }
 
   return (
