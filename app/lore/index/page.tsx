@@ -267,9 +267,3 @@ function YarnRow({ yarn, isHearted, onHeart, monthlyGolden, yearlyGolden }: {
     </div>
   )
 }
-
-function formatDate(day: number | null, month: number | null, year: number) {
-  if (day && month) return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`
-  if (month) return `${month.toString().padStart(2, '0')}/${year}`
-  return `${year}`
-}

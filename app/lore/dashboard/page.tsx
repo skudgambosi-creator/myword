@@ -229,7 +229,7 @@ export default function LoreDashboard() {
         </div>
 
         {/* Action bar */}
-        <div style={{ display: 'flex', gap: 0, marginTop: 16, position: 'relative', flexWrap: 'wrap', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, marginTop: 16, position: 'relative', flexWrap: 'wrap' }}>
           <Link href="/lore/add" style={{ textDecoration: 'none' }}>
             <button style={{ ...btnStyle(), border: '1px solid #C85A5A', color: '#C85A5A' }}
               onMouseEnter={e => { (e.target as HTMLButtonElement).style.background = '#C85A5A'; (e.target as HTMLButtonElement).style.color = '#fff' }}
