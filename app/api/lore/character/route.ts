@@ -3,10 +3,9 @@ import { createLoreAdminClient } from '@/lib/supabase/lore-admin'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-export async function POST(req: NextRequest) {
-  // Verify the user is logged in via the main Supabase
+function getMainSupa() {
   const cookieStore = cookies()
-  const mainSupa = createServerClient(
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -17,8 +16,31 @@ export async function POST(req: NextRequest) {
       },
     }
   )
+}
 
-  const { data: { session } } = await mainSupa.auth.getSession()
+export async function GET() {
+  const { data: { session } } = await getMainSupa().auth.getSession()
+  if (!session) {
+    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+  }
+
+  const lore = createLoreAdminClient()
+  const { data, error } = await lore
+    .from('lore_characters')
+    .select('*')
+    .eq('user_id', session.user.id)
+    .maybeSingle()
+
+  if (error) {
+    console.error('lore character fetch error:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ character: data || null })
+}
+
+export async function POST(req: NextRequest) {
+  const { data: { session } } = await getMainSupa().auth.getSession()
   if (!session) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
@@ -29,14 +51,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Character name is required' }, { status: 400 })
   }
 
-  // Use service role key to bypass RLS
   const lore = createLoreAdminClient()
-  const userId = session.user.id
-
   const { error } = await lore
     .from('lore_characters')
     .upsert(
-      { user_id: userId, character_name: trimmed, updated_at: new Date().toISOString() },
+      { user_id: session.user.id, character_name: trimmed, updated_at: new Date().toISOString() },
       { onConflict: 'user_id' }
     )
 

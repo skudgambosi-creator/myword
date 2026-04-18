@@ -52,8 +52,12 @@ export default function LoreCharactersPage() {
       if (!session) { router.push('/login'); return }
       setUserId(session.user.id)
 
-      const [{ data: charData }, { data: followsData }, { data: chars }, { data: tags }, { data: places }] = await Promise.all([
-        lore.from('lore_characters').select('*').eq('user_id', session.user.id).single(),
+      // Fetch character via API (uses service role key, bypasses RLS)
+      const charRes = await fetch('/api/lore/character')
+      const charJson = charRes.ok ? await charRes.json() : { character: null }
+      const charData = charJson.character
+
+      const [{ data: followsData }, { data: chars }, { data: tags }, { data: places }] = await Promise.all([
         lore.from('lore_follows').select('*').eq('user_id', session.user.id),
         lore.from('lore_characters').select('id, character_name'),
         lore.from('lore_tags').select('id, name, is_taboo').eq('is_taboo', false),
@@ -61,7 +65,7 @@ export default function LoreCharactersPage() {
       ])
 
       setMyChar(charData)
-      setNewName((charData as any)?.character_name || '')
+      setNewName(charData?.character_name || '')
       setFollows(followsData || [])
       setAllChars(chars || [])
       setAllTags(tags || [])
@@ -95,6 +99,7 @@ export default function LoreCharactersPage() {
       prev ? { ...prev, character_name: trimmed } : { user_id: userId, character_name: trimmed }
     )
     setEditingName(false)
+    setSaveError('')
   }
 
   const addFollow = async (type: 'character' | 'tag' | 'place', value: string) => {
@@ -154,30 +159,45 @@ export default function LoreCharactersPage() {
         {/* Your character name */}
         <div style={{ border: '1px solid #000', marginBottom: 16, overflow: 'hidden' }}>
           <SectionHeader action={
-            !editingName ? (
-              <button onClick={() => { setNewName(myChar?.character_name || ''); setEditingName(true) }} style={{ background: 'none', border: '1px solid #fff', color: '#fff', padding: '2px 10px', fontSize: 10, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.08em' }}>EDIT</button>
-            ) : undefined
+            <button
+              onClick={() => {
+                if (editingName) {
+                  setEditingName(false)
+                  setSaveError('')
+                  setNewName(myChar?.character_name || '')
+                } else {
+                  setNewName(myChar?.character_name || '')
+                  setEditingName(true)
+                }
+              }}
+              style={{ background: 'none', border: '1px solid #fff', color: '#fff', padding: '2px 10px', fontSize: 10, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.08em' }}
+            >
+              {editingName ? 'CANCEL' : 'EDIT'}
+            </button>
           }>
             YOUR CHARACTER NAME
           </SectionHeader>
           <div style={{ padding: '20px 16px' }}>
             {!editingName ? (
-              <div style={{ fontSize: 18, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                {myChar?.character_name || <span style={{ color: '#999', fontSize: 13 }}>No character set yet.</span>}
+              <div style={{ fontSize: 20, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+                {myChar?.character_name || <span style={{ color: '#999', fontSize: 13, fontWeight: 400 }}>No character set yet. Press EDIT to add one.</span>}
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <input value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveName()}
-                    style={{ ...inputStyle, fontSize: 15, textTransform: 'uppercase', letterSpacing: '0.1em', flex: 1, minWidth: 160 }}
-                    autoFocus
-                  />
-                  <button onClick={() => { setEditingName(false); setSaveError('') }} style={{ background: 'none', border: '1px solid #ccc', padding: '5px 14px', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.08em' }}>CANCEL</button>
-                  <button onClick={saveName} disabled={savingName} style={{ background: '#000', color: '#fff', border: '1px solid #000', padding: '5px 14px', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.08em' }}>
-                    {savingName ? '...' : 'CONFIRM'}
-                  </button>
-                </div>
+                <input
+                  value={newName}
+                  onChange={e => setNewName(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') saveName()
+                    if (e.key === 'Escape') { setEditingName(false); setSaveError(''); setNewName(myChar?.character_name || '') }
+                  }}
+                  placeholder="Enter your character name..."
+                  style={{ ...inputStyle, fontSize: 16, textTransform: 'uppercase', letterSpacing: '0.12em', fontWeight: 700 }}
+                  autoFocus
+                />
+                {savingName && <div style={{ fontSize: 11, color: '#999', letterSpacing: '0.06em' }}>Saving...</div>}
                 {saveError && <div style={{ fontSize: 11, color: '#C85A5A', letterSpacing: '0.04em' }}>{saveError}</div>}
+                {!savingName && !saveError && <div style={{ fontSize: 11, color: '#aaa', letterSpacing: '0.04em' }}>Press Enter to save</div>}
               </div>
             )}
           </div>
