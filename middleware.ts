@@ -2,6 +2,17 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  // Lore route protection — cookie gate for all /lore/* except /lore/gate
+  if (
+    request.nextUrl.pathname.startsWith('/lore') &&
+    !request.nextUrl.pathname.startsWith('/lore/gate')
+  ) {
+    const loreAccess = request.cookies.get('lore_access')
+    if (!loreAccess || loreAccess.value !== '1') {
+      return NextResponse.redirect(new URL('/lore/gate', request.url))
+    }
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(

@@ -41,11 +41,10 @@ export default function DashboardPage() {
         .eq('group_id', ALPHABET_PROJECT_ID).eq('user_id', session.user.id).maybeSingle()
 
       if (membership) {
-        router.push(`/groups/${ALPHABET_PROJECT_ID}`)
+        setIsMember(true)
+        setLoading(false)
         return
       }
-
-      setIsMember(false)
 
       const { data: lastWeek } = await supabase
         .from('weeks').select('closes_at').eq('group_id', ALPHABET_PROJECT_ID)
@@ -70,7 +69,8 @@ export default function DashboardPage() {
       group_id: ALPHABET_PROJECT_ID,
       user_id: session.user.id,
     })
-    router.push(`/groups/${ALPHABET_PROJECT_ID}`)
+    setIsMember(true)
+    setJoining(false)
   }
 
   if (loading) return (
@@ -80,23 +80,72 @@ export default function DashboardPage() {
     </div>
   )
 
+  // Members see the two-card selector
+  if (isMember) return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Nav />
+      <main className="page-main">
+
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.15em', color: '#C85A5A', textTransform: 'uppercase', marginBottom: 16 }}>
+          SEASON 1
+        </div>
+
+        <Link
+          href={`/groups/${ALPHABET_PROJECT_ID}`}
+          style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+        >
+          <div
+            style={{ border: '1px solid #000', padding: '28px 32px', marginBottom: 16, textAlign: 'center', cursor: 'pointer', transition: 'background 0.12s, color 0.12s' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = '#000'; (e.currentTarget as HTMLDivElement).style.color = '#fff' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = ''; (e.currentTarget as HTMLDivElement).style.color = '' }}
+          >
+            <div style={{ fontSize: 18, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>
+              THE ALPHABET PROJECT
+            </div>
+            <div style={{ fontSize: 10, color: 'inherit', letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.5 }}>
+              26 LETTERS · IN PROGRESS
+            </div>
+          </div>
+        </Link>
+
+        <Link
+          href="/lore/gate"
+          style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+        >
+          <div
+            style={{ border: '1px solid #000', padding: '28px 32px', textAlign: 'center', cursor: 'pointer', transition: 'background 0.12s, color 0.12s' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = '#000'; (e.currentTarget as HTMLDivElement).style.color = '#fff' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = ''; (e.currentTarget as HTMLDivElement).style.color = '' }}
+          >
+            <div style={{ fontSize: 18, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>
+              LORE
+            </div>
+            <div style={{ fontSize: 10, color: 'inherit', letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.5 }}>
+              THE CHRONICLE · PASSWORD REQ.
+            </div>
+          </div>
+        </Link>
+
+      </main>
+      <Footer />
+    </div>
+  )
+
+  // Non-members see the join page
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Nav />
 
       <main className="page-main">
 
-        {/* Season label */}
         <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.15em', color: '#C85A5A', textTransform: 'uppercase', marginBottom: 16 }}>
           SEASON 1
         </div>
 
-        {/* Project title box */}
         <div style={{ border: '1px solid #000', padding: '24px 32px', marginBottom: 24, textAlign: 'center' }}>
           <span style={{ fontSize: 22, letterSpacing: '0.2em', textTransform: 'uppercase' }}>THE ALPHABET PROJECT</span>
         </div>
 
-        {/* Rules box */}
         <div style={{ border: '1px solid #000', padding: '28px 32px', marginBottom: 24 }}>
           <div style={{ fontSize: 18, letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center', marginBottom: 24 }}>RULES</div>
           {RULES.map(([title, desc], i) => (
@@ -109,7 +158,6 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* GET AMONGST */}
         {registrationOpen ? (
           <button
             onClick={handleJoin}
