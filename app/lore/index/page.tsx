@@ -206,10 +206,10 @@ export default function LoreIndex() {
                       <span style={{ fontWeight: 700, fontSize: 13, flex: 1, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{event?.title}</span>
                       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                         {monthlyGolden && eventYarns.some((y: any) => y.id === monthlyGolden) && (
-                          <img src="/lore-yarn-symbol.png" alt="" style={{ width: 14, height: 14, filter: 'sepia(0) saturate(1) hue-rotate(0deg)', opacity: 0.7 }} />
+                          <img src="/lore_golden_yarn_symbol.png" alt="" style={{ width: 14, height: 14, filter: 'sepia(0) saturate(1) hue-rotate(0deg)', opacity: 0.7 }} />
                         )}
                         {yearlyGolden && eventYarns.some((y: any) => y.id === yearlyGolden) && (
-                          <img src="/lore-yarn-symbol.png" alt="" style={{ width: 14, height: 14, filter: 'sepia(1) saturate(2) hue-rotate(10deg)' }} />
+                          <img src="/lore_golden_yarn_symbol.png" alt="" style={{ width: 14, height: 14, filter: 'sepia(1) saturate(2) hue-rotate(10deg)' }} />
                         )}
                       </div>
                     </div>
@@ -258,8 +258,8 @@ function YarnRow({ yarn, isHearted, onHeart, monthlyGolden, yearlyGolden }: {
       </Link>
       <span style={{ fontSize: 11, color: '#999', flexShrink: 0 }}>{author}</span>
       <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexShrink: 0 }}>
-        {monthlyGolden === yarn.id && <img src="/lore-yarn-symbol.png" alt="" style={{ width: 14, height: 14, opacity: 0.7 }} />}
-        {yearlyGolden === yarn.id && <img src="/lore-yarn-symbol.png" alt="" style={{ width: 14, height: 14, filter: 'sepia(1) saturate(2) hue-rotate(10deg)' }} />}
+        {monthlyGolden === yarn.id && <img src="/lore_golden_yarn_symbol.png" alt="" style={{ width: 14, height: 14, opacity: 0.7 }} />}
+        {yearlyGolden === yarn.id && <img src="/lore_golden_yarn_symbol.png" alt="" style={{ width: 14, height: 14, filter: 'sepia(1) saturate(2) hue-rotate(10deg)' }} />}
         <button onClick={onHeart} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: isHearted ? '#C85A5A' : '#ccc', padding: 0, fontFamily: 'inherit', lineHeight: 1 }}>
           {isHearted ? '♥' : '♡'}
         </button>

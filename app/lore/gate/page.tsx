@@ -50,7 +50,7 @@ export default function LoreGatePage() {
 
         {/* Hero image */}
         <div style={{ border: '1px solid #000', width: '100%', minHeight: 'min(55vh, 480px)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
-          <img src="/lore-hero.png" alt="Lore" style={{ width: 'min(340px, 75%)', height: 'auto', display: 'block' }} />
+          <img src="/lore_dashboard_hero_asset.png" alt="Lore" style={{ width: 'min(340px, 75%)', height: 'auto', display: 'block' }} />
         </div>
 
         {/* Password form */}

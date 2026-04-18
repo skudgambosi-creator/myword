@@ -153,7 +153,7 @@ export default function LoreDashboard() {
 
         {/* Hero box */}
         <div style={{ border: '1px solid #000', minHeight: 'min(55vh, 420px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px', marginBottom: 0 }}>
-          <img src="/lore-hero.png" alt="Lore" style={{ width: 'min(340px, 75%)', height: 'auto', display: 'block', marginBottom: 24 }} />
+          <img src="/lore_dashboard_hero_asset.png" alt="Lore" style={{ width: 'min(340px, 75%)', height: 'auto', display: 'block', marginBottom: 24 }} />
           {goldenHolder && (
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: '0.16em', marginBottom: 6 }}>

@@ -71,17 +71,30 @@ export default function LoreCharactersPage() {
   }, [])
 
   const saveName = async () => {
-    if (!newName.trim() || !userId) return
+    const trimmed = newName.trim()
+    if (!trimmed || !userId) return
     setSavingName(true)
     if (myChar) {
-      await lore.from('lore_characters').update({ character_name: newName.trim(), updated_at: new Date().toISOString() }).eq('user_id', userId)
-      setMyChar({ ...myChar, character_name: newName.trim() })
+      const { error } = await lore
+        .from('lore_characters')
+        .update({ character_name: trimmed, updated_at: new Date().toISOString() })
+        .eq('user_id', userId)
+      if (!error) {
+        setMyChar((prev: any) => ({ ...prev, character_name: trimmed }))
+        setEditingName(false)
+      }
     } else {
-      const { data } = await lore.from('lore_characters').insert({ user_id: userId, character_name: newName.trim() }).select().single()
-      if (data) setMyChar(data)
+      const { data, error } = await lore
+        .from('lore_characters')
+        .insert({ user_id: userId, character_name: trimmed })
+        .select()
+        .single()
+      if (!error && data) {
+        setMyChar(data)
+        setEditingName(false)
+      }
     }
     setSavingName(false)
-    setEditingName(false)
   }
 
   const addFollow = async (type: 'character' | 'tag' | 'place', value: string) => {
@@ -142,7 +155,7 @@ export default function LoreCharactersPage() {
         <div style={{ border: '1px solid #000', marginBottom: 16, overflow: 'hidden' }}>
           <SectionHeader action={
             !editingName ? (
-              <button onClick={() => setEditingName(true)} style={{ background: 'none', border: '1px solid #fff', color: '#fff', padding: '2px 10px', fontSize: 10, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.08em' }}>EDIT</button>
+              <button onClick={() => { setNewName(myChar?.character_name || ''); setEditingName(true) }} style={{ background: 'none', border: '1px solid #fff', color: '#fff', padding: '2px 10px', fontSize: 10, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.08em' }}>EDIT</button>
             ) : undefined
           }>
             YOUR CHARACTER NAME
