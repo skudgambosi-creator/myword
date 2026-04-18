@@ -66,7 +66,7 @@ export default function LoreIndex() {
       }
       setHeartCounts(counts)
 
-      const uniquePlaces = [...new Set((yarnsData || []).map((y: any) => y.place).filter(Boolean))] as string[]
+      const uniquePlaces = Array.from(new Set((yarnsData || []).map((y: any) => y.place).filter(Boolean))) as string[]
       setAllPlaces(uniquePlaces)
 
       setLoading(false)

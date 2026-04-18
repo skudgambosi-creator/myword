@@ -68,7 +68,7 @@ export default function LoreDashboard() {
 
       // Collect places
       const { data: places } = await lore.from('lore_yarns').select('place').not('place', 'is', null)
-      const uniquePlaces = [...new Set((places || []).map((p: any) => p.place).filter(Boolean))] as string[]
+      const uniquePlaces = Array.from(new Set((places || []).map((p: any) => p.place).filter(Boolean))) as string[]
       setAllPlaces(uniquePlaces)
 
       // Golden yarn holder from view

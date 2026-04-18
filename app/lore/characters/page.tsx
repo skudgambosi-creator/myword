@@ -64,7 +64,7 @@ export default function LoreCharactersPage() {
       setFollows(followsData || [])
       setAllChars(chars || [])
       setAllTags(tags || [])
-      setAllPlaces([...new Set((places || []).map((p: any) => p.place).filter(Boolean))] as string[])
+      setAllPlaces(Array.from(new Set((places || []).map((p: any) => p.place).filter(Boolean))) as string[])
       setLoading(false)
     }
     init()

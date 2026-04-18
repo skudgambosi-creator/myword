@@ -69,7 +69,7 @@ export default function LoreAddTagPage() {
       setAllChars(chars || [])
       setAllTags((tags || []).filter((t: any) => !t.is_taboo))
       setAllEvents(events || [])
-      const uniquePlaces = [...new Set((places || []).map((p: any) => p.place).filter(Boolean))] as string[]
+      const uniquePlaces = Array.from(new Set((places || []).map((p: any) => p.place).filter(Boolean))) as string[]
       setAllPlaces(uniquePlaces)
     }
     init()

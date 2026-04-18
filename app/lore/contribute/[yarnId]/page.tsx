@@ -79,7 +79,7 @@ export default function ContributePage() {
       setAllChars(chars || [])
       setAllTags((tags || []).filter((t: any) => !t.is_taboo))
       setAllEvents(events || [])
-      setAllPlaces([...new Set((places || []).map((p: any) => p.place).filter(Boolean))] as string[])
+      setAllPlaces(Array.from(new Set((places || []).map((p: any) => p.place).filter(Boolean))) as string[])
     }
     init()
   }, [yarnId])
