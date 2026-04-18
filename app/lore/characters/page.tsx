@@ -77,7 +77,7 @@ export default function LoreCharactersPage() {
 
   const saveName = async () => {
     const trimmed = newName.trim()
-    if (!trimmed || !userId) return
+    if (!trimmed) return
     setSavingName(true)
     setSaveError('')
 

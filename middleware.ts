@@ -5,7 +5,8 @@ export async function middleware(request: NextRequest) {
   // Lore route protection — cookie gate for all /lore/* except /lore/gate
   if (
     request.nextUrl.pathname.startsWith('/lore') &&
-    !request.nextUrl.pathname.startsWith('/lore/gate')
+    !request.nextUrl.pathname.startsWith('/lore/gate') &&
+    !request.nextUrl.pathname.startsWith('/lore/welcome')
   ) {
     const loreAccess = request.cookies.get('lore_access')
     if (!loreAccess || loreAccess.value !== '1') {

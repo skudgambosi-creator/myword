@@ -43,6 +43,7 @@ export default function LoreDashboard() {
   const [filterPlace, setFilterPlace] = useState('')
   const [showReadMenu, setShowReadMenu] = useState(false)
   const [showMap, setShowMap] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
 
   const readMenuRef = useRef<HTMLDivElement>(null)
 
@@ -51,6 +52,14 @@ export default function LoreDashboard() {
       const { data: { session } } = await mainSupa.auth.getSession()
       if (!session) { router.push('/login'); return }
       setUserId(session.user.id)
+
+      // Redirect to welcome if user has no character name yet
+      const charRes = await fetch('/api/lore/character')
+      const charJson = charRes.ok ? await charRes.json() : { character: null }
+      if (!charJson.character) {
+        router.push('/lore/welcome')
+        return
+      }
 
       const [{ data: yarns }, { data: chars }, { data: tags }, { data: follows }, { data: notifs }] = await Promise.all([
         lore.from('lore_yarns').select('id, title, created_at, author_id, lore_characters(character_name)').order('created_at', { ascending: false }).limit(30),
@@ -146,10 +155,13 @@ export default function LoreDashboard() {
       <Nav />
       <main className="page-main">
 
-        {/* Label */}
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.15em', color: '#C85A5A', textTransform: 'uppercase', marginBottom: 16 }}>
+        <Link href="/dashboard" style={{ fontSize: 11, color: '#000', letterSpacing: '0.12em', textTransform: 'uppercase', textDecoration: 'none' }}>
+          ← GO BACK
+        </Link>
+
+        <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#C85A5A', textAlign: 'center', margin: '16px 0 24px' }}>
           LORE
-        </div>
+        </h1>
 
         {/* Hero box */}
         <div style={{ border: '1px solid #000', minHeight: 'min(55vh, 420px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px', marginBottom: 0 }}>
@@ -271,7 +283,33 @@ export default function LoreDashboard() {
           <Link href="/lore/characters" style={{ textDecoration: 'none' }}>
             <button style={btnStyle()}>CHARACTERS</button>
           </Link>
+
+          <button
+            onClick={() => setShowHelp(h => !h)}
+            style={{ marginLeft: 'auto', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', border: '1px solid #ccc', background: showHelp ? '#000' : '#fff', color: showHelp ? '#fff' : '#555', padding: '2px 8px', cursor: 'pointer', fontFamily: 'inherit' }}
+            onMouseEnter={e => { if (!showHelp) { (e.currentTarget as HTMLButtonElement).style.background = '#000'; (e.currentTarget as HTMLButtonElement).style.color = '#fff'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#000' } }}
+            onMouseLeave={e => { if (!showHelp) { (e.currentTarget as HTMLButtonElement).style.background = '#fff'; (e.currentTarget as HTMLButtonElement).style.color = '#555'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#ccc' } }}
+          >
+            ?
+          </button>
         </div>
+
+        {/* Help panel */}
+        {showHelp && (
+          <div style={{ border: '1px solid #000', borderTop: 'none', padding: 16 }}>
+            {[
+              'Lore is a shared story archive for the My Word group. Everyone writes entries called yarns, set at real dates, building up a single timeline together over time.',
+              'You get in with a password. Once you\'re in you pick a character name, which is what everyone in Lore knows you as. You can change it whenever you like.',
+              'Writing a yarn is simple. You give it a title, set a date (even just a year if that\'s all you know), write the story, and attach images or audio if you want. Then you tag it with characters, a place, tags, and optionally link it to an event where multiple yarns can sit together.',
+              'The main page shows a live feed of what everyone is adding, and displays who currently holds the golden yarn, which goes to whoever has written the most loved story at any given time. Hearts are private so nobody knows how many a story has, it just quietly determines the award.',
+              'Reading through Lore you can follow a character forward and backward through time, jump between yarns that share an event, or browse the full index chronologically by year.',
+              'On any yarn you can heart it privately, concur with it (public), or validate it if you were actually there and are tagged in it. You can also contribute, which threads your own yarn directly below someone else\'s.',
+              'Some tags are taboo, which means the story text is hidden from you unless you have been mentioned in or written a yarn with that tag yourself. You unlock them by becoming part of that part of the story.',
+            ].map((para, i) => (
+              <p key={i} style={{ fontSize: 13, lineHeight: 1.9, margin: '0 0 12px', color: '#333' }}>{para}</p>
+            ))}
+          </div>
+        )}
 
         {/* Map panel */}
         {showMap && (

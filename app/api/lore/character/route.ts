@@ -52,6 +52,18 @@ export async function POST(req: NextRequest) {
   }
 
   const lore = createLoreAdminClient()
+
+  // Check name is not already taken by another user
+  const { data: existing } = await lore
+    .from('lore_characters')
+    .select('user_id')
+    .ilike('character_name', trimmed)
+    .maybeSingle()
+
+  if (existing && existing.user_id !== session.user.id) {
+    return NextResponse.json({ error: 'That name is already taken.' }, { status: 409 })
+  }
+
   const { error } = await lore
     .from('lore_characters')
     .upsert(
