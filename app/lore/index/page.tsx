@@ -82,7 +82,7 @@ export default function LoreIndex() {
       setHeartCounts(prev => ({ ...prev, [yarnId]: Math.max(0, (prev[yarnId] || 1) - 1) }))
     } else {
       await lore.from('lore_hearts').insert({ user_id: userId, yarn_id: yarnId })
-      setMyHearts(prev => new Set([...prev, yarnId]))
+      setMyHearts(prev => new Set(Array.from(prev).concat(yarnId)))
       setHeartCounts(prev => ({ ...prev, [yarnId]: (prev[yarnId] || 0) + 1 }))
     }
   }
