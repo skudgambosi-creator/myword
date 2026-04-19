@@ -17,48 +17,88 @@ const SectionHeader = ({ children }: { children: React.ReactNode }) => (
   <div style={{ background: '#000', color: '#fff', padding: '8px 16px', fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{children}</div>
 )
 
+function InlineError({ msg }: { msg: string }) {
+  if (!msg) return null
+  return <div style={{ fontSize: 11, color: '#C85A5A', marginTop: 6, letterSpacing: '0.03em' }}>{msg}</div>
+}
+
+const inputStyle: React.CSSProperties = {
+  flex: 1, background: 'none', border: 'none', borderBottom: '1px solid #ccc',
+  padding: '6px 0', fontSize: 12, fontFamily: 'inherit', outline: 'none',
+}
+
+const addBtn: React.CSSProperties = {
+  border: '1px solid #000', padding: '4px 12px', fontSize: 11,
+  cursor: 'pointer', fontFamily: 'inherit', background: 'none', letterSpacing: '0.06em',
+}
+
+function countWords(html: string) {
+  return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean).length
+}
+
 export default function LoreAddTagPage() {
   const router = useRouter()
   const mainSupa = createClient()
   const lore = createLoreClient()
 
-  const [userId, setUserId] = useState<string | null>(null)
-  const [draft, setDraft] = useState<any>(null)
+  // ── Core ──────────────────────────────────────────────
+  const [yarnId, setYarnId] = useState<string | null>(null)
+  const [initError, setInitError] = useState('')
+  const [loading, setLoading] = useState(true)
 
+  // ── Reference data ────────────────────────────────────
   const [allChars, setAllChars] = useState<any[]>([])
-  const [allTags, setAllTags] = useState<any[]>([])
+  const [allTags, setAllTags] = useState<any[]>([])       // non-taboo
   const [allEvents, setAllEvents] = useState<any[]>([])
   const [allPlaces, setAllPlaces] = useState<string[]>([])
 
+  // ── Characters ────────────────────────────────────────
   const [selectedChars, setSelectedChars] = useState<string[]>([])
   const [newCharName, setNewCharName] = useState('')
+  const [charError, setCharError] = useState('')
+  const [charBusy, setCharBusy] = useState(false)
 
+  // ── Place ─────────────────────────────────────────────
   const [place, setPlace] = useState('')
-  const [placeSuggestions, setPlaceSuggestions] = useState<string[]>([])
+  const [placeSaved, setPlaceSaved] = useState('')
+  const [placeBusy, setPlaceBusy] = useState(false)
+  const [placeError, setPlaceError] = useState('')
 
+  // ── Tags (non-taboo) ──────────────────────────────────
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [newTagName, setNewTagName] = useState('')
-  const [selectedTabooTags, setSelectedTabooTags] = useState<string[]>([])
+  const [tagError, setTagError] = useState('')
+  const [tagBusy, setTagBusy] = useState(false)
+
+  // ── Taboo tags ────────────────────────────────────────
+  const [selectedTabooTags, setSelectedTabooTags] = useState<{ id: string; name: string }[]>([])
   const [newTabooTagName, setNewTabooTagName] = useState('')
+  const [tabooTagError, setTabooTagError] = useState('')
+  const [tabooTagBusy, setTabooTagBusy] = useState(false)
 
+  // ── Event ─────────────────────────────────────────────
   const [eventMode, setEventMode] = useState<'none' | 'existing' | 'new'>('none')
-  const [selectedEventId, setSelectedEventId] = useState('')
-  const [newEventName, setNewEventName] = useState('')
+  const [eventId, setEventId] = useState<string | null>(null)
+  const [eventTitle, setEventTitle] = useState('')
   const [eventTiming, setEventTiming] = useState<'lead_up' | 'happened_at'>('happened_at')
+  const [eventDropdown, setEventDropdown] = useState('')
+  const [newEventName, setNewEventName] = useState('')
+  const [eventError, setEventError] = useState('')
+  const [eventBusy, setEventBusy] = useState(false)
 
-  const [publishing, setPublishing] = useState(false)
-  const [error, setError] = useState('')
-
+  // ─────────────────────────────────────────────────────
+  // Init: load reference data, create yarn
+  // ─────────────────────────────────────────────────────
   useEffect(() => {
     const init = async () => {
       const { data: { session } } = await mainSupa.auth.getSession()
       if (!session) { router.push('/login'); return }
-      setUserId(session.user.id)
 
       const draftRaw = sessionStorage.getItem('lore_yarn_draft')
       if (!draftRaw) { router.push('/lore/add'); return }
-      setDraft(JSON.parse(draftRaw))
+      const draft = JSON.parse(draftRaw)
 
+      // Load reference data (reads work with anon key)
       const [{ data: chars }, { data: tags }, { data: events }, { data: places }] = await Promise.all([
         lore.from('lore_characters').select('id, character_name'),
         lore.from('lore_tags').select('id, name, is_taboo'),
@@ -71,136 +111,257 @@ export default function LoreAddTagPage() {
       setAllEvents(events || [])
       const uniquePlaces = Array.from(new Set((places || []).map((p: any) => p.place).filter(Boolean))) as string[]
       setAllPlaces(uniquePlaces)
+
+      // Recover existing yarn or create fresh
+      const existingId = sessionStorage.getItem('lore_yarn_id')
+      if (existingId) {
+        setYarnId(existingId)
+      } else {
+        const wordCount = countWords(draft.bodyHtml)
+        const res = await fetch('/api/lore/yarn', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: draft.title,
+            bodyHtml: draft.bodyHtml,
+            day: draft.day || null,
+            month: draft.month || null,
+            year: draft.year,
+            wordCount,
+            parentYarnId: draft.parentYarnId || null,
+          }),
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          setInitError(data.error || 'Could not create yarn. Go back and try again.')
+          setLoading(false)
+          return
+        }
+        sessionStorage.setItem('lore_yarn_id', data.yarnId)
+        setYarnId(data.yarnId)
+      }
+
+      setLoading(false)
     }
     init()
   }, [])
 
-  const toggleChar = (id: string) => setSelectedChars(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id])
-  const toggleTag = (id: string) => setSelectedTags(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id])
-  const toggleTabooTag = (id: string) => setSelectedTabooTags(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id])
-
-  const addNewChar = async () => {
-    if (!newCharName.trim()) return
-    const existing = allChars.find(c => c.character_name.toLowerCase() === newCharName.trim().toLowerCase())
-    if (existing) {
-      if (!selectedChars.includes(existing.id)) setSelectedChars(prev => [...prev, existing.id])
-    } else {
-      const { data } = await lore.from('lore_characters').insert({ character_name: newCharName.trim(), user_id: userId }).select().single()
-      if (data) {
-        setAllChars(prev => [...prev, data])
-        setSelectedChars(prev => [...prev, (data as any).id])
-      }
+  // ─────────────────────────────────────────────────────
+  // Characters
+  // ─────────────────────────────────────────────────────
+  const handleToggleChar = async (charId: string) => {
+    if (!yarnId) return
+    const adding = !selectedChars.includes(charId)
+    const res = await fetch(`/api/lore/yarn/${yarnId}/character`, {
+      method: adding ? 'POST' : 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ characterId: charId }),
+    })
+    if (res.ok) {
+      setSelectedChars(prev => adding ? [...prev, charId] : prev.filter(c => c !== charId))
     }
+  }
+
+  const handleAddChar = async () => {
+    const trimmed = newCharName.trim()
+    if (!trimmed || !yarnId) return
+    setCharError('')
+    const found = allChars.find(c => c.character_name.toLowerCase() === trimmed.toLowerCase())
+    if (!found) {
+      setCharError(`"${trimmed}" is not registered in Lore yet.`)
+      return
+    }
+    if (selectedChars.includes(found.id)) { setNewCharName(''); return }
+    setCharBusy(true)
+    const res = await fetch(`/api/lore/yarn/${yarnId}/character`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ characterId: found.id }),
+    })
+    const data = await res.json()
+    setCharBusy(false)
+    if (!res.ok) { setCharError(data.error || 'Failed to add character.'); return }
+    setSelectedChars(prev => [...prev, found.id])
     setNewCharName('')
   }
 
-  const addNewTag = async (isTaboo: boolean) => {
-    const name = isTaboo ? newTabooTagName.trim() : newTagName.trim()
-    if (!name) return
-    const existing = [...allTags, ...allChars].find((t: any) => t.name?.toLowerCase() === name.toLowerCase())
-    let tagId: string
-    if (existing) {
-      tagId = existing.id
-    } else {
-      const { data } = await lore.from('lore_tags').insert({ name, is_taboo: isTaboo }).select().single()
-      if (!data) return
-      tagId = (data as any).id
-      if (isTaboo) {
-        setAllTags(prev => [...prev])
-      } else {
-        setAllTags(prev => [...prev, data])
-      }
-    }
-    if (isTaboo) {
-      if (!selectedTabooTags.includes(tagId)) setSelectedTabooTags(prev => [...prev, tagId])
-    } else {
-      if (!selectedTags.includes(tagId)) setSelectedTags(prev => [...prev, tagId])
-    }
-    isTaboo ? setNewTabooTagName('') : setNewTagName('')
+  // ─────────────────────────────────────────────────────
+  // Place
+  // ─────────────────────────────────────────────────────
+  const handleSetPlace = async () => {
+    if (!yarnId) return
+    setPlaceBusy(true)
+    setPlaceError('')
+    const res = await fetch(`/api/lore/yarn/${yarnId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ place }),
+    })
+    const data = await res.json()
+    setPlaceBusy(false)
+    if (!res.ok) { setPlaceError(data.error || 'Failed to set place.'); return }
+    setPlaceSaved(place.trim())
   }
 
-  const handlePublish = async () => {
-    if (!draft || !userId) return
-    setPublishing(true)
+  // ─────────────────────────────────────────────────────
+  // Tags
+  // ─────────────────────────────────────────────────────
+  const handleToggleTag = async (tag: any) => {
+    if (!yarnId) return
+    const adding = !selectedTags.includes(tag.id)
+    const res = await fetch(`/api/lore/yarn/${yarnId}/tag`, {
+      method: adding ? 'POST' : 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(adding ? { tagId: tag.id } : { tagId: tag.id }),
+    })
+    if (res.ok) {
+      setSelectedTags(prev => adding ? [...prev, tag.id] : prev.filter(t => t !== tag.id))
+    }
+  }
+
+  const handleAddTag = async (isTaboo: boolean) => {
+    const raw = isTaboo ? newTabooTagName : newTagName
+    const trimmed = raw.trim()
+    if (!trimmed || !yarnId) return
+
+    const setBusy = isTaboo ? setTabooTagBusy : setTagBusy
+    const setError = isTaboo ? setTabooTagError : setTagError
+    const setNew = isTaboo ? setNewTabooTagName : setNewTagName
+
+    setBusy(true)
     setError('')
 
-    try {
-      // Get or create author character
-      let { data: authorChar } = await lore.from('lore_characters').select('id').eq('user_id', userId).single()
-      if (!authorChar) {
-        const { data: newChar } = await lore.from('lore_characters').insert({ user_id: userId, character_name: 'Unknown' }).select().single()
-        authorChar = newChar
+    const res = await fetch(`/api/lore/yarn/${yarnId}/tag`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tagName: trimmed, isTaboo }),
+    })
+    const data = await res.json()
+    setBusy(false)
+
+    if (!res.ok) { setError(data.error || 'Failed to add tag.'); return }
+
+    const { tagId, tagName: returnedName } = data
+
+    if (isTaboo) {
+      if (!selectedTabooTags.some(t => t.id === tagId)) {
+        setSelectedTabooTags(prev => [...prev, { id: tagId, name: returnedName }])
       }
-      if (!authorChar) throw new Error('Could not find character')
-
-      // Handle event
-      let eventId: string | null = null
-      if (eventMode === 'existing' && selectedEventId) {
-        eventId = selectedEventId
-      } else if (eventMode === 'new' && newEventName.trim()) {
-        const { data: newEvent } = await lore.from('lore_events').insert({ title: newEventName.trim() }).select().single()
-        if (newEvent) eventId = (newEvent as any).id
-      }
-
-      const wordCount = draft.bodyHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean).length
-
-      // Insert yarn
-      const { data: newYarn, error: yarnErr } = await lore.from('lore_yarns').insert({
-        author_id: (authorChar as any).id,
-        title: draft.title,
-        body_html: draft.bodyHtml,
-        day: draft.day ? parseInt(draft.day) : null,
-        month: draft.month ? parseInt(draft.month) : null,
-        year: parseInt(draft.year),
-        place: place.trim() || null,
-        event_id: eventId,
-        event_timing: eventId ? eventTiming : null,
-        parent_yarn_id: draft.parentYarnId || null,
-        word_count: wordCount,
-      }).select().single()
-
-      if (yarnErr || !newYarn) throw new Error(yarnErr?.message || 'Failed to save yarn')
-
-      const yarnId = (newYarn as any).id
-
-      // Insert tags
-      const allTagIds = [...selectedTags, ...selectedTabooTags]
-      if (allTagIds.length > 0) {
-        await lore.from('lore_yarn_tags').insert(allTagIds.map(tag_id => ({ yarn_id: yarnId, tag_id })))
-      }
-
-      // Insert character mentions
-      if (selectedChars.length > 0) {
-        await lore.from('lore_yarn_characters').insert(selectedChars.map(character_id => ({ yarn_id: yarnId, character_id })))
-
-        // Create mention notifications
-        const mentionedCharsData = allChars.filter(c => selectedChars.includes(c.id))
-        for (const char of mentionedCharsData) {
-          const { data: charUser } = await lore.from('lore_characters').select('user_id').eq('id', char.id).single()
-          if (charUser && (charUser as any).user_id !== userId) {
-            await lore.from('lore_notifications').insert({
-              user_id: (charUser as any).user_id,
-              notif_type: 'mention',
-              yarn_id: yarnId,
-            })
-          }
+    } else {
+      if (!selectedTags.includes(tagId)) {
+        setSelectedTags(prev => [...prev, tagId])
+        if (!allTags.some(t => t.id === tagId)) {
+          setAllTags(prev => [...prev, { id: tagId, name: returnedName, is_taboo: false }])
         }
       }
+    }
+    setNew('')
+  }
 
-      sessionStorage.removeItem('lore_yarn_draft')
-      router.push(`/lore/yarn/${yarnId}`)
-    } catch (e: any) {
-      setError(e.message || 'Something went wrong.')
-      setPublishing(false)
+  const handleRemoveTabooTag = async (tag: { id: string; name: string }) => {
+    if (!yarnId) return
+    const res = await fetch(`/api/lore/yarn/${yarnId}/tag`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tagId: tag.id }),
+    })
+    if (res.ok) {
+      setSelectedTabooTags(prev => prev.filter(t => t.id !== tag.id))
     }
   }
 
-  const pillStyle = (active: boolean, taboo?: boolean): React.CSSProperties => ({
+  // ─────────────────────────────────────────────────────
+  // Event
+  // ─────────────────────────────────────────────────────
+  const handleEventModeChange = async (mode: 'none' | 'existing' | 'new') => {
+    setEventMode(mode)
+    setEventError('')
+    if (mode === 'none' && eventId && yarnId) {
+      setEventBusy(true)
+      const res = await fetch(`/api/lore/yarn/${yarnId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId: null }),
+      })
+      setEventBusy(false)
+      if (res.ok) { setEventId(null); setEventTitle(''); setEventDropdown('') }
+    }
+  }
+
+  const handleSelectEvent = async (selectedId: string) => {
+    setEventDropdown(selectedId)
+    if (!selectedId || !yarnId) return
+    setEventBusy(true)
+    setEventError('')
+    const res = await fetch(`/api/lore/yarn/${yarnId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eventId: selectedId, eventTiming }),
+    })
+    const data = await res.json()
+    setEventBusy(false)
+    if (!res.ok) { setEventError(data.error || 'Failed to set event.'); return }
+    const ev = allEvents.find(e => e.id === selectedId)
+    if (ev) { setEventId(selectedId); setEventTitle(ev.title) }
+  }
+
+  const handleCreateEvent = async () => {
+    const trimmed = newEventName.trim()
+    if (!trimmed || !yarnId) return
+    setEventBusy(true)
+    setEventError('')
+    const res = await fetch(`/api/lore/yarn/${yarnId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eventName: trimmed, eventTiming }),
+    })
+    const data = await res.json()
+    setEventBusy(false)
+    if (!res.ok) { setEventError(data.error || 'Failed to create event.'); return }
+    setEventId(data.eventId)
+    setEventTitle(data.eventTitle)
+    setAllEvents(prev => [...prev, { id: data.eventId, title: data.eventTitle }])
+    setEventDropdown(data.eventId)
+    setEventMode('existing')
+    setNewEventName('')
+  }
+
+  const handleTimingChange = async (timing: 'lead_up' | 'happened_at') => {
+    setEventTiming(timing)
+    if (!eventId || !yarnId) return
+    await fetch(`/api/lore/yarn/${yarnId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eventTiming: timing }),
+    })
+  }
+
+  // ─────────────────────────────────────────────────────
+  // Navigation
+  // ─────────────────────────────────────────────────────
+  const handleBack = async () => {
+    if (yarnId) {
+      await fetch(`/api/lore/yarn/${yarnId}`, { method: 'DELETE' })
+      sessionStorage.removeItem('lore_yarn_id')
+    }
+    router.push('/lore/add')
+  }
+
+  const handlePublish = () => {
+    sessionStorage.removeItem('lore_yarn_draft')
+    sessionStorage.removeItem('lore_yarn_id')
+    router.push(`/lore/yarn/${yarnId}`)
+  }
+
+  // ─────────────────────────────────────────────────────
+  // Styles
+  // ─────────────────────────────────────────────────────
+  const pill = (active: boolean, taboo?: boolean): React.CSSProperties => ({
     padding: '4px 12px', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit',
     border: `1px solid ${active ? (taboo ? '#C85A5A' : '#000') : '#ccc'}`,
     background: active ? (taboo ? '#C85A5A' : '#000') : 'none',
-    color: active ? '#fff' : '#666',
-    letterSpacing: '0.06em', transition: 'background 0.1s, color 0.1s',
+    color: active ? '#fff' : '#888',
+    letterSpacing: '0.06em',
   })
 
   const timingBtn = (val: typeof eventTiming): React.CSSProperties => ({
@@ -223,6 +384,25 @@ export default function LoreAddTagPage() {
     border: '1px solid #000', padding: '4px 14px',
   })
 
+  // ─────────────────────────────────────────────────────
+  // Render
+  // ─────────────────────────────────────────────────────
+  if (loading) return (
+    <div style={{ minHeight: '100vh' }}>
+      <Nav />
+      <div style={{ padding: '40px', fontSize: 13, color: '#999' }}>
+        {initError ? (
+          <>
+            <div style={{ color: '#C85A5A', marginBottom: 12 }}>{initError}</div>
+            <button onClick={() => router.push('/lore/add')} style={{ border: '1px solid #ccc', padding: '6px 16px', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' }}>← GO BACK</button>
+          </>
+        ) : 'Setting up...'}
+      </div>
+    </div>
+  )
+
+  const disabled = !yarnId
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Nav />
@@ -235,115 +415,201 @@ export default function LoreAddTagPage() {
           <span style={stepStyle(true)}>2 — TAG & FILE</span>
         </div>
 
-        {/* Characters */}
+        {/* ── CHARACTERS ─────────────────────────────── */}
         <div style={{ border: '1px solid #000', marginBottom: 16, overflow: 'hidden' }}>
           <SectionHeader>CHARACTERS MENTIONED</SectionHeader>
           <div style={{ padding: '16px' }}>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
-              {allChars.map(c => (
-                <button key={c.id} onClick={() => toggleChar(c.id)} style={pillStyle(selectedChars.includes(c.id))}>
-                  {c.character_name}
-                </button>
-              ))}
-            </div>
+            {/* Existing character pills */}
+            {allChars.length > 0 && (
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+                {allChars.map(c => (
+                  <button key={c.id} onClick={() => handleToggleChar(c.id)} disabled={disabled}
+                    style={pill(selectedChars.includes(c.id))}>
+                    {c.character_name}
+                  </button>
+                ))}
+              </div>
+            )}
+            {/* Search / add by name */}
             <div style={{ display: 'flex', gap: 8 }}>
-              <input value={newCharName} onChange={e => setNewCharName(e.target.value)} onKeyDown={e => e.key === 'Enter' && addNewChar()} placeholder="Add character..." style={{ flex: 1, background: 'none', border: 'none', borderBottom: '1px solid #ccc', padding: '6px 0', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
-              <button onClick={addNewChar} style={{ border: '1px solid #000', padding: '4px 12px', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit', background: 'none', letterSpacing: '0.06em' }}>ADD</button>
+              <input value={newCharName} onChange={e => { setNewCharName(e.target.value); setCharError('') }}
+                onKeyDown={e => e.key === 'Enter' && handleAddChar()}
+                list="all-chars-list" placeholder="Type a character name to add..."
+                style={inputStyle} disabled={disabled} />
+              <datalist id="all-chars-list">
+                {allChars.map(c => <option key={c.id} value={c.character_name} />)}
+              </datalist>
+              <button onClick={handleAddChar} disabled={disabled || charBusy} style={addBtn}>
+                {charBusy ? '...' : 'ADD'}
+              </button>
             </div>
+            <InlineError msg={charError} />
           </div>
         </div>
 
-        {/* Place */}
+        {/* ── PLACE ──────────────────────────────────── */}
         <div style={{ border: '1px solid #000', marginBottom: 16, overflow: 'hidden' }}>
           <SectionHeader>PLACE</SectionHeader>
           <div style={{ padding: '16px' }}>
+            {placeSaved && (
+              <div style={{ fontSize: 12, color: '#555', marginBottom: 8, letterSpacing: '0.04em' }}>
+                Saved: <strong>{placeSaved}</strong>
+              </div>
+            )}
             <div style={{ display: 'flex', gap: 8 }}>
-              <input value={place} onChange={e => { setPlace(e.target.value); setPlaceSuggestions(allPlaces.filter(p => p.toLowerCase().includes(e.target.value.toLowerCase()) && e.target.value)) }}
-                placeholder="Enter a place..." list="place-suggestions"
-                style={{ flex: 1, background: 'none', border: 'none', borderBottom: '1px solid #ccc', padding: '6px 0', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
-              <button onClick={() => setPlace('')} style={{ border: '1px solid #ccc', padding: '4px 12px', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit', background: 'none', letterSpacing: '0.06em' }}>CLEAR</button>
+              <input value={place}
+                onChange={e => { setPlace(e.target.value); setPlaceError('') }}
+                onKeyDown={e => e.key === 'Enter' && handleSetPlace()}
+                list="place-suggestions" placeholder="Enter a place..."
+                style={inputStyle} disabled={disabled} />
+              <datalist id="place-suggestions">
+                {allPlaces.map(p => <option key={p} value={p} />)}
+              </datalist>
+              {place.trim() && (
+                <button onClick={handleSetPlace} disabled={disabled || placeBusy} style={addBtn}>
+                  {placeBusy ? '...' : 'SET'}
+                </button>
+              )}
+              {placeSaved && (
+                <button onClick={async () => { setPlace(''); await fetch(`/api/lore/yarn/${yarnId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ place: '' }) }); setPlaceSaved('') }}
+                  style={{ ...addBtn, border: '1px solid #ccc', color: '#999' }}>CLEAR</button>
+              )}
             </div>
-            <datalist id="place-suggestions">
-              {allPlaces.map(p => <option key={p} value={p} />)}
-            </datalist>
+            <InlineError msg={placeError} />
           </div>
         </div>
 
-        {/* Tags */}
+        {/* ── TAGS ───────────────────────────────────── */}
         <div style={{ border: '1px solid #000', marginBottom: 16, overflow: 'hidden' }}>
           <SectionHeader>TAGS</SectionHeader>
           <div style={{ padding: '16px' }}>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
-              {allTags.map(t => (
-                <button key={t.id} onClick={() => toggleTag(t.id)} style={pillStyle(selectedTags.includes(t.id))}>{t.name}</button>
-              ))}
+            {/* New tag input */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+              <input value={newTagName} onChange={e => { setNewTagName(e.target.value); setTagError('') }}
+                onKeyDown={e => e.key === 'Enter' && handleAddTag(false)}
+                placeholder="Type a new tag..." style={inputStyle} disabled={disabled} />
+              <button onClick={() => handleAddTag(false)} disabled={disabled || tagBusy} style={addBtn}>
+                {tagBusy ? '...' : 'ADD'}
+              </button>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input value={newTagName} onChange={e => setNewTagName(e.target.value)} onKeyDown={e => e.key === 'Enter' && addNewTag(false)} placeholder="Add tag..." style={{ flex: 1, background: 'none', border: 'none', borderBottom: '1px solid #ccc', padding: '6px 0', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
-              <button onClick={() => addNewTag(false)} style={{ border: '1px solid #000', padding: '4px 12px', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit', background: 'none', letterSpacing: '0.06em' }}>ADD</button>
-            </div>
+            <InlineError msg={tagError} />
+
+            {/* All existing tags as clickable pills */}
+            {allTags.length > 0 && (
+              <div style={{ marginTop: 10 }}>
+                <div style={{ fontSize: 10, color: '#bbb', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>EXISTING TAGS</div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {allTags.map(t => (
+                    <button key={t.id} onClick={() => handleToggleTag(t)} disabled={disabled}
+                      style={pill(selectedTags.includes(t.id))}>
+                      {t.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
+          {/* Taboo tags */}
           <div style={{ borderTop: '1px solid #ccc', padding: '16px' }}>
             <div style={{ fontSize: 10, color: '#C85A5A', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>TABOO TAGS</div>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
-              {/* taboo tags shown on demand — start empty, user adds */}
-            </div>
+
+            {/* Selected taboo tags */}
+            {selectedTabooTags.length > 0 && (
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+                {selectedTabooTags.map(t => (
+                  <span key={t.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', border: '1px solid #C85A5A', background: '#C85A5A', color: '#fff', fontSize: 11, letterSpacing: '0.06em' }}>
+                    {t.name}
+                    <button onClick={() => handleRemoveTabooTag(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: 0, fontSize: 12, lineHeight: 1 }}>×</button>
+                  </span>
+                ))}
+              </div>
+            )}
+
             <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-              <input value={newTabooTagName} onChange={e => setNewTabooTagName(e.target.value)} onKeyDown={e => e.key === 'Enter' && addNewTag(true)} placeholder="Add taboo tag..." style={{ flex: 1, background: 'none', border: 'none', borderBottom: '1px solid #C85A5A', padding: '6px 0', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
-              <button onClick={() => addNewTag(true)} style={{ border: '1px solid #C85A5A', color: '#C85A5A', padding: '4px 12px', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit', background: 'none', letterSpacing: '0.06em' }}>ADD</button>
+              <input value={newTabooTagName} onChange={e => { setNewTabooTagName(e.target.value); setTabooTagError('') }}
+                onKeyDown={e => e.key === 'Enter' && handleAddTag(true)}
+                placeholder="Add taboo tag..." style={{ ...inputStyle, borderBottomColor: '#C85A5A' }}
+                disabled={disabled} />
+              <button onClick={() => handleAddTag(true)} disabled={disabled || tabooTagBusy}
+                style={{ ...addBtn, border: '1px solid #C85A5A', color: '#C85A5A' }}>
+                {tabooTagBusy ? '...' : 'ADD'}
+              </button>
             </div>
+            <InlineError msg={tabooTagError} />
             <div style={{ fontSize: 11, color: '#999', lineHeight: 1.6 }}>
               Taboo tags replace the text body with _ for readers who haven't been mentioned in a yarn using this tag, or submitted one themselves.
             </div>
           </div>
         </div>
 
-        {/* Event */}
+        {/* ── EVENT ──────────────────────────────────── */}
         <div style={{ border: '1px solid #000', marginBottom: 24, overflow: 'hidden' }}>
           <SectionHeader>EVENT</SectionHeader>
           <div style={{ padding: '16px' }}>
+
+            {/* Mode buttons */}
             <div style={{ display: 'flex', marginBottom: 16 }}>
-              <button onClick={() => setEventMode('none')} style={modeBtn('none')}>NO EVENT</button>
-              <button onClick={() => setEventMode('existing')} style={modeBtn('existing')}>SELECT EXISTING</button>
-              <button onClick={() => setEventMode('new')} style={modeBtn('new')}>CREATE NEW</button>
+              <button onClick={() => handleEventModeChange('none')} style={modeBtn('none')}>NO EVENT</button>
+              <button onClick={() => handleEventModeChange('existing')} style={modeBtn('existing')}>SELECT EXISTING</button>
+              <button onClick={() => handleEventModeChange('new')} style={modeBtn('new')}>CREATE NEW</button>
+              {eventBusy && <span style={{ marginLeft: 12, fontSize: 11, color: '#999', alignSelf: 'center' }}>...</span>}
             </div>
 
+            {/* Current event indicator */}
+            {eventId && eventTitle && (
+              <div style={{ fontSize: 12, color: '#555', marginBottom: 12 }}>
+                Linked to: <strong>{eventTitle}</strong>
+              </div>
+            )}
+
+            {/* Select existing */}
             {eventMode === 'existing' && (
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <select value={selectedEventId} onChange={e => setSelectedEventId(e.target.value)} style={{ flex: 1, border: '1px solid #ccc', padding: '6px 8px', fontSize: 12, fontFamily: 'inherit' }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                <select value={eventDropdown} onChange={e => handleSelectEvent(e.target.value)}
+                  disabled={disabled || eventBusy}
+                  style={{ flex: 1, border: '1px solid #ccc', padding: '6px 8px', fontSize: 12, fontFamily: 'inherit' }}>
                   <option value="">Select event...</option>
                   {allEvents.map(e => <option key={e.id} value={e.id}>{e.title}</option>)}
                 </select>
                 <div style={{ display: 'flex' }}>
-                  <button onClick={() => setEventTiming('lead_up')} style={timingBtn('lead_up')}>LEAD UP TO EVENT</button>
-                  <button onClick={() => setEventTiming('happened_at')} style={timingBtn('happened_at')}>HAPPENED AT EVENT</button>
+                  <button onClick={() => handleTimingChange('lead_up')} style={timingBtn('lead_up')}>LEAD UP TO EVENT</button>
+                  <button onClick={() => handleTimingChange('happened_at')} style={timingBtn('happened_at')}>HAPPENED AT EVENT</button>
                 </div>
               </div>
             )}
 
+            {/* Create new */}
             {eventMode === 'new' && (
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <input value={newEventName} onChange={e => setNewEventName(e.target.value)} placeholder="Event name..." style={{ flex: 1, background: 'none', border: 'none', borderBottom: '1px solid #ccc', padding: '6px 0', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                <input value={newEventName} onChange={e => { setNewEventName(e.target.value); setEventError('') }}
+                  onKeyDown={e => e.key === 'Enter' && handleCreateEvent()}
+                  placeholder="Event name..."
+                  style={{ ...inputStyle, flex: 1 }} disabled={disabled || eventBusy} />
                 <div style={{ display: 'flex' }}>
-                  <button onClick={() => setEventTiming('lead_up')} style={timingBtn('lead_up')}>LEAD UP TO EVENT</button>
-                  <button onClick={() => setEventTiming('happened_at')} style={timingBtn('happened_at')}>HAPPENED AT EVENT</button>
+                  <button onClick={() => handleTimingChange('lead_up')} style={timingBtn('lead_up')}>LEAD UP TO EVENT</button>
+                  <button onClick={() => handleTimingChange('happened_at')} style={timingBtn('happened_at')}>HAPPENED AT EVENT</button>
                 </div>
+                <button onClick={handleCreateEvent} disabled={disabled || eventBusy || !newEventName.trim()} style={addBtn}>
+                  {eventBusy ? '...' : 'CREATE'}
+                </button>
               </div>
             )}
+
+            <InlineError msg={eventError} />
           </div>
         </div>
 
-        {error && <div style={{ fontSize: 12, color: '#C85A5A', marginBottom: 12 }}>{error}</div>}
-
         {/* Bottom bar */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <button onClick={() => router.push('/lore/add')} style={{ background: 'none', border: '1px solid #ccc', padding: '8px 20px', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button onClick={handleBack}
+            style={{ background: 'none', border: '1px solid #ccc', padding: '8px 20px', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit' }}>
             ← BACK
           </button>
           <div style={{ flex: 1 }} />
-          <button onClick={handlePublish} disabled={publishing} style={{ background: '#C85A5A', color: '#fff', border: '1px solid #C85A5A', padding: '8px 24px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit' }}>
-            {publishing ? '...' : 'PUBLISH'}
+          <button onClick={handlePublish} disabled={!yarnId}
+            style={{ background: '#C85A5A', color: '#fff', border: '1px solid #C85A5A', padding: '8px 24px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: yarnId ? 'pointer' : 'default', fontFamily: 'inherit', opacity: yarnId ? 1 : 0.5 }}>
+            PUBLISH
           </button>
         </div>
 
