@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Nav from '@/components/layout/Nav'
@@ -41,6 +41,7 @@ export default function LoreAddTagPage() {
 
   // ── Core ──────────────────────────────────────────────
   const [yarnId, setYarnId] = useState<string | null>(null)
+  const [editMode, setEditMode] = useState(false)
   const [initError, setInitError] = useState('')
   const [loading, setLoading] = useState(true)
 
@@ -61,6 +62,8 @@ export default function LoreAddTagPage() {
   const [placeSaved, setPlaceSaved] = useState('')
   const [placeBusy, setPlaceBusy] = useState(false)
   const [placeError, setPlaceError] = useState('')
+  const [placeSuggestions, setPlaceSuggestions] = useState<string[]>([])
+  const placeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // ── Tags (non-taboo) ──────────────────────────────────
   const [selectedTags, setSelectedTags] = useState<string[]>([])
@@ -104,6 +107,33 @@ export default function LoreAddTagPage() {
       setAllTags((ref.tags as any[]).filter((t: any) => !t.is_taboo))
       setAllEvents(ref.events)
       setAllPlaces(ref.places)
+
+      // Edit mode: use existing yarn and pre-fill
+      if (draft.editMode && draft.yarnId) {
+        setEditMode(true)
+        setYarnId(draft.yarnId)
+        const detailRes = await fetch(`/api/lore/yarn/${draft.yarnId}/detail`)
+        if (detailRes.ok) {
+          const detailData = await detailRes.json()
+          const y = detailData.yarn
+          if (y.place) { setPlace(y.place); setPlaceSaved(y.place) }
+          const charIds = (y.lore_yarn_characters || []).map((yc: any) => yc.lore_characters?.id).filter(Boolean)
+          setSelectedChars(charIds)
+          const nonTabooTagIds = (y.lore_yarn_tags || []).filter((yt: any) => yt.lore_tags && !yt.lore_tags.is_taboo).map((yt: any) => yt.lore_tags.id)
+          setSelectedTags(nonTabooTagIds)
+          const tabooTags = (y.lore_yarn_tags || []).filter((yt: any) => yt.lore_tags?.is_taboo).map((yt: any) => ({ id: yt.lore_tags.id, name: yt.lore_tags.name }))
+          setSelectedTabooTags(tabooTags)
+          if (y.event_id && (y.lore_events as any)?.title) {
+            setEventId(y.event_id)
+            setEventTitle((y.lore_events as any).title)
+            setEventDropdown(y.event_id)
+            setEventMode('existing')
+            if (y.event_timing) setEventTiming(y.event_timing)
+          }
+        }
+        setLoading(false)
+        return
+      }
 
       // Recover existing yarn or create fresh
       const existingId = sessionStorage.getItem('lore_yarn_id')
@@ -181,6 +211,20 @@ export default function LoreAddTagPage() {
   // ─────────────────────────────────────────────────────
   // Place
   // ─────────────────────────────────────────────────────
+  const handlePlaceInput = (val: string) => {
+    setPlace(val)
+    setPlaceError('')
+    if (placeDebounceRef.current) clearTimeout(placeDebounceRef.current)
+    if (val.length < 3) { setPlaceSuggestions([]); return }
+    placeDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&format=json&limit=5`, { headers: { 'Accept-Language': 'en' } })
+        const data = await res.json()
+        setPlaceSuggestions((data as any[]).map((r: any) => r.display_name))
+      } catch {}
+    }, 400)
+  }
+
   const handleSetPlace = async () => {
     if (!yarnId) return
     setPlaceBusy(true)
@@ -333,6 +377,10 @@ export default function LoreAddTagPage() {
   // Navigation
   // ─────────────────────────────────────────────────────
   const handleBack = async () => {
+    if (editMode && yarnId) {
+      router.push(`/lore/add?edit=true&yarnId=${yarnId}`)
+      return
+    }
     if (yarnId) {
       await fetch(`/api/lore/yarn/${yarnId}`, { method: 'DELETE' })
       sessionStorage.removeItem('lore_yarn_id')
@@ -451,12 +499,15 @@ export default function LoreAddTagPage() {
             )}
             <div style={{ display: 'flex', gap: 8 }}>
               <input value={place}
-                onChange={e => { setPlace(e.target.value); setPlaceError('') }}
+                onChange={e => handlePlaceInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSetPlace()}
                 list="place-suggestions" placeholder="Enter a place..."
                 style={inputStyle} disabled={disabled} />
               <datalist id="place-suggestions">
-                {allPlaces.map(p => <option key={p} value={p} />)}
+                {placeSuggestions.length > 0
+                  ? placeSuggestions.map(p => <option key={p} value={p} />)
+                  : allPlaces.map(p => <option key={p} value={p} />)
+                }
               </datalist>
               {place.trim() && (
                 <button onClick={handleSetPlace} disabled={disabled || placeBusy} style={addBtn}>

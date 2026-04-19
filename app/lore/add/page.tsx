@@ -22,12 +22,15 @@ export default function LoreAddPage() {
   const mainSupa = createClient()
 
   const [userId, setUserId] = useState<string | null>(null)
+  const [editMode, setEditMode] = useState(false)
+  const [editYarnId, setEditYarnId] = useState<string | null>(null)
   const [day, setDay] = useState('')
   const [month, setMonth] = useState('')
   const [year, setYear] = useState('')
   const [title, setTitle] = useState('')
   const [bodyHtml, setBodyHtml] = useState('')
   const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
 
   const wordCount = countWords(bodyHtml)
 
@@ -37,27 +40,61 @@ export default function LoreAddPage() {
       if (!session) { router.push('/login'); return }
       setUserId(session.user.id)
 
-      // Restore draft if navigating back
-      const draft = sessionStorage.getItem('lore_yarn_draft')
-      if (draft) {
-        const d = JSON.parse(draft)
-        setDay(d.day || '')
-        setMonth(d.month || '')
-        setYear(d.year || '')
-        setTitle(d.title || '')
-        setBodyHtml(d.bodyHtml || '')
+      const params = new URLSearchParams(window.location.search)
+      const isEdit = params.get('edit') === 'true'
+      const yarnId = params.get('yarnId')
+
+      if (isEdit && yarnId) {
+        setEditMode(true)
+        setEditYarnId(yarnId)
+        const res = await fetch(`/api/lore/yarn/${yarnId}/detail`)
+        if (res.ok) {
+          const data = await res.json()
+          const y = data.yarn
+          setDay(y.day?.toString() || '')
+          setMonth(y.month?.toString() || '')
+          setYear(y.year?.toString() || '')
+          setTitle(y.title || '')
+          setBodyHtml(y.body_html || '')
+        }
+      } else {
+        const draft = sessionStorage.getItem('lore_yarn_draft')
+        if (draft) {
+          const d = JSON.parse(draft)
+          setDay(d.day || '')
+          setMonth(d.month || '')
+          setYear(d.year || '')
+          setTitle(d.title || '')
+          setBodyHtml(d.bodyHtml || '')
+        }
       }
     }
     init()
   }, [])
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     setError('')
     if (!year.trim()) { setError('Year is required.'); return }
     if (!title.trim()) { setError('Title is required.'); return }
     if (wordCount < 5) { setError('Minimum 5 words required.'); return }
 
-    sessionStorage.setItem('lore_yarn_draft', JSON.stringify({ day, month, year, title, bodyHtml, parentYarnId: null }))
+    if (editMode && editYarnId) {
+      setSaving(true)
+      const res = await fetch(`/api/lore/yarn/${editYarnId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: title.trim(), bodyHtml, day: day || null, month: month || null, year, wordCount }),
+      })
+      setSaving(false)
+      if (!res.ok) {
+        const d = await res.json()
+        setError(d.error || 'Failed to save. Try again.')
+        return
+      }
+      sessionStorage.setItem('lore_yarn_draft', JSON.stringify({ day, month, year, title, bodyHtml, editMode: true, yarnId: editYarnId }))
+    } else {
+      sessionStorage.setItem('lore_yarn_draft', JSON.stringify({ day, month, year, title, bodyHtml, parentYarnId: null }))
+    }
     router.push('/lore/add/tag')
   }
 
@@ -118,12 +155,15 @@ export default function LoreAddPage() {
 
         {/* Bottom bar */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <button onClick={() => router.push('/lore/dashboard')} style={{ background: 'none', border: '1px solid #ccc', padding: '8px 20px', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button
+            onClick={() => editMode && editYarnId ? router.push(`/lore/yarn/${editYarnId}`) : router.push('/lore/dashboard')}
+            style={{ background: 'none', border: '1px solid #ccc', padding: '8px 20px', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit' }}
+          >
             CANCEL
           </button>
           <div style={{ flex: 1 }} />
-          <button onClick={handleContinue} style={{ background: '#000', color: '#fff', border: '1px solid #000', padding: '8px 20px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit' }}>
-            CONTINUE →
+          <button onClick={handleContinue} disabled={saving} style={{ background: '#000', color: '#fff', border: '1px solid #000', padding: '8px 20px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: saving ? 'default' : 'pointer', fontFamily: 'inherit', opacity: saving ? 0.6 : 1 }}>
+            {saving ? 'SAVING...' : 'CONTINUE →'}
           </button>
         </div>
 

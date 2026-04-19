@@ -23,7 +23,25 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const body = await req.json()
   const lore = createLoreAdminClient()
+
+  // Verify author
+  const { data: authorChar } = await lore.from('lore_characters').select('id').eq('user_id', session.user.id).maybeSingle()
+  if (authorChar) {
+    const { data: existingYarn } = await lore.from('lore_yarns').select('author_id').eq('id', params.id).single()
+    if (!existingYarn || existingYarn.author_id !== authorChar.id) {
+      return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
+    }
+  }
+
   const updates: Record<string, any> = {}
+
+  // Core content update (edit mode)
+  if (body.title !== undefined) updates.title = body.title
+  if (body.bodyHtml !== undefined) updates.body_html = body.bodyHtml
+  if ('day' in body) updates.day = body.day ? parseInt(body.day) : null
+  if ('month' in body) updates.month = body.month ? parseInt(body.month) : null
+  if ('year' in body) updates.year = parseInt(body.year)
+  if ('wordCount' in body) updates.word_count = body.wordCount
 
   // Place update
   if ('place' in body) {

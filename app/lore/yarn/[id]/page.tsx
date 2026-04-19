@@ -236,6 +236,11 @@ export default function YarnPage() {
           {!canValidate && (
             <span style={{ fontSize: 10, color: '#999', alignSelf: 'center', letterSpacing: '0.06em' }}>TAGGED ONLY</span>
           )}
+          {yarn.author_id === userCharId && (
+            <Link href={`/lore/add?edit=true&yarnId=${id}`} style={{ marginLeft: 'auto', textDecoration: 'none' }}>
+              <button style={actionBtn(false)}>EDIT</button>
+            </Link>
+          )}
         </div>
 
         {/* Contribute */}

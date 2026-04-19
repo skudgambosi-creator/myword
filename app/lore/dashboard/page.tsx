@@ -272,7 +272,7 @@ export default function LoreDashboard() {
           </button>
 
           <Link href="/lore/characters" style={{ textDecoration: 'none' }}>
-            <button style={btnStyle()}>CHARACTERS</button>
+            <button style={btnStyle()}>SETTINGS</button>
           </Link>
 
           <button
@@ -287,7 +287,7 @@ export default function LoreDashboard() {
 
         {/* Help panel */}
         {showHelp && (
-          <div style={{ border: '1px solid #000', borderTop: 'none', padding: 16 }}>
+          <div style={{ border: '1px solid #000', marginTop: 8, padding: 16 }}>
             {[
               'Lore is a shared story archive for the My Word group. Everyone writes entries called yarns, set at real dates, building up a single timeline together over time.',
               'You get in with a password. Once you\'re in you pick a character name, which is what everyone in Lore knows you as. You can change it whenever you like.',
@@ -304,7 +304,7 @@ export default function LoreDashboard() {
 
         {/* Map panel */}
         {showMap && (
-          <div style={{ border: '1px solid #000', borderTop: 'none', height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9f9f9', marginTop: 0 }}>
+          <div style={{ border: '1px solid #000', marginTop: 8, height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9f9f9' }}>
             <span style={{ fontSize: 11, color: '#bbb', letterSpacing: '0.14em', textTransform: 'uppercase' }}>MAP — YARN LOCATIONS</span>
           </div>
         )}

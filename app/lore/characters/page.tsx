@@ -155,7 +155,7 @@ export default function LoreCharactersPage() {
         </Link>
 
         <h1 style={{ fontSize: 22, fontWeight: 400, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', textAlign: 'center', margin: '16px 0 24px' }}>
-          CHARACTER PROFILE
+          SETTINGS
         </h1>
 
         {/* Your character name */}
