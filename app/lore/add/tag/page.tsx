@@ -96,23 +96,14 @@ export default function LoreAddTagPage() {
       if (!draftRaw) { router.push('/lore/add'); return }
       const draft = JSON.parse(draftRaw)
 
-      // All reference data via admin API (bypasses RLS)
-      const [charsRes, tagsRes, eventsRes, placesRes] = await Promise.all([
-        fetch('/api/lore/characters'),
-        fetch('/api/lore/tags?all=1'),
-        fetch('/api/lore/events'),
-        fetch('/api/lore/places'),
-      ])
+      // Load reference data via admin API (bypasses RLS)
+      const refRes = await fetch('/api/lore/ref')
+      const ref = refRes.ok ? await refRes.json() : { chars: [], tags: [], events: [], places: [] }
 
-      const charsJson = charsRes.ok ? await charsRes.json() : { characters: [] }
-      const tagsJson = tagsRes.ok ? await tagsRes.json() : { tags: [] }
-      const eventsJson = eventsRes.ok ? await eventsRes.json() : { events: [] }
-      const placesJson = placesRes.ok ? await placesRes.json() : { places: [] }
-
-      setAllChars(charsJson.characters)
-      setAllTags((tagsJson.tags || []).filter((t: any) => !t.is_taboo))
-      setAllEvents(eventsJson.events || [])
-      setAllPlaces(placesJson.places || [])
+      setAllChars(ref.chars)
+      setAllTags((ref.tags as any[]).filter((t: any) => !t.is_taboo))
+      setAllEvents(ref.events)
+      setAllPlaces(ref.places)
 
       // Recover existing yarn or create fresh
       const existingId = sessionStorage.getItem('lore_yarn_id')

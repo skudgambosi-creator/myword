@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { createLoreClient } from '@/lib/supabase/lore-client'
 import Nav from '@/components/layout/Nav'
 
 function LoreFooter() {
@@ -26,7 +25,6 @@ function SectionHeader({ children, action }: { children: React.ReactNode; action
 export default function LoreCharactersPage() {
   const router = useRouter()
   const mainSupa = createClient()
-  const lore = createLoreClient()
 
   const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -57,19 +55,15 @@ export default function LoreCharactersPage() {
       const charJson = charRes.ok ? await charRes.json() : { character: null }
       const charData = charJson.character
 
-      const [{ data: followsData }, { data: chars }, { data: tags }, { data: places }] = await Promise.all([
-        lore.from('lore_follows').select('*').eq('user_id', session.user.id),
-        lore.from('lore_characters').select('id, character_name'),
-        lore.from('lore_tags').select('id, name, is_taboo').eq('is_taboo', false),
-        lore.from('lore_yarns').select('place').not('place', 'is', null),
-      ])
+      const refRes = await fetch('/api/lore/ref')
+      const ref = refRes.ok ? await refRes.json() : { chars: [], tags: [], follows: [], places: [] }
 
       setMyChar(charData)
       setNewName(charData?.character_name || '')
-      setFollows(followsData || [])
-      setAllChars(chars || [])
-      setAllTags(tags || [])
-      setAllPlaces(Array.from(new Set((places || []).map((p: any) => p.place).filter(Boolean))) as string[])
+      setFollows(ref.follows)
+      setAllChars(ref.chars)
+      setAllTags((ref.tags as any[]).filter((t: any) => !t.is_taboo))
+      setAllPlaces(ref.places)
       setLoading(false)
     }
     init()

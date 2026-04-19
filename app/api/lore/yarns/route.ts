@@ -1,68 +1,45 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { getLoreSession } from '@/lib/supabase/lore-api'
 import { createLoreAdminClient } from '@/lib/supabase/lore-admin'
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const session = await getLoreSession()
   if (!session) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
 
-  const mode = new URL(req.url).searchParams.get('mode') || 'index'
   const lore = createLoreAdminClient()
 
-  // Dashboard live feed — recent 30, lightweight
-  if (mode === 'feed') {
-    const { data, error } = await lore
+  const [
+    { data: yarns },
+    { data: chars },
+    { data: tags },
+    { data: follows },
+    { data: myHearts },
+    { data: allHearts },
+  ] = await Promise.all([
+    lore
       .from('lore_yarns')
-      .select('id, title, place, created_at, author_id, lore_characters(character_name)')
-      .order('created_at', { ascending: false })
-      .limit(30)
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ yarns: data || [] })
+      .select('*, lore_characters(id, character_name), lore_events(id, title), lore_yarn_tags(lore_tags(id, name, is_taboo)), lore_yarn_characters(lore_characters(id, character_name))')
+      .order('year')
+      .order('month', { nullsFirst: false })
+      .order('day', { nullsFirst: false }),
+    lore.from('lore_characters').select('id, character_name'),
+    lore.from('lore_tags').select('id, name, is_taboo').eq('is_taboo', false),
+    lore.from('lore_follows').select('follow_type, follow_value').eq('user_id', session.user.id),
+    lore.from('lore_hearts').select('yarn_id').eq('user_id', session.user.id).not('yarn_id', 'is', null),
+    lore.from('lore_hearts').select('yarn_id').not('yarn_id', 'is', null),
+  ])
+
+  const heartCounts: Record<string, number> = {}
+  for (const h of (allHearts || [])) {
+    if (h.yarn_id) heartCounts[h.yarn_id] = (heartCounts[h.yarn_id] || 0) + 1
   }
 
-  // Random selection — ids only
-  if (mode === 'ids') {
-    const { data, error } = await lore.from('lore_yarns').select('id')
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ yarns: data || [] })
-  }
-
-  // Same day — lightweight list for yarn view page
-  if (mode === 'sameday') {
-    const url = new URL(req.url)
-    const day = url.searchParams.get('day')
-    const month = url.searchParams.get('month')
-    const exclude = url.searchParams.get('exclude')
-    let q = lore.from('lore_yarns').select('id, title')
-    if (day) q = q.eq('day', parseInt(day))
-    if (month) q = q.eq('month', parseInt(month))
-    if (exclude) q = q.neq('id', exclude)
-    const { data, error } = await q
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ yarns: data || [] })
-  }
-
-  // Same event — lightweight list for yarn view page
-  if (mode === 'sameevent') {
-    const url = new URL(req.url)
-    const event_id = url.searchParams.get('event_id')
-    const exclude = url.searchParams.get('exclude')
-    if (!event_id) return NextResponse.json({ yarns: [] })
-    let q = lore.from('lore_yarns').select('id, title').eq('event_id', event_id)
-    if (exclude) q = q.neq('id', exclude)
-    const { data, error } = await q
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ yarns: data || [] })
-  }
-
-  // Full index — all yarns with joins, ordered chronologically
-  const { data, error } = await lore
-    .from('lore_yarns')
-    .select('*, lore_characters(id, character_name), lore_events(id, title), lore_yarn_tags(lore_tags(id, name, is_taboo)), lore_yarn_characters(lore_characters(id, character_name))')
-    .order('year', { ascending: true })
-    .order('month', { ascending: true, nullsFirst: false })
-    .order('day', { ascending: true, nullsFirst: false })
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ yarns: data || [] })
+  return NextResponse.json({
+    yarns: yarns || [],
+    chars: chars || [],
+    tags: tags || [],
+    follows: follows || [],
+    myHeartIds: (myHearts || []).map((h: any) => h.yarn_id),
+    heartCounts,
+  })
 }

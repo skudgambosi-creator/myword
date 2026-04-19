@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { createLoreClient } from '@/lib/supabase/lore-client'
 import Nav from '@/components/layout/Nav'
 
 function LoreFooter() {
@@ -24,7 +23,6 @@ export default function YarnPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const mainSupa = createClient()
-  const lore = createLoreClient()
 
   const [userId, setUserId] = useState<string | null>(null)
   const [userCharId, setUserCharId] = useState<string | null>(null)
@@ -45,47 +43,23 @@ export default function YarnPage() {
       if (!session) { router.push('/login'); return }
       setUserId(session.user.id)
 
-      const [{ data: yarnData }, { data: charData }] = await Promise.all([
-        lore.from('lore_yarns').select('*, lore_characters(id, character_name, user_id), lore_events(id, title), lore_yarn_tags(lore_tags(id, name, is_taboo)), lore_yarn_characters(lore_characters(id, character_name, user_id))').eq('id', id).single(),
-        lore.from('lore_characters').select('id').eq('user_id', session.user.id).single(),
-      ])
+      const res = await fetch(`/api/lore/yarn/${id}/detail`)
+      if (!res.ok) { router.push('/lore/index'); return }
+      const data = await res.json()
 
-      if (!yarnData) { router.push('/lore/index'); return }
-      setYarn(yarnData)
+      setYarn(data.yarn)
+      setUserCharId(data.myCharId)
+      setIsHearted(data.isHearted)
+      setConcurCount(data.concurCount)
+      setHasConcurred(data.hasConcurred)
+      setValidateCount(data.validateCount)
+      setHasValidated(data.hasValidated)
+      setSameDayYarns(data.sameDayYarns)
+      setSameEventYarns(data.sameEventYarns)
+      setCharNavYarns(data.charNavMap)
 
-      const charId = (charData as any)?.id || null
-      setUserCharId(charId)
-
-      // Check if user is mentioned in this yarn
-      const mentionedChars: any[] = (yarnData.lore_yarn_characters || []).map((yc: any) => yc.lore_characters)
-      const isMentioned = mentionedChars.some((c: any) => c?.user_id === session.user.id)
-      setCanValidate(isMentioned)
-
-      const [{ data: heartData }, { data: concurs }, { data: validates }, { data: myValidate }, { data: myConcur }] = await Promise.all([
-        lore.from('lore_hearts').select('user_id').eq('user_id', session.user.id).eq('yarn_id', id).single(),
-        lore.from('lore_concurs').select('user_id').eq('yarn_id', id),
-        lore.from('lore_validates').select('user_id').eq('yarn_id', id),
-        lore.from('lore_validates').select('user_id').eq('yarn_id', id).eq('user_id', session.user.id).single(),
-        lore.from('lore_concurs').select('user_id').eq('yarn_id', id).eq('user_id', session.user.id).single(),
-      ])
-
-      setIsHearted(!!heartData)
-      setConcurCount((concurs || []).length)
-      setValidateCount((validates || []).length)
-      setHasValidated(!!myValidate)
-      setHasConcurred(!!myConcur)
-
-      // Same day yarns
-      if (yarnData.day && yarnData.month) {
-        const { data: sameDay } = await lore.from('lore_yarns').select('id, title').eq('day', yarnData.day).eq('month', yarnData.month).neq('id', id)
-        setSameDayYarns(sameDay || [])
-      }
-
-      // Same event yarns
-      if (yarnData.event_id) {
-        const { data: sameEvent } = await lore.from('lore_yarns').select('id, title').eq('event_id', yarnData.event_id).neq('id', id)
-        setSameEventYarns(sameEvent || [])
-      }
+      const mentionedChars: any[] = (data.yarn.lore_yarn_characters || []).map((yc: any) => yc.lore_characters)
+      setCanValidate(mentionedChars.some((c: any) => c?.user_id === session.user.id))
 
       setLoading(false)
     }
@@ -129,28 +103,7 @@ export default function YarnPage() {
     }
   }
 
-  const getCharPrevNext = async (charId: string) => {
-    const { data: allCharYarns } = await lore.from('lore_yarn_characters').select('yarn_id, lore_yarns(id, year, month, day)').eq('character_id', charId)
-    return (allCharYarns || [])
-      .map((yc: any) => yc.lore_yarns)
-      .filter(Boolean)
-      .sort((a: any, b: any) => {
-        if (a.year !== b.year) return a.year - b.year
-        if ((a.month || 0) !== (b.month || 0)) return (a.month || 0) - (b.month || 0)
-        return (a.day || 0) - (b.day || 0)
-      })
-  }
-
   const [charNavYarns, setCharNavYarns] = useState<Record<string, any[]>>({})
-
-  useEffect(() => {
-    if (!yarn) return
-    const mentionedChars: any[] = (yarn.lore_yarn_characters || []).map((yc: any) => yc.lore_characters).filter(Boolean)
-    mentionedChars.forEach(async (char: any) => {
-      const sorted = await getCharPrevNext(char.id)
-      setCharNavYarns(prev => ({ ...prev, [char.id]: sorted }))
-    })
-  }, [yarn])
 
   const actionBtn = (active: boolean, red?: boolean): React.CSSProperties => ({
     padding: '8px 16px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em',
