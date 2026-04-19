@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { createLoreClient } from '@/lib/supabase/lore-client'
 import Nav from '@/components/layout/Nav'
 
 function LoreFooter() {
@@ -23,7 +24,10 @@ export default function YarnPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const mainSupa = createClient()
+  const lore = createLoreClient()
 
+  const [userId, setUserId] = useState<string | null>(null)
+  const [userCharId, setUserCharId] = useState<string | null>(null)
   const [yarn, setYarn] = useState<any>(null)
   const [isHearted, setIsHearted] = useState(false)
   const [concurCount, setConcurCount] = useState(0)
@@ -33,75 +37,120 @@ export default function YarnPage() {
   const [canValidate, setCanValidate] = useState(false)
   const [sameDayYarns, setSameDayYarns] = useState<any[]>([])
   const [sameEventYarns, setSameEventYarns] = useState<any[]>([])
-  const [charNavYarns, setCharNavYarns] = useState<Record<string, any[]>>({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const init = async () => {
       const { data: { session } } = await mainSupa.auth.getSession()
       if (!session) { router.push('/login'); return }
+      setUserId(session.user.id)
 
-      // Load full yarn + interactions via admin API
-      const res = await fetch(`/api/lore/yarn/${id}?full=1`)
-      if (!res.ok) { router.push('/lore/index'); return }
-      const { yarn: yarnData, interactions, userCharId } = await res.json()
+      const [{ data: yarnData }, { data: charData }] = await Promise.all([
+        lore.from('lore_yarns').select('*, lore_characters(id, character_name, user_id), lore_events(id, title), lore_yarn_tags(lore_tags(id, name, is_taboo)), lore_yarn_characters(lore_characters(id, character_name, user_id))').eq('id', id).single(),
+        lore.from('lore_characters').select('id').eq('user_id', session.user.id).single(),
+      ])
 
+      if (!yarnData) { router.push('/lore/index'); return }
       setYarn(yarnData)
-      setIsHearted(interactions.isHearted)
-      setConcurCount(interactions.concurCount)
-      setHasConcurred(interactions.hasConcurred)
-      setValidateCount(interactions.validateCount)
-      setHasValidated(interactions.hasValidated)
 
-      // Check if user is mentioned (for validate button)
+      const charId = (charData as any)?.id || null
+      setUserCharId(charId)
+
+      // Check if user is mentioned in this yarn
       const mentionedChars: any[] = (yarnData.lore_yarn_characters || []).map((yc: any) => yc.lore_characters)
       const isMentioned = mentionedChars.some((c: any) => c?.user_id === session.user.id)
       setCanValidate(isMentioned)
 
+      const [{ data: heartData }, { data: concurs }, { data: validates }, { data: myValidate }, { data: myConcur }] = await Promise.all([
+        lore.from('lore_hearts').select('user_id').eq('user_id', session.user.id).eq('yarn_id', id).single(),
+        lore.from('lore_concurs').select('user_id').eq('yarn_id', id),
+        lore.from('lore_validates').select('user_id').eq('yarn_id', id),
+        lore.from('lore_validates').select('user_id').eq('yarn_id', id).eq('user_id', session.user.id).single(),
+        lore.from('lore_concurs').select('user_id').eq('yarn_id', id).eq('user_id', session.user.id).single(),
+      ])
+
+      setIsHearted(!!heartData)
+      setConcurCount((concurs || []).length)
+      setValidateCount((validates || []).length)
+      setHasValidated(!!myValidate)
+      setHasConcurred(!!myConcur)
+
       // Same day yarns
       if (yarnData.day && yarnData.month) {
-        const sdRes = await fetch(`/api/lore/yarns?mode=sameday&day=${yarnData.day}&month=${yarnData.month}&year=${yarnData.year}&exclude=${id}`)
-        if (sdRes.ok) {
-          const sdJson = await sdRes.json()
-          setSameDayYarns(sdJson.yarns || [])
-        }
+        const { data: sameDay } = await lore.from('lore_yarns').select('id, title').eq('day', yarnData.day).eq('month', yarnData.month).neq('id', id)
+        setSameDayYarns(sameDay || [])
       }
 
       // Same event yarns
       if (yarnData.event_id) {
-        const seRes = await fetch(`/api/lore/yarns?mode=sameevent&event_id=${yarnData.event_id}&exclude=${id}`)
-        if (seRes.ok) {
-          const seJson = await seRes.json()
-          setSameEventYarns(seJson.yarns || [])
-        }
+        const { data: sameEvent } = await lore.from('lore_yarns').select('id, title').eq('event_id', yarnData.event_id).neq('id', id)
+        setSameEventYarns(sameEvent || [])
       }
 
       setLoading(false)
-
-      // Load character nav yarns (non-blocking)
-      mentionedChars.filter(Boolean).forEach(async (char: any) => {
-        const navRes = await fetch(`/api/lore/character/${char.id}/yarns`)
-        if (navRes.ok) {
-          const navJson = await navRes.json()
-          setCharNavYarns(prev => ({ ...prev, [char.id]: navJson.yarns || [] }))
-        }
-      })
     }
     init()
   }, [id])
 
-  const interact = async (type: 'heart' | 'concur' | 'validate', isActive: boolean) => {
-    // Optimistic update
-    if (type === 'heart') setIsHearted(!isActive)
-    if (type === 'concur') { setHasConcurred(!isActive); setConcurCount(c => isActive ? c - 1 : c + 1) }
-    if (type === 'validate') { setHasValidated(!isActive); setValidateCount(c => isActive ? c - 1 : c + 1) }
-
-    await fetch(`/api/lore/yarn/${id}/interact`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type, action: isActive ? 'remove' : 'add' }),
-    })
+  const toggleHeart = async () => {
+    if (!userId) return
+    if (isHearted) {
+      await fetch(`/api/lore/yarn/${id}/heart`, { method: 'DELETE' })
+      setIsHearted(false)
+    } else {
+      await fetch(`/api/lore/yarn/${id}/heart`, { method: 'POST' })
+      setIsHearted(true)
+    }
   }
+
+  const toggleConcur = async () => {
+    if (!userId) return
+    if (hasConcurred) {
+      await fetch(`/api/lore/yarn/${id}/concur`, { method: 'DELETE' })
+      setHasConcurred(false)
+      setConcurCount(c => c - 1)
+    } else {
+      await fetch(`/api/lore/yarn/${id}/concur`, { method: 'POST' })
+      setHasConcurred(true)
+      setConcurCount(c => c + 1)
+    }
+  }
+
+  const toggleValidate = async () => {
+    if (!userId || !canValidate) return
+    if (hasValidated) {
+      await fetch(`/api/lore/yarn/${id}/validate`, { method: 'DELETE' })
+      setHasValidated(false)
+      setValidateCount(c => c - 1)
+    } else {
+      await fetch(`/api/lore/yarn/${id}/validate`, { method: 'POST' })
+      setHasValidated(true)
+      setValidateCount(c => c + 1)
+    }
+  }
+
+  const getCharPrevNext = async (charId: string) => {
+    const { data: allCharYarns } = await lore.from('lore_yarn_characters').select('yarn_id, lore_yarns(id, year, month, day)').eq('character_id', charId)
+    return (allCharYarns || [])
+      .map((yc: any) => yc.lore_yarns)
+      .filter(Boolean)
+      .sort((a: any, b: any) => {
+        if (a.year !== b.year) return a.year - b.year
+        if ((a.month || 0) !== (b.month || 0)) return (a.month || 0) - (b.month || 0)
+        return (a.day || 0) - (b.day || 0)
+      })
+  }
+
+  const [charNavYarns, setCharNavYarns] = useState<Record<string, any[]>>({})
+
+  useEffect(() => {
+    if (!yarn) return
+    const mentionedChars: any[] = (yarn.lore_yarn_characters || []).map((yc: any) => yc.lore_characters).filter(Boolean)
+    mentionedChars.forEach(async (char: any) => {
+      const sorted = await getCharPrevNext(char.id)
+      setCharNavYarns(prev => ({ ...prev, [char.id]: sorted }))
+    })
+  }, [yarn])
 
   const actionBtn = (active: boolean, red?: boolean): React.CSSProperties => ({
     padding: '8px 16px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em',
@@ -121,6 +170,7 @@ export default function YarnPage() {
 
   const mentionedChars: any[] = (yarn.lore_yarn_characters || []).map((yc: any) => yc.lore_characters).filter(Boolean)
   const tags: any[] = (yarn.lore_yarn_tags || []).map((yt: any) => yt.lore_tags).filter((t: any) => t && !t.is_taboo)
+  const tabooTags: any[] = (yarn.lore_yarn_tags || []).map((yt: any) => yt.lore_tags).filter((t: any) => t && t.is_taboo)
   const author = (yarn.lore_characters as any)?.character_name
 
   // Extract media
@@ -221,13 +271,13 @@ export default function YarnPage() {
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
-          <button onClick={() => interact('heart', isHearted)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: isHearted ? '#C85A5A' : '#ccc', padding: 0, fontFamily: 'inherit', lineHeight: 1, marginRight: 8 }}>
+          <button onClick={toggleHeart} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: isHearted ? '#C85A5A' : '#ccc', padding: 0, fontFamily: 'inherit', lineHeight: 1, marginRight: 8 }}>
             {isHearted ? '♥' : '♡'}
           </button>
-          <button onClick={() => interact('concur', hasConcurred)} style={actionBtn(hasConcurred)}>
+          <button onClick={toggleConcur} style={actionBtn(hasConcurred)}>
             CONCUR [{concurCount}]
           </button>
-          <button onClick={() => interact('validate', hasValidated)} disabled={!canValidate} style={{ ...actionBtn(hasValidated, true), opacity: canValidate ? 1 : 0.35, cursor: canValidate ? 'pointer' : 'default' }}>
+          <button onClick={toggleValidate} disabled={!canValidate} style={{ ...actionBtn(hasValidated, true), opacity: canValidate ? 1 : 0.35, cursor: canValidate ? 'pointer' : 'default' }}>
             VALIDATE [{validateCount}]
           </button>
           {!canValidate && (

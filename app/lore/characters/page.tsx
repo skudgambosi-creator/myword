@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { createLoreClient } from '@/lib/supabase/lore-client'
 import Nav from '@/components/layout/Nav'
 
 function LoreFooter() {
@@ -25,6 +26,7 @@ function SectionHeader({ children, action }: { children: React.ReactNode; action
 export default function LoreCharactersPage() {
   const router = useRouter()
   const mainSupa = createClient()
+  const lore = createLoreClient()
 
   const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -50,27 +52,24 @@ export default function LoreCharactersPage() {
       if (!session) { router.push('/login'); return }
       setUserId(session.user.id)
 
-      // All data via admin API (bypasses RLS)
-      const [charRes, followsRes, charsRes, tagsRes, placesRes] = await Promise.all([
-        fetch('/api/lore/character'),
-        fetch('/api/lore/follows'),
-        fetch('/api/lore/characters'),
-        fetch('/api/lore/tags'),
-        fetch('/api/lore/places'),
-      ])
+      // Fetch character via API (uses service role key, bypasses RLS)
+      const charRes = await fetch('/api/lore/character')
+      const charJson = charRes.ok ? await charRes.json() : { character: null }
+      const charData = charJson.character
 
-      const charData = charRes.ok ? (await charRes.json()).character : null
-      const followsData = followsRes.ok ? (await followsRes.json()).follows : []
-      const charsData = charsRes.ok ? (await charsRes.json()).characters : []
-      const tagsData = tagsRes.ok ? (await tagsRes.json()).tags : []
-      const placesData = placesRes.ok ? (await placesRes.json()).places : []
+      const [{ data: followsData }, { data: chars }, { data: tags }, { data: places }] = await Promise.all([
+        lore.from('lore_follows').select('*').eq('user_id', session.user.id),
+        lore.from('lore_characters').select('id, character_name'),
+        lore.from('lore_tags').select('id, name, is_taboo').eq('is_taboo', false),
+        lore.from('lore_yarns').select('place').not('place', 'is', null),
+      ])
 
       setMyChar(charData)
       setNewName(charData?.character_name || '')
-      setFollows(followsData)
-      setAllChars(charsData)
-      setAllTags(tagsData)
-      setAllPlaces(placesData)
+      setFollows(followsData || [])
+      setAllChars(chars || [])
+      setAllTags(tags || [])
+      setAllPlaces(Array.from(new Set((places || []).map((p: any) => p.place).filter(Boolean))) as string[])
       setLoading(false)
     }
     init()
@@ -104,30 +103,30 @@ export default function LoreCharactersPage() {
   }
 
   const addFollow = async (type: 'character' | 'tag' | 'place', value: string) => {
-    if (!value.trim()) return
-    const trimmed = value.trim()
-    const exists = follows.some(f => f.follow_type === type && f.follow_value === trimmed)
+    if (!value.trim() || !userId) return
+    const exists = follows.some(f => f.follow_type === type && f.follow_value === value.trim())
     if (exists) return
-    // Optimistic
-    setFollows(prev => [...prev, { user_id: userId, follow_type: type, follow_value: trimmed }])
+    const res = await fetch('/api/lore/follow', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ followType: type, followValue: value.trim() }),
+    })
+    if (res.ok) {
+      setFollows(prev => [...prev, { user_id: userId, follow_type: type, follow_value: value.trim() }])
+    }
     if (type === 'character') setNewFollowChar('')
     if (type === 'tag') setNewFollowTag('')
     if (type === 'place') setNewFollowPlace('')
-    await fetch('/api/lore/follows', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ followType: type, followValue: trimmed }),
-    })
   }
 
   const removeFollow = async (type: 'character' | 'tag' | 'place', value: string) => {
-    // Optimistic
-    setFollows(prev => prev.filter(f => !(f.follow_type === type && f.follow_value === value)))
-    await fetch('/api/lore/follows', {
+    if (!userId) return
+    await fetch('/api/lore/follow', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ followType: type, followValue: value }),
     })
+    setFollows(prev => prev.filter(f => !(f.follow_type === type && f.follow_value === value)))
   }
 
   const followedChars = follows.filter(f => f.follow_type === 'character').map(f => f.follow_value)
