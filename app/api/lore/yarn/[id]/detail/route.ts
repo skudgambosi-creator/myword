@@ -30,22 +30,16 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   ])
 
   // Related yarns
-  const relatedPromises: Promise<any>[] = []
-  if (yarn.day && yarn.month) {
-    relatedPromises.push(
-      lore.from('lore_yarns').select('id, title').eq('day', yarn.day).eq('month', yarn.month).neq('id', params.id)
-    )
-  } else {
-    relatedPromises.push(Promise.resolve({ data: [] }))
-  }
-  if (yarn.event_id) {
-    relatedPromises.push(
-      lore.from('lore_yarns').select('id, title').eq('event_id', yarn.event_id).neq('id', params.id)
-    )
-  } else {
-    relatedPromises.push(Promise.resolve({ data: [] }))
-  }
-  const [{ data: sameDayYarns }, { data: sameEventYarns }] = await Promise.all(relatedPromises)
+  const [sameDayResult, sameEventResult] = await Promise.all([
+    yarn.day && yarn.month
+      ? lore.from('lore_yarns').select('id, title').eq('day', yarn.day).eq('month', yarn.month).neq('id', params.id)
+      : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+    yarn.event_id
+      ? lore.from('lore_yarns').select('id, title').eq('event_id', yarn.event_id).neq('id', params.id)
+      : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+  ])
+  const sameDayYarns = sameDayResult.data || []
+  const sameEventYarns = sameEventResult.data || []
 
   // Character navigation — per mentioned character, fetch all their yarns sorted by date
   const mentionedCharIds: string[] = ((yarn.lore_yarn_characters as any[]) || [])
