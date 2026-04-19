@@ -24,6 +24,7 @@ export default function LoreAddPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [editMode, setEditMode] = useState(false)
   const [editYarnId, setEditYarnId] = useState<string | null>(null)
+  const [contentLoaded, setContentLoaded] = useState(false)
   const [day, setDay] = useState('')
   const [month, setMonth] = useState('')
   const [year, setYear] = useState('')
@@ -57,6 +58,7 @@ export default function LoreAddPage() {
           setTitle(y.title || '')
           setBodyHtml(y.body_html || '')
         }
+        setContentLoaded(true)
       } else {
         const draft = sessionStorage.getItem('lore_yarn_draft')
         if (draft) {
@@ -67,6 +69,7 @@ export default function LoreAddPage() {
           setTitle(d.title || '')
           setBodyHtml(d.bodyHtml || '')
         }
+        setContentLoaded(true)
       }
     }
     init()
@@ -141,9 +144,12 @@ export default function LoreAddPage() {
             style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid #000', padding: '10px 0', fontSize: 15, fontFamily: 'inherit', outline: 'none', letterSpacing: '0.1em', textTransform: 'uppercase', boxSizing: 'border-box' }} />
         </div>
 
-        {/* Editor */}
-        <div style={{ border: '1px solid #ccc', marginBottom: 8 }}>
-          {userId && <LoreEditor content={bodyHtml} onChange={setBodyHtml} userId={userId} />}
+        {/* Editor — only mount after content is ready so TipTap receives correct initial value */}
+        <div style={{ border: '1px solid #ccc', marginBottom: 8, minHeight: 120 }}>
+          {userId && contentLoaded
+            ? <LoreEditor content={bodyHtml} onChange={setBodyHtml} userId={userId} />
+            : <div style={{ padding: 16, fontSize: 12, color: '#999' }}>Loading...</div>
+          }
         </div>
 
         {/* Word count */}

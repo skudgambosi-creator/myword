@@ -35,6 +35,7 @@ export default function YarnPage() {
   const [canValidate, setCanValidate] = useState(false)
   const [sameDayYarns, setSameDayYarns] = useState<any[]>([])
   const [sameEventYarns, setSameEventYarns] = useState<any[]>([])
+  const [isTabooUnlocked, setIsTabooUnlocked] = useState(true)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -57,6 +58,7 @@ export default function YarnPage() {
       setSameDayYarns(data.sameDayYarns)
       setSameEventYarns(data.sameEventYarns)
       setCharNavYarns(data.charNavMap)
+      setIsTabooUnlocked(data.isTabooUnlocked ?? true)
 
       const mentionedChars: any[] = (data.yarn.lore_yarn_characters || []).map((yc: any) => yc.lore_characters)
       setCanValidate(mentionedChars.some((c: any) => c?.user_id === session.user.id))
@@ -125,14 +127,15 @@ export default function YarnPage() {
   const tags: any[] = (yarn.lore_yarn_tags || []).map((yt: any) => yt.lore_tags).filter((t: any) => t && !t.is_taboo)
   const tabooTags: any[] = (yarn.lore_yarn_tags || []).map((yt: any) => yt.lore_tags).filter((t: any) => t && t.is_taboo)
   const author = (yarn.lore_characters as any)?.character_name
+  const isTabooed = tabooTags.length > 0 && !isTabooUnlocked
 
-  // Extract media
+  // Extract media (only when not tabooed)
   const images: string[] = []
   const audios: string[] = []
   const imgRegex = /<img[^>]+src="([^"]+)"/g
   const audioRegex = /<audio[^>]+src="([^"]+)"/g
   let m
-  const html = yarn.body_html || ''
+  const html = isTabooed ? '' : (yarn.body_html || '')
   while ((m = imgRegex.exec(html)) !== null) images.push(m[1])
   while ((m = audioRegex.exec(html)) !== null) audios.push(m[1])
 
@@ -200,11 +203,15 @@ export default function YarnPage() {
         <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '8px 0 20px' }} />
 
         {/* Body */}
-        <div
-          className="submission-card-body"
-          style={{ fontSize: 14, lineHeight: 1.9, marginBottom: 32 }}
-          dangerouslySetInnerHTML={{ __html: html.replace(/<img[^>]*>/gi, '').replace(/<audio[^>]*>[\s\S]*?<\/audio>/gi, '') }}
-        />
+        {isTabooed ? (
+          <div style={{ fontSize: 22, letterSpacing: '0.3em', color: '#ccc', marginBottom: 32, textAlign: 'center', padding: '24px 0' }}>_ _ _ _ _</div>
+        ) : (
+          <div
+            className="submission-card-body"
+            style={{ fontSize: 14, lineHeight: 1.9, marginBottom: 32 }}
+            dangerouslySetInnerHTML={{ __html: html.replace(/<img[^>]*>/gi, '').replace(/<audio[^>]*>[\s\S]*?<\/audio>/gi, '') }}
+          />
+        )}
 
         {/* Attachments */}
         {(images.length > 0 || audios.length > 0) && (

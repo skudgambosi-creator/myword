@@ -17,6 +17,8 @@ export async function GET() {
     { data: places },
     { data: allYarns },
     { data: golden },
+    { data: mapYarns },
+    { data: allHearts },
   ] = await Promise.all([
     lore
       .from('lore_yarns')
@@ -35,9 +37,16 @@ export async function GET() {
     lore.from('lore_yarns').select('place').not('place', 'is', null),
     lore.from('lore_yarns').select('id'),
     lore.from('golden_yarn_holder').select('character_name').maybeSingle(),
+    lore.from('lore_yarns').select('id, latitude, longitude').not('latitude', 'is', null),
+    lore.from('lore_hearts').select('yarn_id').not('yarn_id', 'is', null),
   ])
 
   const uniquePlaces = Array.from(new Set((places || []).map((p: any) => p.place).filter(Boolean))) as string[]
+
+  const heartCounts: Record<string, number> = {}
+  for (const h of (allHearts || [])) {
+    if (h.yarn_id) heartCounts[h.yarn_id] = (heartCounts[h.yarn_id] || 0) + 1
+  }
 
   return NextResponse.json({
     yarns: yarns || [],
@@ -48,5 +57,7 @@ export async function GET() {
     places: uniquePlaces,
     allYarnIds: (allYarns || []).map((y: any) => y.id),
     goldenHolder: (golden as any)?.character_name ?? null,
+    mapYarns: mapYarns || [],
+    heartCounts,
   })
 }

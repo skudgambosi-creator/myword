@@ -5,6 +5,9 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { createLoreClient } from '@/lib/supabase/lore-client'
 import Nav from '@/components/layout/Nav'
+import dynamic from 'next/dynamic'
+
+const WorldMap = dynamic(() => import('@/components/lore/WorldMap'), { ssr: false })
 
 // lore client kept for realtime subscriptions only (read-only channel, no auth needed)
 
@@ -39,6 +42,8 @@ export default function LoreDashboard() {
   const [follows, setFollows] = useState<any[]>([])
   const [notifications, setNotifications] = useState<any[]>([])
   const [allYarnIds, setAllYarnIds] = useState<string[]>([])
+  const [mapYarns, setMapYarns] = useState<any[]>([])
+  const [heartCounts, setHeartCounts] = useState<Record<string, number>>({})
 
   const [showFilters, setShowFilters] = useState(false)
   const [filterChar, setFilterChar] = useState('')
@@ -76,6 +81,8 @@ export default function LoreDashboard() {
       setAllPlaces(data.places)
       setAllYarnIds(data.allYarnIds)
       if (data.goldenHolder) setGoldenHolder(data.goldenHolder)
+      if (data.mapYarns) setMapYarns(data.mapYarns)
+      if (data.heartCounts) setHeartCounts(data.heartCounts)
 
       setLoading(false)
     }
@@ -304,8 +311,8 @@ export default function LoreDashboard() {
 
         {/* Map panel */}
         {showMap && (
-          <div style={{ border: '1px solid #000', marginTop: 8, height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9f9f9' }}>
-            <span style={{ fontSize: 11, color: '#bbb', letterSpacing: '0.14em', textTransform: 'uppercase' }}>MAP — YARN LOCATIONS</span>
+          <div style={{ border: '1px solid #000', marginTop: 8, height: 240 }}>
+            <WorldMap mapYarns={mapYarns} heartCounts={heartCounts} />
           </div>
         )}
 

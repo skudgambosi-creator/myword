@@ -62,7 +62,10 @@ export default function LoreAddTagPage() {
   const [placeSaved, setPlaceSaved] = useState('')
   const [placeBusy, setPlaceBusy] = useState(false)
   const [placeError, setPlaceError] = useState('')
-  const [placeSuggestions, setPlaceSuggestions] = useState<string[]>([])
+  const [placeSuggestions, setPlaceSuggestions] = useState<{ display_name: string; lat: string; lon: string }[]>([])
+  const [placeSearching, setPlaceSearching] = useState(false)
+  const [selectedPlaceLat, setSelectedPlaceLat] = useState<number | null>(null)
+  const [selectedPlaceLon, setSelectedPlaceLon] = useState<number | null>(null)
   const placeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // ── Tags (non-taboo) ──────────────────────────────────
@@ -214,15 +217,31 @@ export default function LoreAddTagPage() {
   const handlePlaceInput = (val: string) => {
     setPlace(val)
     setPlaceError('')
+
+    // Check if user selected a known suggestion (exact match → capture lat/lon)
+    const matched = placeSuggestions.find(s => s.display_name === val)
+    if (matched) {
+      setSelectedPlaceLat(parseFloat(matched.lat))
+      setSelectedPlaceLon(parseFloat(matched.lon))
+    } else {
+      setSelectedPlaceLat(null)
+      setSelectedPlaceLon(null)
+    }
+
     if (placeDebounceRef.current) clearTimeout(placeDebounceRef.current)
-    if (val.length < 3) { setPlaceSuggestions([]); return }
+    if (val.length < 3) { setPlaceSuggestions([]); setPlaceSearching(false); return }
+    setPlaceSearching(true)
     placeDebounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&format=json&limit=5`, { headers: { 'Accept-Language': 'en' } })
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&format=json&limit=8&addressdetails=1`,
+          { headers: { 'Accept-Language': 'en', 'User-Agent': 'myword-lore/1.0' } }
+        )
         const data = await res.json()
-        setPlaceSuggestions((data as any[]).map((r: any) => r.display_name))
+        setPlaceSuggestions((data as any[]).map((r: any) => ({ display_name: r.display_name, lat: r.lat, lon: r.lon })))
       } catch {}
-    }, 400)
+      setPlaceSearching(false)
+    }, 200)
   }
 
   const handleSetPlace = async () => {
@@ -232,7 +251,7 @@ export default function LoreAddTagPage() {
     const res = await fetch(`/api/lore/yarn/${yarnId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ place }),
+      body: JSON.stringify({ place, latitude: selectedPlaceLat, longitude: selectedPlaceLon }),
     })
     const data = await res.json()
     setPlaceBusy(false)
@@ -388,7 +407,10 @@ export default function LoreAddTagPage() {
     router.push('/lore/add')
   }
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
+    if (yarnId) {
+      await fetch(`/api/lore/yarn/${yarnId}/publish`, { method: 'POST' })
+    }
     sessionStorage.removeItem('lore_yarn_draft')
     sessionStorage.removeItem('lore_yarn_id')
     router.push(`/lore/yarn/${yarnId}`)
@@ -504,8 +526,9 @@ export default function LoreAddTagPage() {
                 list="place-suggestions" placeholder="Enter a place..."
                 style={inputStyle} disabled={disabled} />
               <datalist id="place-suggestions">
+                {placeSearching && <option value="" disabled>searching...</option>}
                 {placeSuggestions.length > 0
-                  ? placeSuggestions.map(p => <option key={p} value={p} />)
+                  ? placeSuggestions.map(p => <option key={p.display_name} value={p.display_name} />)
                   : allPlaces.map(p => <option key={p} value={p} />)
                 }
               </datalist>

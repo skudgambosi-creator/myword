@@ -41,6 +41,22 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const sameDayYarns = sameDayResult.data || []
   const sameEventYarns = sameEventResult.data || []
 
+  // Taboo unlock check
+  const tabooTagIds: string[] = ((yarn.lore_yarn_tags as any[]) || [])
+    .map((yt: any) => yt.lore_tags)
+    .filter((t: any) => t?.is_taboo)
+    .map((t: any) => t.id)
+
+  let isTabooUnlocked = tabooTagIds.length === 0
+  if (tabooTagIds.length > 0 && myChar) {
+    const { data: unlocks } = await lore
+      .from('lore_taboo_unlocks')
+      .select('tag_id')
+      .eq('user_id', session.user.id)
+      .in('tag_id', tabooTagIds)
+    isTabooUnlocked = (unlocks || []).length >= tabooTagIds.length
+  }
+
   // Character navigation — per mentioned character, fetch all their yarns sorted by date
   const mentionedCharIds: string[] = ((yarn.lore_yarn_characters as any[]) || [])
     .map((yc: any) => yc.lore_characters?.id)
@@ -72,6 +88,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   return NextResponse.json({
     yarn,
     myCharId: (myChar as any)?.id ?? null,
+    isTabooUnlocked,
     isHearted: !!heartRow,
     concurCount: (concurs || []).length,
     hasConcurred: !!myConcur,

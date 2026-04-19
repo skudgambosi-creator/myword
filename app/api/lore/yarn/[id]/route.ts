@@ -43,10 +43,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if ('year' in body) updates.year = parseInt(body.year)
   if ('wordCount' in body) updates.word_count = body.wordCount
 
-  // Place update
+  // Place + coordinates update
   if ('place' in body) {
     updates.place = body.place?.trim() || null
   }
+  if ('latitude' in body) updates.latitude = body.latitude != null ? parseFloat(body.latitude) : null
+  if ('longitude' in body) updates.longitude = body.longitude != null ? parseFloat(body.longitude) : null
 
   // Event: create new by name
   if (body.eventName?.trim()) {
