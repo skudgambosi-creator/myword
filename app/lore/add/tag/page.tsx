@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { createLoreClient } from '@/lib/supabase/lore-client'
 import Nav from '@/components/layout/Nav'
 
 function LoreFooter() {
@@ -39,7 +38,6 @@ function countWords(html: string) {
 export default function LoreAddTagPage() {
   const router = useRouter()
   const mainSupa = createClient()
-  const lore = createLoreClient()
 
   // ── Core ──────────────────────────────────────────────
   const [yarnId, setYarnId] = useState<string | null>(null)
@@ -98,19 +96,14 @@ export default function LoreAddTagPage() {
       if (!draftRaw) { router.push('/lore/add'); return }
       const draft = JSON.parse(draftRaw)
 
-      // Load reference data (reads work with anon key)
-      const [{ data: chars }, { data: tags }, { data: events }, { data: places }] = await Promise.all([
-        lore.from('lore_characters').select('id, character_name'),
-        lore.from('lore_tags').select('id, name, is_taboo'),
-        lore.from('lore_events').select('id, title').order('title'),
-        lore.from('lore_yarns').select('place').not('place', 'is', null),
-      ])
+      // Load reference data via admin API (bypasses RLS)
+      const refRes = await fetch('/api/lore/ref')
+      const ref = refRes.ok ? await refRes.json() : { chars: [], tags: [], events: [], places: [] }
 
-      setAllChars(chars || [])
-      setAllTags((tags || []).filter((t: any) => !t.is_taboo))
-      setAllEvents(events || [])
-      const uniquePlaces = Array.from(new Set((places || []).map((p: any) => p.place).filter(Boolean))) as string[]
-      setAllPlaces(uniquePlaces)
+      setAllChars(ref.chars)
+      setAllTags((ref.tags as any[]).filter((t: any) => !t.is_taboo))
+      setAllEvents(ref.events)
+      setAllPlaces(ref.places)
 
       // Recover existing yarn or create fresh
       const existingId = sessionStorage.getItem('lore_yarn_id')

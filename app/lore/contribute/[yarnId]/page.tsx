@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { createLoreClient } from '@/lib/supabase/lore-client'
 import Nav from '@/components/layout/Nav'
 import LoreEditor from '@/components/editor/LoreEditor'
 
@@ -26,7 +25,6 @@ export default function ContributePage() {
   const { yarnId } = useParams<{ yarnId: string }>()
   const router = useRouter()
   const mainSupa = createClient()
-  const lore = createLoreClient()
 
   const [userId, setUserId] = useState<string | null>(null)
   const [parentTitle, setParentTitle] = useState('')
@@ -80,19 +78,19 @@ export default function ContributePage() {
       if (!session) { router.push('/login'); return }
       setUserId(session.user.id)
 
-      const { data: parentYarn } = await lore.from('lore_yarns').select('title').eq('id', yarnId).single()
-      if (parentYarn) setParentTitle((parentYarn as any).title)
-
-      const [{ data: chars }, { data: tags }, { data: events }, { data: places }] = await Promise.all([
-        lore.from('lore_characters').select('id, character_name'),
-        lore.from('lore_tags').select('id, name, is_taboo'),
-        lore.from('lore_events').select('id, title').order('title'),
-        lore.from('lore_yarns').select('place').not('place', 'is', null),
+      const [parentRes, refRes] = await Promise.all([
+        fetch(`/api/lore/yarn/${yarnId}`),
+        fetch('/api/lore/ref'),
       ])
-      setAllChars(chars || [])
-      setAllTags((tags || []).filter((t: any) => !t.is_taboo))
-      setAllEvents(events || [])
-      setAllPlaces(Array.from(new Set((places || []).map((p: any) => p.place).filter(Boolean))) as string[])
+      if (parentRes.ok) {
+        const { yarn: parentYarn } = await parentRes.json()
+        if (parentYarn) setParentTitle(parentYarn.title)
+      }
+      const ref = refRes.ok ? await refRes.json() : { chars: [], tags: [], events: [], places: [] }
+      setAllChars(ref.chars)
+      setAllTags((ref.tags as any[]).filter((t: any) => !t.is_taboo))
+      setAllEvents(ref.events)
+      setAllPlaces(ref.places)
     }
     init()
   }, [yarnId])

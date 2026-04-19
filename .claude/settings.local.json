@@ -1,7 +1,16 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(npx tsc *)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(node_modules/.bin/next build *)",
+      "Bash(node node_modules/.bin/next build)",
+      "Bash(cp -r \"C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword\\\\.claude\\\\worktrees\\\\zealous-chebyshev-0327ff\\\\app\\\\api\\\\lore\\\\follow\" \"C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword\\\\app\\\\api\\\\lore\\\\follow\")",
+      "Bash(cp -r \"C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword\\\\.claude\\\\worktrees\\\\zealous-chebyshev-0327ff\\\\app\\\\api\\\\lore\\\\notification\" \"C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword\\\\app\\\\api\\\\lore\\\\notification\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword\\\\app\\\\api\\\\lore\\\\yarn\\\\[id]\\\\concur\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword\\\\app\\\\api\\\\lore\\\\yarn\\\\[id]\\\\heart\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword\\\\app\\\\api\\\\lore\\\\yarn\\\\[id]\\\\validate\")"
     ]
   }
 }

@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { createLoreClient } from '@/lib/supabase/lore-client'
 import Nav from '@/components/layout/Nav'
 
 function LoreFooter() {
@@ -23,7 +22,6 @@ function formatDate(day: number | null, month: number | null, year: number) {
 export default function LoreIndex() {
   const router = useRouter()
   const mainSupa = createClient()
-  const lore = createLoreClient()
 
   const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -45,29 +43,17 @@ export default function LoreIndex() {
       if (!session) { router.push('/login'); return }
       setUserId(session.user.id)
 
-      const [{ data: yarnsData }, { data: chars }, { data: tags }, { data: followsData }, { data: heartsData }, { data: allHeartsData }] = await Promise.all([
-        lore.from('lore_yarns').select('*, lore_characters(id, character_name), lore_events(id, title), lore_yarn_tags(lore_tags(id, name, is_taboo)), lore_yarn_characters(lore_characters(id, character_name))').order('year').order('month', { nullsFirst: false }).order('day', { nullsFirst: false }),
-        lore.from('lore_characters').select('id, character_name'),
-        lore.from('lore_tags').select('id, name, is_taboo').eq('is_taboo', false),
-        lore.from('lore_follows').select('*').eq('user_id', session.user.id),
-        lore.from('lore_hearts').select('yarn_id').eq('user_id', session.user.id).not('yarn_id', 'is', null),
-        lore.from('lore_hearts').select('yarn_id').not('yarn_id', 'is', null),
-      ])
+      const res = await fetch('/api/lore/yarns')
+      if (!res.ok) { router.push('/login'); return }
+      const data = await res.json()
 
-      setYarns(yarnsData || [])
-      setAllChars(chars || [])
-      setAllTags(tags || [])
-      setFollows(followsData || [])
-      setMyHearts(new Set((heartsData || []).map((h: any) => h.yarn_id)))
-
-      const counts: Record<string, number> = {}
-      for (const h of (allHeartsData || [])) {
-        if (h.yarn_id) counts[h.yarn_id] = (counts[h.yarn_id] || 0) + 1
-      }
-      setHeartCounts(counts)
-
-      const uniquePlaces = Array.from(new Set((yarnsData || []).map((y: any) => y.place).filter(Boolean))) as string[]
-      setAllPlaces(uniquePlaces)
+      setYarns(data.yarns)
+      setAllChars(data.chars)
+      setAllTags(data.tags)
+      setFollows(data.follows)
+      setMyHearts(new Set(data.myHeartIds))
+      setHeartCounts(data.heartCounts)
+      setAllPlaces(Array.from(new Set((data.yarns as any[]).map((y: any) => y.place).filter(Boolean))) as string[])
 
       setLoading(false)
     }

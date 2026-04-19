@@ -2,6 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getLoreSession } from '@/lib/supabase/lore-api'
 import { createLoreAdminClient } from '@/lib/supabase/lore-admin'
 
+export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+  const session = await getLoreSession()
+  if (!session) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+
+  const lore = createLoreAdminClient()
+  const { data, error } = await lore
+    .from('lore_yarns')
+    .select('id, title, created_at, author_id, place, lore_characters(character_name)')
+    .eq('id', params.id)
+    .single()
+
+  if (error || !data) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  return NextResponse.json({ yarn: data })
+}
+
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getLoreSession()
   if (!session) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })

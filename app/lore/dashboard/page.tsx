@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 import { createLoreClient } from '@/lib/supabase/lore-client'
 import Nav from '@/components/layout/Nav'
 
+// lore client kept for realtime subscriptions only (read-only channel, no auth needed)
+
 function LoreFooter() {
   return (
     <footer style={{ textAlign: 'center', padding: '48px 0 28px' }}>
@@ -36,6 +38,7 @@ export default function LoreDashboard() {
   const [allPlaces, setAllPlaces] = useState<string[]>([])
   const [follows, setFollows] = useState<any[]>([])
   const [notifications, setNotifications] = useState<any[]>([])
+  const [allYarnIds, setAllYarnIds] = useState<string[]>([])
 
   const [showFilters, setShowFilters] = useState(false)
   const [filterChar, setFilterChar] = useState('')
@@ -61,44 +64,33 @@ export default function LoreDashboard() {
         return
       }
 
-      const [{ data: yarns }, { data: chars }, { data: tags }, { data: follows }, { data: notifs }] = await Promise.all([
-        lore.from('lore_yarns').select('id, title, created_at, author_id, lore_characters(character_name)').order('created_at', { ascending: false }).limit(30),
-        lore.from('lore_characters').select('id, character_name'),
-        lore.from('lore_tags').select('id, name, is_taboo'),
-        lore.from('lore_follows').select('*').eq('user_id', session.user.id),
-        lore.from('lore_notifications').select('*, lore_yarns(title)').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(20),
-      ])
+      const res = await fetch('/api/lore/feed')
+      if (!res.ok) { router.push('/login'); return }
+      const data = await res.json()
 
-      setFeed(yarns || [])
-      setAllChars(chars || [])
-      setAllTags((tags || []).filter((t: any) => !t.is_taboo))
-      setFollows(follows || [])
-      setNotifications(notifs || [])
-
-      // Collect places
-      const { data: places } = await lore.from('lore_yarns').select('place').not('place', 'is', null)
-      const uniquePlaces = Array.from(new Set((places || []).map((p: any) => p.place).filter(Boolean))) as string[]
-      setAllPlaces(uniquePlaces)
-
-      // Golden yarn holder from view
-      const { data: golden } = await lore.from('golden_yarn_holder').select('character_name').single()
-      if (golden) setGoldenHolder((golden as any).character_name)
+      setFeed(data.yarns)
+      setAllChars(data.chars)
+      setAllTags(data.tags)
+      setFollows(data.follows)
+      setNotifications(data.notifications)
+      setAllPlaces(data.places)
+      setAllYarnIds(data.allYarnIds)
+      if (data.goldenHolder) setGoldenHolder(data.goldenHolder)
 
       setLoading(false)
     }
     init()
   }, [])
 
-  // Realtime subscription
+  // Realtime subscription — channel only; individual yarn fetched via admin API
   useEffect(() => {
     const channel = lore.channel('lore-yarns-feed')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'lore_yarns' }, async (payload) => {
-        const { data: fullYarn } = await lore
-          .from('lore_yarns')
-          .select('id, title, created_at, author_id, lore_characters(character_name)')
-          .eq('id', payload.new.id)
-          .single()
-        if (fullYarn) setFeed(prev => [fullYarn, ...prev.slice(0, 29)])
+        const res = await fetch(`/api/lore/yarn/${payload.new.id}`)
+        if (res.ok) {
+          const { yarn } = await res.json()
+          if (yarn) setFeed(prev => [yarn, ...prev.slice(0, 29)])
+        }
       })
       .subscribe()
     return () => { lore.removeChannel(channel) }
@@ -115,11 +107,10 @@ export default function LoreDashboard() {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const handleRandomYarn = async () => {
-    const { data } = await lore.from('lore_yarns').select('id')
-    if (!data || data.length === 0) return
-    const random = data[Math.floor(Math.random() * data.length)]
-    router.push(`/lore/yarn/${random.id}`)
+  const handleRandomYarn = () => {
+    if (allYarnIds.length === 0) return
+    const id = allYarnIds[Math.floor(Math.random() * allYarnIds.length)]
+    router.push(`/lore/yarn/${id}`)
   }
 
   const markRead = async (id: string) => {
@@ -185,8 +176,8 @@ export default function LoreDashboard() {
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => setShowFilters(f => !f)} style={btnStyle(showFilters)}>⊞ FILTER</button>
               <button onClick={async () => {
-                const { data } = await lore.from('lore_yarns').select('id, title, created_at, author_id, lore_characters(character_name)').order('created_at', { ascending: false }).limit(30)
-                setFeed(data || [])
+                const res = await fetch('/api/lore/feed')
+                if (res.ok) { const d = await res.json(); setFeed(d.yarns) }
               }} style={btnStyle()}>↺ REFRESH</button>
             </div>
           </div>
