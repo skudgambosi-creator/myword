@@ -2,6 +2,62 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getLoreSession } from '@/lib/supabase/lore-api'
 import { createLoreAdminClient } from '@/lib/supabase/lore-admin'
 
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  const session = await getLoreSession()
+  if (!session) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+
+  const full = new URL(req.url).searchParams.get('full') === '1'
+  const lore = createLoreAdminClient()
+
+  if (full) {
+    // Full yarn with all joins — for the yarn view page
+    const { data, error } = await lore
+      .from('lore_yarns')
+      .select('*, lore_characters(id, character_name, user_id), lore_events(id, title), lore_yarn_tags(lore_tags(id, name, is_taboo)), lore_yarn_characters(lore_characters(id, character_name, user_id))')
+      .eq('id', params.id)
+      .single()
+    if (error || !data) return NextResponse.json({ error: error?.message || 'Not found' }, { status: 404 })
+
+    // Fetch interactions for this user
+    const [{ data: heartData }, { data: concurs }, { data: validates }, { data: myValidate }, { data: myConcur }] = await Promise.all([
+      lore.from('lore_hearts').select('user_id').eq('user_id', session.user.id).eq('yarn_id', params.id).maybeSingle(),
+      lore.from('lore_concurs').select('user_id').eq('yarn_id', params.id),
+      lore.from('lore_validates').select('user_id').eq('yarn_id', params.id),
+      lore.from('lore_validates').select('user_id').eq('yarn_id', params.id).eq('user_id', session.user.id).maybeSingle(),
+      lore.from('lore_concurs').select('user_id').eq('yarn_id', params.id).eq('user_id', session.user.id).maybeSingle(),
+    ])
+
+    // Fetch character — needed for user's character id
+    const { data: charData } = await lore
+      .from('lore_characters')
+      .select('id')
+      .eq('user_id', session.user.id)
+      .maybeSingle()
+
+    return NextResponse.json({
+      yarn: data,
+      interactions: {
+        isHearted: !!heartData,
+        concurCount: (concurs || []).length,
+        hasConcurred: !!myConcur,
+        validateCount: (validates || []).length,
+        hasValidated: !!myValidate,
+      },
+      userCharId: charData?.id || null,
+    })
+  }
+
+  // Lightweight — for Realtime handler
+  const { data, error } = await lore
+    .from('lore_yarns')
+    .select('id, title, created_at, author_id, lore_characters(character_name)')
+    .eq('id', params.id)
+    .single()
+
+  if (error || !data) return NextResponse.json({ error: error?.message || 'Not found' }, { status: 404 })
+  return NextResponse.json({ yarn: data })
+}
+
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getLoreSession()
   if (!session) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })

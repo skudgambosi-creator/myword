@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { createLoreClient } from '@/lib/supabase/lore-client'
 import Nav from '@/components/layout/Nav'
 
 function LoreFooter() {
@@ -39,7 +38,6 @@ function countWords(html: string) {
 export default function LoreAddTagPage() {
   const router = useRouter()
   const mainSupa = createClient()
-  const lore = createLoreClient()
 
   // ── Core ──────────────────────────────────────────────
   const [yarnId, setYarnId] = useState<string | null>(null)
@@ -98,19 +96,23 @@ export default function LoreAddTagPage() {
       if (!draftRaw) { router.push('/lore/add'); return }
       const draft = JSON.parse(draftRaw)
 
-      // Load reference data (reads work with anon key)
-      const [{ data: chars }, { data: tags }, { data: events }, { data: places }] = await Promise.all([
-        lore.from('lore_characters').select('id, character_name'),
-        lore.from('lore_tags').select('id, name, is_taboo'),
-        lore.from('lore_events').select('id, title').order('title'),
-        lore.from('lore_yarns').select('place').not('place', 'is', null),
+      // All reference data via admin API (bypasses RLS)
+      const [charsRes, tagsRes, eventsRes, placesRes] = await Promise.all([
+        fetch('/api/lore/characters'),
+        fetch('/api/lore/tags?all=1'),
+        fetch('/api/lore/events'),
+        fetch('/api/lore/places'),
       ])
 
-      setAllChars(chars || [])
-      setAllTags((tags || []).filter((t: any) => !t.is_taboo))
-      setAllEvents(events || [])
-      const uniquePlaces = Array.from(new Set((places || []).map((p: any) => p.place).filter(Boolean))) as string[]
-      setAllPlaces(uniquePlaces)
+      const charsJson = charsRes.ok ? await charsRes.json() : { characters: [] }
+      const tagsJson = tagsRes.ok ? await tagsRes.json() : { tags: [] }
+      const eventsJson = eventsRes.ok ? await eventsRes.json() : { events: [] }
+      const placesJson = placesRes.ok ? await placesRes.json() : { places: [] }
+
+      setAllChars(charsJson.characters)
+      setAllTags((tagsJson.tags || []).filter((t: any) => !t.is_taboo))
+      setAllEvents(eventsJson.events || [])
+      setAllPlaces(placesJson.places || [])
 
       // Recover existing yarn or create fresh
       const existingId = sessionStorage.getItem('lore_yarn_id')

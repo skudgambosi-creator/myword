@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { createLoreClient } from '@/lib/supabase/lore-client'
 import Nav from '@/components/layout/Nav'
 import LoreEditor from '@/components/editor/LoreEditor'
 
@@ -26,7 +25,6 @@ export default function ContributePage() {
   const { yarnId } = useParams<{ yarnId: string }>()
   const router = useRouter()
   const mainSupa = createClient()
-  const lore = createLoreClient()
 
   const [userId, setUserId] = useState<string | null>(null)
   const [parentTitle, setParentTitle] = useState('')
@@ -40,17 +38,20 @@ export default function ContributePage() {
   const [bodyHtml, setBodyHtml] = useState('')
   const [writeError, setWriteError] = useState('')
 
-  // Step 2
+  // Step 2 reference data
   const [allChars, setAllChars] = useState<any[]>([])
   const [allTags, setAllTags] = useState<any[]>([])
   const [allEvents, setAllEvents] = useState<any[]>([])
   const [allPlaces, setAllPlaces] = useState<string[]>([])
+
+  // Step 2 selections
   const [selectedChars, setSelectedChars] = useState<string[]>([])
   const [newCharName, setNewCharName] = useState('')
+  const [charError, setCharError] = useState('')
   const [place, setPlace] = useState('')
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  // Tags stored as {id?, name, isTaboo} — id present for existing tags, absent for brand-new ones
+  const [selectedTags, setSelectedTags] = useState<{ id?: string; name: string; isTaboo: boolean }[]>([])
   const [newTagName, setNewTagName] = useState('')
-  const [selectedTabooTags, setSelectedTabooTags] = useState<string[]>([])
   const [newTabooTagName, setNewTabooTagName] = useState('')
   const [eventMode, setEventMode] = useState<'none' | 'existing' | 'new'>('none')
   const [selectedEventId, setSelectedEventId] = useState('')
@@ -67,19 +68,29 @@ export default function ContributePage() {
       if (!session) { router.push('/login'); return }
       setUserId(session.user.id)
 
-      const { data: parentYarn } = await lore.from('lore_yarns').select('title').eq('id', yarnId).single()
-      if (parentYarn) setParentTitle((parentYarn as any).title)
-
-      const [{ data: chars }, { data: tags }, { data: events }, { data: places }] = await Promise.all([
-        lore.from('lore_characters').select('id, character_name'),
-        lore.from('lore_tags').select('id, name, is_taboo'),
-        lore.from('lore_events').select('id, title').order('title'),
-        lore.from('lore_yarns').select('place').not('place', 'is', null),
+      // Fetch parent yarn title and all reference data via admin API
+      const [parentRes, charsRes, tagsRes, eventsRes, placesRes] = await Promise.all([
+        fetch(`/api/lore/yarn/${yarnId}`),
+        fetch('/api/lore/characters'),
+        fetch('/api/lore/tags?all=1'),
+        fetch('/api/lore/events'),
+        fetch('/api/lore/places'),
       ])
-      setAllChars(chars || [])
-      setAllTags((tags || []).filter((t: any) => !t.is_taboo))
-      setAllEvents(events || [])
-      setAllPlaces(Array.from(new Set((places || []).map((p: any) => p.place).filter(Boolean))) as string[])
+
+      if (parentRes.ok) {
+        const parentJson = await parentRes.json()
+        setParentTitle(parentJson.yarn?.title || '')
+      }
+
+      const charsJson = charsRes.ok ? await charsRes.json() : { characters: [] }
+      const tagsJson = tagsRes.ok ? await tagsRes.json() : { tags: [] }
+      const eventsJson = eventsRes.ok ? await eventsRes.json() : { events: [] }
+      const placesJson = placesRes.ok ? await placesRes.json() : { places: [] }
+
+      setAllChars(charsJson.characters || [])
+      setAllTags((tagsJson.tags || []).filter((t: any) => !t.is_taboo))
+      setAllEvents(eventsJson.events || [])
+      setAllPlaces(placesJson.places || [])
     }
     init()
   }, [yarnId])
@@ -94,78 +105,102 @@ export default function ContributePage() {
   }
 
   const toggleChar = (id: string) => setSelectedChars(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id])
-  const toggleTag = (id: string) => setSelectedTags(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id])
-  const toggleTabooTag = (id: string) => setSelectedTabooTags(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id])
 
-  const addNewChar = async () => {
-    if (!newCharName.trim()) return
-    const existing = allChars.find(c => c.character_name.toLowerCase() === newCharName.trim().toLowerCase())
+  const toggleTag = (tag: { id: string; name: string; is_taboo: boolean }) => {
+    setSelectedTags(prev => {
+      const exists = prev.some(t => t.id === tag.id)
+      return exists ? prev.filter(t => t.id !== tag.id) : [...prev, { id: tag.id, name: tag.name, isTaboo: tag.is_taboo }]
+    })
+  }
+
+  const addNewChar = () => {
+    setCharError('')
+    const trimmed = newCharName.trim()
+    if (!trimmed) return
+    const existing = allChars.find(c => c.character_name.toLowerCase() === trimmed.toLowerCase())
     if (existing) {
       if (!selectedChars.includes(existing.id)) setSelectedChars(prev => [...prev, existing.id])
     } else {
-      const { data } = await lore.from('lore_characters').insert({ character_name: newCharName.trim(), user_id: userId }).select().single()
-      if (data) { setAllChars(prev => [...prev, data]); setSelectedChars(prev => [...prev, (data as any).id]) }
+      setCharError(`"${trimmed}" is not a registered character.`)
+      return
     }
     setNewCharName('')
   }
 
-  const addNewTag = async (isTaboo: boolean) => {
+  const addNewTag = (isTaboo: boolean) => {
     const name = isTaboo ? newTabooTagName.trim() : newTagName.trim()
     if (!name) return
-    const { data } = await lore.from('lore_tags').insert({ name, is_taboo: isTaboo }).select().single()
-    if (data) {
-      if (!isTaboo) setAllTags(prev => [...prev, data])
-      const id = (data as any).id
-      isTaboo ? setSelectedTabooTags(prev => [...prev, id]) : setSelectedTags(prev => [...prev, id])
+    // Check if already in selection or known tags
+    const knownTag = allTags.find(t => t.name.toLowerCase() === name.toLowerCase())
+    if (knownTag) {
+      setSelectedTags(prev => prev.some(t => t.id === knownTag.id) ? prev : [...prev, { id: knownTag.id, name: knownTag.name, isTaboo }])
+    } else {
+      // New tag — store by name only, API will create on publish
+      setSelectedTags(prev => prev.some(t => t.name.toLowerCase() === name.toLowerCase()) ? prev : [...prev, { name, isTaboo }])
     }
     isTaboo ? setNewTabooTagName('') : setNewTagName('')
   }
 
   const handlePublish = async () => {
-    if (!userId) return
     setPublishing(true)
     setPublishError('')
 
     try {
-      let { data: authorChar } = await lore.from('lore_characters').select('id').eq('user_id', userId).single()
-      if (!authorChar) {
-        const { data: newChar } = await lore.from('lore_characters').insert({ user_id: userId, character_name: 'Unknown' }).select().single()
-        authorChar = newChar
+      // Create the yarn via API
+      const yarnRes = await fetch('/api/lore/yarn', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          bodyHtml,
+          day: day || null,
+          month: month || null,
+          year,
+          wordCount: countWords(bodyHtml),
+          parentYarnId: yarnId,
+        }),
+      })
+
+      const yarnJson = await yarnRes.json()
+      if (!yarnRes.ok) throw new Error(yarnJson.error || 'Failed to create yarn')
+
+      const newYarnId = yarnJson.yarnId
+
+      // Patch place and event
+      const patchBody: Record<string, any> = {}
+      if (place.trim()) patchBody.place = place.trim()
+      if (eventMode === 'existing' && selectedEventId) {
+        patchBody.eventId = selectedEventId
+        patchBody.eventTiming = eventTiming
+      } else if (eventMode === 'new' && newEventName.trim()) {
+        patchBody.eventName = newEventName.trim()
+        patchBody.eventTiming = eventTiming
       }
-      if (!authorChar) throw new Error('Could not find character')
-
-      let eventId: string | null = null
-      if (eventMode === 'existing' && selectedEventId) eventId = selectedEventId
-      else if (eventMode === 'new' && newEventName.trim()) {
-        const { data: newEvent } = await lore.from('lore_events').insert({ title: newEventName.trim() }).select().single()
-        if (newEvent) eventId = (newEvent as any).id
+      if (Object.keys(patchBody).length > 0) {
+        await fetch(`/api/lore/yarn/${newYarnId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(patchBody),
+        })
       }
 
-      const wc = countWords(bodyHtml)
+      // Add character mentions
+      await Promise.all(selectedChars.map(characterId =>
+        fetch(`/api/lore/yarn/${newYarnId}/character`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ characterId }),
+        })
+      ))
 
-      const { data: newYarn, error: yarnErr } = await lore.from('lore_yarns').insert({
-        author_id: (authorChar as any).id,
-        title, body_html: bodyHtml,
-        day: day ? parseInt(day) : null,
-        month: month ? parseInt(month) : null,
-        year: parseInt(year),
-        place: place.trim() || null,
-        event_id: eventId,
-        event_timing: eventId ? eventTiming : null,
-        parent_yarn_id: yarnId,
-        word_count: wc,
-      }).select().single()
-
-      if (yarnErr || !newYarn) throw new Error(yarnErr?.message || 'Failed to save yarn')
-
-      const newYarnId = (newYarn as any).id
-
-      if ([...selectedTags, ...selectedTabooTags].length > 0) {
-        await lore.from('lore_yarn_tags').insert([...selectedTags, ...selectedTabooTags].map(tag_id => ({ yarn_id: newYarnId, tag_id })))
-      }
-      if (selectedChars.length > 0) {
-        await lore.from('lore_yarn_characters').insert(selectedChars.map(character_id => ({ yarn_id: newYarnId, character_id })))
-      }
+      // Add tags
+      await Promise.all([...selectedTags, ...selectedTabooTags].map(tagId =>
+        fetch(`/api/lore/yarn/${newYarnId}/tag`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tagId }),
+        })
+      ))
 
       router.push(`/lore/yarn/${newYarnId}`)
     } catch (e: any) {
@@ -262,9 +297,11 @@ export default function ContributePage() {
                   {allChars.map(c => <button key={c.id} onClick={() => toggleChar(c.id)} style={pillStyle(selectedChars.includes(c.id))}>{c.character_name}</button>)}
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <input value={newCharName} onChange={e => setNewCharName(e.target.value)} onKeyDown={e => e.key === 'Enter' && addNewChar()} placeholder="Add character..." style={{ flex: 1, background: 'none', border: 'none', borderBottom: '1px solid #ccc', padding: '6px 0', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
+                  <input value={newCharName} onChange={e => { setNewCharName(e.target.value); setCharError('') }}
+                    onKeyDown={e => e.key === 'Enter' && addNewChar()} placeholder="Add character..." style={{ flex: 1, background: 'none', border: 'none', borderBottom: '1px solid #ccc', padding: '6px 0', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
                   <button onClick={addNewChar} style={{ border: '1px solid #000', padding: '4px 12px', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit', background: 'none' }}>ADD</button>
                 </div>
+                {charError && <div style={{ fontSize: 11, color: '#C85A5A', marginTop: 6 }}>{charError}</div>}
               </div>
             </div>
 
@@ -296,6 +333,19 @@ export default function ContributePage() {
                   <input value={newTabooTagName} onChange={e => setNewTabooTagName(e.target.value)} onKeyDown={e => e.key === 'Enter' && addNewTag(true)} placeholder="Add taboo tag..." style={{ flex: 1, background: 'none', border: 'none', borderBottom: '1px solid #C85A5A', padding: '6px 0', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
                   <button onClick={() => addNewTag(true)} style={{ border: '1px solid #C85A5A', color: '#C85A5A', padding: '4px 12px', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit', background: 'none' }}>ADD</button>
                 </div>
+                {selectedTabooTags.length > 0 && (
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {selectedTabooTags.map(id => {
+                      const name = allTags.find(t => t.id === id)?.name || id
+                      return (
+                        <span key={id} style={{ border: '1px solid #C85A5A', padding: '3px 10px', fontSize: 11, color: '#C85A5A', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                          {name}
+                          <button onClick={() => setSelectedTabooTags(prev => prev.filter(t => t !== id))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#C85A5A', padding: 0, fontSize: 12, lineHeight: 1 }}>×</button>
+                        </span>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -337,8 +387,8 @@ export default function ContributePage() {
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <button onClick={() => { setStep(1); window.scrollTo(0, 0) }} style={{ background: 'none', border: '1px solid #ccc', padding: '8px 20px', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit' }}>← BACK</button>
               <div style={{ flex: 1 }} />
-              <button onClick={handlePublish} disabled={publishing} style={{ background: '#C85A5A', color: '#fff', border: '1px solid #C85A5A', padding: '8px 24px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit' }}>
-                {publishing ? '...' : 'PUBLISH'}
+              <button onClick={handlePublish} disabled={publishing} style={{ background: '#C85A5A', color: '#fff', border: '1px solid #C85A5A', padding: '8px 24px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit', opacity: publishing ? 0.6 : 1 }}>
+                {publishing ? 'PUBLISHING...' : 'PUBLISH'}
               </button>
             </div>
           </>

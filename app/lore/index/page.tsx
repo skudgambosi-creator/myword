@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { createLoreClient } from '@/lib/supabase/lore-client'
 import Nav from '@/components/layout/Nav'
 
 function LoreFooter() {
@@ -23,7 +22,6 @@ function formatDate(day: number | null, month: number | null, year: number) {
 export default function LoreIndex() {
   const router = useRouter()
   const mainSupa = createClient()
-  const lore = createLoreClient()
 
   const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -45,28 +43,28 @@ export default function LoreIndex() {
       if (!session) { router.push('/login'); return }
       setUserId(session.user.id)
 
-      const [{ data: yarnsData }, { data: chars }, { data: tags }, { data: followsData }, { data: heartsData }, { data: allHeartsData }] = await Promise.all([
-        lore.from('lore_yarns').select('*, lore_characters(id, character_name), lore_events(id, title), lore_yarn_tags(lore_tags(id, name, is_taboo)), lore_yarn_characters(lore_characters(id, character_name))').order('year').order('month', { nullsFirst: false }).order('day', { nullsFirst: false }),
-        lore.from('lore_characters').select('id, character_name'),
-        lore.from('lore_tags').select('id, name, is_taboo').eq('is_taboo', false),
-        lore.from('lore_follows').select('*').eq('user_id', session.user.id),
-        lore.from('lore_hearts').select('yarn_id').eq('user_id', session.user.id).not('yarn_id', 'is', null),
-        lore.from('lore_hearts').select('yarn_id').not('yarn_id', 'is', null),
+      // Yarns and characters via admin API (bypasses RLS)
+      const [yarnsApiRes, charsApiRes] = await Promise.all([
+        fetch('/api/lore/yarns').then(r => r.json()),
+        fetch('/api/lore/characters').then(r => r.json()),
       ])
 
-      setYarns(yarnsData || [])
-      setAllChars(chars || [])
-      setAllTags(tags || [])
-      setFollows(followsData || [])
-      setMyHearts(new Set((heartsData || []).map((h: any) => h.yarn_id)))
+      // Follows, tags, and hearts all via admin API
+      const [tagsRes, followsRes, heartsApiRes] = await Promise.all([
+        fetch('/api/lore/tags').then(r => r.json()),
+        fetch('/api/lore/follows').then(r => r.json()),
+        fetch('/api/lore/hearts').then(r => r.json()),
+      ])
 
-      const counts: Record<string, number> = {}
-      for (const h of (allHeartsData || [])) {
-        if (h.yarn_id) counts[h.yarn_id] = (counts[h.yarn_id] || 0) + 1
-      }
-      setHeartCounts(counts)
+      const yarnsData = yarnsApiRes.yarns || []
+      setYarns(yarnsData)
+      setAllChars(charsApiRes.characters || [])
+      setAllTags(tagsRes.tags || [])
+      setFollows(followsRes.follows || [])
+      setMyHearts(new Set(heartsApiRes.myHearts || []))
+      setHeartCounts(heartsApiRes.counts || {})
 
-      const uniquePlaces = Array.from(new Set((yarnsData || []).map((y: any) => y.place).filter(Boolean))) as string[]
+      const uniquePlaces = Array.from(new Set(yarnsData.map((y: any) => y.place).filter(Boolean))) as string[]
       setAllPlaces(uniquePlaces)
 
       setLoading(false)
@@ -75,16 +73,20 @@ export default function LoreIndex() {
   }, [])
 
   const toggleHeart = async (yarnId: string) => {
-    if (!userId) return
-    if (myHearts.has(yarnId)) {
-      await lore.from('lore_hearts').delete().eq('user_id', userId).eq('yarn_id', yarnId)
+    const isHearted = myHearts.has(yarnId)
+    // Optimistic update
+    if (isHearted) {
       setMyHearts(prev => { const n = new Set(prev); n.delete(yarnId); return n })
       setHeartCounts(prev => ({ ...prev, [yarnId]: Math.max(0, (prev[yarnId] || 1) - 1) }))
     } else {
-      await lore.from('lore_hearts').insert({ user_id: userId, yarn_id: yarnId })
       setMyHearts(prev => new Set(Array.from(prev).concat(yarnId)))
       setHeartCounts(prev => ({ ...prev, [yarnId]: (prev[yarnId] || 0) + 1 }))
     }
+    await fetch('/api/lore/hearts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ yarnId, action: isHearted ? 'remove' : 'add' }),
+    })
   }
 
   // Calculate golden yarns
