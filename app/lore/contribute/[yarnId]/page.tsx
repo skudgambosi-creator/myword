@@ -40,22 +40,35 @@ export default function ContributePage() {
   const [bodyHtml, setBodyHtml] = useState('')
   const [writeError, setWriteError] = useState('')
 
-  // Step 2
+  // Step 2 — reference data (reads only, anon key fine)
   const [allChars, setAllChars] = useState<any[]>([])
   const [allTags, setAllTags] = useState<any[]>([])
   const [allEvents, setAllEvents] = useState<any[]>([])
   const [allPlaces, setAllPlaces] = useState<string[]>([])
+
+  // Characters
   const [selectedChars, setSelectedChars] = useState<string[]>([])
   const [newCharName, setNewCharName] = useState('')
+  const [charError, setCharError] = useState('')
+
+  // Place
   const [place, setPlace] = useState('')
+
+  // Tags — existing (by ID) + pending new (by name)
   const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [pendingNewTagNames, setPendingNewTagNames] = useState<string[]>([])
   const [newTagName, setNewTagName] = useState('')
-  const [selectedTabooTags, setSelectedTabooTags] = useState<string[]>([])
+
+  // Taboo tags — stored by name only (resolved at publish)
+  const [pendingTabooTagNames, setPendingTabooTagNames] = useState<string[]>([])
   const [newTabooTagName, setNewTabooTagName] = useState('')
+
+  // Event
   const [eventMode, setEventMode] = useState<'none' | 'existing' | 'new'>('none')
   const [selectedEventId, setSelectedEventId] = useState('')
   const [newEventName, setNewEventName] = useState('')
   const [eventTiming, setEventTiming] = useState<'lead_up' | 'happened_at'>('happened_at')
+
   const [publishing, setPublishing] = useState(false)
   const [publishError, setPublishError] = useState('')
 
@@ -95,30 +108,38 @@ export default function ContributePage() {
 
   const toggleChar = (id: string) => setSelectedChars(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id])
   const toggleTag = (id: string) => setSelectedTags(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id])
-  const toggleTabooTag = (id: string) => setSelectedTabooTags(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id])
 
-  const addNewChar = async () => {
-    if (!newCharName.trim()) return
-    const existing = allChars.find(c => c.character_name.toLowerCase() === newCharName.trim().toLowerCase())
-    if (existing) {
-      if (!selectedChars.includes(existing.id)) setSelectedChars(prev => [...prev, existing.id])
-    } else {
-      const { data } = await lore.from('lore_characters').insert({ character_name: newCharName.trim(), user_id: userId }).select().single()
-      if (data) { setAllChars(prev => [...prev, data]); setSelectedChars(prev => [...prev, (data as any).id]) }
+  const addNewChar = () => {
+    const trimmed = newCharName.trim()
+    if (!trimmed) return
+    setCharError('')
+    const found = allChars.find(c => c.character_name.toLowerCase() === trimmed.toLowerCase())
+    if (!found) {
+      setCharError(`"${trimmed}" is not registered in Lore yet.`)
+      return
     }
+    if (!selectedChars.includes(found.id)) setSelectedChars(prev => [...prev, found.id])
     setNewCharName('')
   }
 
-  const addNewTag = async (isTaboo: boolean) => {
+  const addNewTag = (isTaboo: boolean) => {
     const name = isTaboo ? newTabooTagName.trim() : newTagName.trim()
     if (!name) return
-    const { data } = await lore.from('lore_tags').insert({ name, is_taboo: isTaboo }).select().single()
-    if (data) {
-      if (!isTaboo) setAllTags(prev => [...prev, data])
-      const id = (data as any).id
-      isTaboo ? setSelectedTabooTags(prev => [...prev, id]) : setSelectedTags(prev => [...prev, id])
+
+    if (isTaboo) {
+      if (!pendingTabooTagNames.includes(name)) setPendingTabooTagNames(prev => [...prev, name])
+      setNewTabooTagName('')
+      return
     }
-    isTaboo ? setNewTabooTagName('') : setNewTagName('')
+
+    // For non-taboo: if matches existing tag, toggle it; otherwise add as pending
+    const existing = allTags.find(t => t.name.toLowerCase() === name.toLowerCase())
+    if (existing) {
+      if (!selectedTags.includes(existing.id)) setSelectedTags(prev => [...prev, existing.id])
+    } else {
+      if (!pendingNewTagNames.includes(name)) setPendingNewTagNames(prev => [...prev, name])
+    }
+    setNewTagName('')
   }
 
   const handlePublish = async () => {
@@ -127,45 +148,85 @@ export default function ContributePage() {
     setPublishError('')
 
     try {
-      let { data: authorChar } = await lore.from('lore_characters').select('id').eq('user_id', userId).single()
-      if (!authorChar) {
-        const { data: newChar } = await lore.from('lore_characters').insert({ user_id: userId, character_name: 'Unknown' }).select().single()
-        authorChar = newChar
-      }
-      if (!authorChar) throw new Error('Could not find character')
-
-      let eventId: string | null = null
-      if (eventMode === 'existing' && selectedEventId) eventId = selectedEventId
-      else if (eventMode === 'new' && newEventName.trim()) {
-        const { data: newEvent } = await lore.from('lore_events').insert({ title: newEventName.trim() }).select().single()
-        if (newEvent) eventId = (newEvent as any).id
-      }
-
+      // 1. Create yarn via admin API
       const wc = countWords(bodyHtml)
+      const res = await fetch('/api/lore/yarn', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          bodyHtml,
+          day: day || null,
+          month: month || null,
+          year,
+          wordCount: wc,
+          parentYarnId: yarnId,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to save yarn')
+      const newYarnId = data.yarnId
 
-      const { data: newYarn, error: yarnErr } = await lore.from('lore_yarns').insert({
-        author_id: (authorChar as any).id,
-        title, body_html: bodyHtml,
-        day: day ? parseInt(day) : null,
-        month: month ? parseInt(month) : null,
-        year: parseInt(year),
-        place: place.trim() || null,
-        event_id: eventId,
-        event_timing: eventId ? eventTiming : null,
-        parent_yarn_id: yarnId,
-        word_count: wc,
-      }).select().single()
-
-      if (yarnErr || !newYarn) throw new Error(yarnErr?.message || 'Failed to save yarn')
-
-      const newYarnId = (newYarn as any).id
-
-      if ([...selectedTags, ...selectedTabooTags].length > 0) {
-        await lore.from('lore_yarn_tags').insert([...selectedTags, ...selectedTabooTags].map(tag_id => ({ yarn_id: newYarnId, tag_id })))
+      // 2. Place
+      if (place.trim()) {
+        await fetch(`/api/lore/yarn/${newYarnId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ place: place.trim() }),
+        })
       }
-      if (selectedChars.length > 0) {
-        await lore.from('lore_yarn_characters').insert(selectedChars.map(character_id => ({ yarn_id: newYarnId, character_id })))
+
+      // 3. Event
+      if (eventMode === 'existing' && selectedEventId) {
+        await fetch(`/api/lore/yarn/${newYarnId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ eventId: selectedEventId, eventTiming }),
+        })
+      } else if (eventMode === 'new' && newEventName.trim()) {
+        await fetch(`/api/lore/yarn/${newYarnId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ eventName: newEventName.trim(), eventTiming }),
+        })
       }
+
+      // 4. Tags — existing by ID, new by name, taboo by name
+      const tagRequests = [
+        ...selectedTags.map(tagId =>
+          fetch(`/api/lore/yarn/${newYarnId}/tag`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tagId }),
+          })
+        ),
+        ...pendingNewTagNames.map(tagName =>
+          fetch(`/api/lore/yarn/${newYarnId}/tag`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tagName, isTaboo: false }),
+          })
+        ),
+        ...pendingTabooTagNames.map(tagName =>
+          fetch(`/api/lore/yarn/${newYarnId}/tag`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tagName, isTaboo: true }),
+          })
+        ),
+      ]
+      await Promise.all(tagRequests)
+
+      // 5. Characters
+      await Promise.all(
+        selectedChars.map(characterId =>
+          fetch(`/api/lore/yarn/${newYarnId}/character`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ characterId }),
+          })
+        )
+      )
 
       router.push(`/lore/yarn/${newYarnId}`)
     } catch (e: any) {
@@ -262,9 +323,16 @@ export default function ContributePage() {
                   {allChars.map(c => <button key={c.id} onClick={() => toggleChar(c.id)} style={pillStyle(selectedChars.includes(c.id))}>{c.character_name}</button>)}
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <input value={newCharName} onChange={e => setNewCharName(e.target.value)} onKeyDown={e => e.key === 'Enter' && addNewChar()} placeholder="Add character..." style={{ flex: 1, background: 'none', border: 'none', borderBottom: '1px solid #ccc', padding: '6px 0', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
+                  <input value={newCharName} onChange={e => { setNewCharName(e.target.value); setCharError('') }}
+                    onKeyDown={e => e.key === 'Enter' && addNewChar()}
+                    list="contribute-chars-list" placeholder="Type a character name to add..."
+                    style={{ flex: 1, background: 'none', border: 'none', borderBottom: '1px solid #ccc', padding: '6px 0', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
+                  <datalist id="contribute-chars-list">
+                    {allChars.map(c => <option key={c.id} value={c.character_name} />)}
+                  </datalist>
                   <button onClick={addNewChar} style={{ border: '1px solid #000', padding: '4px 12px', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit', background: 'none' }}>ADD</button>
                 </div>
+                {charError && <div style={{ fontSize: 11, color: '#C85A5A', marginTop: 6 }}>{charError}</div>}
               </div>
             </div>
 
@@ -284,6 +352,11 @@ export default function ContributePage() {
               <div style={{ padding: '16px' }}>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
                   {allTags.map(t => <button key={t.id} onClick={() => toggleTag(t.id)} style={pillStyle(selectedTags.includes(t.id))}>{t.name}</button>)}
+                  {pendingNewTagNames.map(name => (
+                    <button key={name} onClick={() => setPendingNewTagNames(prev => prev.filter(n => n !== name))} style={pillStyle(true)}>
+                      {name} ×
+                    </button>
+                  ))}
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <input value={newTagName} onChange={e => setNewTagName(e.target.value)} onKeyDown={e => e.key === 'Enter' && addNewTag(false)} placeholder="Add tag..." style={{ flex: 1, background: 'none', border: 'none', borderBottom: '1px solid #ccc', padding: '6px 0', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
@@ -292,6 +365,16 @@ export default function ContributePage() {
               </div>
               <div style={{ borderTop: '1px solid #ccc', padding: '16px' }}>
                 <div style={{ fontSize: 10, color: '#C85A5A', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>TABOO TAGS</div>
+                {pendingTabooTagNames.length > 0 && (
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+                    {pendingTabooTagNames.map(name => (
+                      <span key={name} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', border: '1px solid #C85A5A', background: '#C85A5A', color: '#fff', fontSize: 11, letterSpacing: '0.06em' }}>
+                        {name}
+                        <button onClick={() => setPendingTabooTagNames(prev => prev.filter(n => n !== name))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: 0, fontSize: 12, lineHeight: 1 }}>×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                   <input value={newTabooTagName} onChange={e => setNewTabooTagName(e.target.value)} onKeyDown={e => e.key === 'Enter' && addNewTag(true)} placeholder="Add taboo tag..." style={{ flex: 1, background: 'none', border: 'none', borderBottom: '1px solid #C85A5A', padding: '6px 0', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
                   <button onClick={() => addNewTag(true)} style={{ border: '1px solid #C85A5A', color: '#C85A5A', padding: '4px 12px', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit', background: 'none' }}>ADD</button>

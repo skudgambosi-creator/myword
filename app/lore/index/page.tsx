@@ -77,11 +77,11 @@ export default function LoreIndex() {
   const toggleHeart = async (yarnId: string) => {
     if (!userId) return
     if (myHearts.has(yarnId)) {
-      await lore.from('lore_hearts').delete().eq('user_id', userId).eq('yarn_id', yarnId)
+      await fetch(`/api/lore/yarn/${yarnId}/heart`, { method: 'DELETE' })
       setMyHearts(prev => { const n = new Set(prev); n.delete(yarnId); return n })
       setHeartCounts(prev => ({ ...prev, [yarnId]: Math.max(0, (prev[yarnId] || 1) - 1) }))
     } else {
-      await lore.from('lore_hearts').insert({ user_id: userId, yarn_id: yarnId })
+      await fetch(`/api/lore/yarn/${yarnId}/heart`, { method: 'POST' })
       setMyHearts(prev => new Set(Array.from(prev).concat(yarnId)))
       setHeartCounts(prev => ({ ...prev, [yarnId]: (prev[yarnId] || 0) + 1 }))
     }

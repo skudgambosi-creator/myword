@@ -123,7 +123,7 @@ export default function LoreDashboard() {
   }
 
   const markRead = async (id: string) => {
-    await lore.from('lore_notifications').update({ read: true }).eq('id', id)
+    await fetch(`/api/lore/notification/${id}`, { method: 'PATCH' })
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
   }
 

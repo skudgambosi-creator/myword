@@ -106,8 +106,12 @@ export default function LoreCharactersPage() {
     if (!value.trim() || !userId) return
     const exists = follows.some(f => f.follow_type === type && f.follow_value === value.trim())
     if (exists) return
-    const { error } = await lore.from('lore_follows').insert({ user_id: userId, follow_type: type, follow_value: value.trim() })
-    if (!error) {
+    const res = await fetch('/api/lore/follow', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ followType: type, followValue: value.trim() }),
+    })
+    if (res.ok) {
       setFollows(prev => [...prev, { user_id: userId, follow_type: type, follow_value: value.trim() }])
     }
     if (type === 'character') setNewFollowChar('')
@@ -117,7 +121,11 @@ export default function LoreCharactersPage() {
 
   const removeFollow = async (type: 'character' | 'tag' | 'place', value: string) => {
     if (!userId) return
-    await lore.from('lore_follows').delete().eq('user_id', userId).eq('follow_type', type).eq('follow_value', value)
+    await fetch('/api/lore/follow', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ followType: type, followValue: value }),
+    })
     setFollows(prev => prev.filter(f => !(f.follow_type === type && f.follow_value === value)))
   }
 

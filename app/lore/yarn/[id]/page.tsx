@@ -95,10 +95,10 @@ export default function YarnPage() {
   const toggleHeart = async () => {
     if (!userId) return
     if (isHearted) {
-      await lore.from('lore_hearts').delete().eq('user_id', userId).eq('yarn_id', id)
+      await fetch(`/api/lore/yarn/${id}/heart`, { method: 'DELETE' })
       setIsHearted(false)
     } else {
-      await lore.from('lore_hearts').insert({ user_id: userId, yarn_id: id })
+      await fetch(`/api/lore/yarn/${id}/heart`, { method: 'POST' })
       setIsHearted(true)
     }
   }
@@ -106,11 +106,11 @@ export default function YarnPage() {
   const toggleConcur = async () => {
     if (!userId) return
     if (hasConcurred) {
-      await lore.from('lore_concurs').delete().eq('user_id', userId).eq('yarn_id', id)
+      await fetch(`/api/lore/yarn/${id}/concur`, { method: 'DELETE' })
       setHasConcurred(false)
       setConcurCount(c => c - 1)
     } else {
-      await lore.from('lore_concurs').insert({ user_id: userId, yarn_id: id })
+      await fetch(`/api/lore/yarn/${id}/concur`, { method: 'POST' })
       setHasConcurred(true)
       setConcurCount(c => c + 1)
     }
@@ -119,11 +119,11 @@ export default function YarnPage() {
   const toggleValidate = async () => {
     if (!userId || !canValidate) return
     if (hasValidated) {
-      await lore.from('lore_validates').delete().eq('user_id', userId).eq('yarn_id', id)
+      await fetch(`/api/lore/yarn/${id}/validate`, { method: 'DELETE' })
       setHasValidated(false)
       setValidateCount(c => c - 1)
     } else {
-      await lore.from('lore_validates').insert({ user_id: userId, yarn_id: id })
+      await fetch(`/api/lore/yarn/${id}/validate`, { method: 'POST' })
       setHasValidated(true)
       setValidateCount(c => c + 1)
     }
