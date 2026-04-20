@@ -10,7 +10,21 @@
       "Bash(cp -r \"C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword\\\\.claude\\\\worktrees\\\\zealous-chebyshev-0327ff\\\\app\\\\api\\\\lore\\\\notification\" \"C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword\\\\app\\\\api\\\\lore\\\\notification\")",
       "Bash(mkdir -p \"C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword\\\\app\\\\api\\\\lore\\\\yarn\\\\[id]\\\\concur\")",
       "Bash(mkdir -p \"C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword\\\\app\\\\api\\\\lore\\\\yarn\\\\[id]\\\\heart\")",
-      "Bash(mkdir -p \"C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword\\\\app\\\\api\\\\lore\\\\yarn\\\\[id]\\\\validate\")"
+      "Bash(mkdir -p \"C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword\\\\app\\\\api\\\\lore\\\\yarn\\\\[id]\\\\validate\")",
+      "Bash(cp -r 'C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword\\\\.claude\\\\worktrees\\\\zealous-chebyshev-0327ff/app/api/lore/yarns' 'C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword/app/api/lore/yarns')",
+      "Bash(cp -r 'C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword\\\\.claude\\\\worktrees\\\\zealous-chebyshev-0327ff/app/api/lore/feed' 'C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword/app/api/lore/feed')",
+      "Bash(cp -r 'C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword\\\\.claude\\\\worktrees\\\\zealous-chebyshev-0327ff/app/api/lore/ref' 'C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword/app/api/lore/ref')",
+      "Bash(mkdir -p 'C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword/app/api/lore/yarn/[id]/detail')",
+      "Bash(cp 'C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword\\\\.claude\\\\worktrees\\\\zealous-chebyshev-0327ff/app/api/lore/yarn/[id]/detail/route.ts' 'C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword/app/api/lore/yarn/[id]/detail/route.ts')",
+      "Bash(cat components/lore/WorldMap.tsx)",
+      "Bash(ls components/lore/)",
+      "Bash(grep -n \"taboo\\\\|latitude\\\\|longitude\\\\|lat\\\\|lng\\\\|lore_yarns\" app/api/lore/yarns/route.ts)",
+      "Bash(cat app/api/lore/yarns/route.ts)",
+      "Bash(npm install *)",
+      "Bash(ls node_modules/world-atlas/)",
+      "Bash(ls node_modules/topojson-client/)",
+      "Read(//c/Users/Microsoft Surface/**)",
+      "Read(//c/Users/Microsoft Surface/Downloads/**)"
     ]
   }
 }

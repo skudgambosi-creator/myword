@@ -110,7 +110,7 @@ export default function DashboardPage() {
 
         <Link
           href="/lore/gate"
-          style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+          style={{ textDecoration: 'none', color: 'inherit', display: 'block', marginBottom: 16 }}
         >
           <div
             style={{ border: '1px solid #000', padding: '28px 32px', textAlign: 'center', cursor: 'pointer', transition: 'background 0.12s, color 0.12s' }}
@@ -122,6 +122,24 @@ export default function DashboardPage() {
             </div>
             <div style={{ fontSize: 10, color: 'inherit', letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.5 }}>
               THE CHRONICLE · PASSWORD REQ.
+            </div>
+          </div>
+        </Link>
+
+        <Link
+          href="/tongues"
+          style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+        >
+          <div
+            style={{ border: '1px solid #000', padding: '28px 32px', textAlign: 'center', cursor: 'pointer', transition: 'background 0.12s, color 0.12s' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = '#000'; (e.currentTarget as HTMLDivElement).style.color = '#fff' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = ''; (e.currentTarget as HTMLDivElement).style.color = '' }}
+          >
+            <div style={{ fontSize: 18, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>
+              TONGUES
+            </div>
+            <div style={{ fontSize: 10, color: 'inherit', letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.5 }}>
+              LANGUAGE FLASHCARDS · PASSWORD REQ.
             </div>
           </div>
         </Link>

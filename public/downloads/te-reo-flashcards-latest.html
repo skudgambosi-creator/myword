@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="mi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#ffffff">
+<title>Te Reo Flashcards</title>
+<style>
+  :root { --black:#000; --white:#fff; --gray-light:#f0f0f0; --gray-mid:#ccc; --gray-dark:#444; --radius:12px; --tap:64px; }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:Georgia,'Times New Roman',serif;background:var(--white);color:var(--black);min-height:100vh;display:flex;flex-direction:column}
+  #app{display:flex;flex-direction:column;min-height:100vh}
+  .header{padding:16px 20px 12px;border-bottom:2px solid var(--black);display:flex;align-items:baseline;justify-content:space-between}
+  .header-title{font-size:20px;font-weight:bold;letter-spacing:-.3px}
+  .header-sub{font-size:13px;color:var(--gray-dark);font-style:italic}
+  .stats-bar{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--gray-mid)}
+  .stat{padding:10px 8px;text-align:center;border-right:1px solid var(--gray-mid)}
+  .stat:last-child{border-right:none}
+  .stat-n{font-size:24px;font-weight:bold}
+  .stat-l{font-size:11px;color:var(--gray-dark);margin-top:1px;letter-spacing:.04em}
+  .progress-wrap{height:6px;background:var(--gray-light)}
+  .progress-fill{height:100%;background:var(--black);transition:width .2s}
+  .deck-wrap{padding:12px 16px;border-bottom:1px solid var(--gray-mid);display:flex;gap:8px;flex-wrap:wrap}
+  .deck-btn{font-size:13px;padding:7px 14px;border-radius:20px;border:1.5px solid var(--gray-mid);background:var(--white);color:var(--gray-dark);cursor:pointer;font-family:Georgia,serif;min-height:36px}
+  .deck-btn.active{background:var(--black);color:var(--white);border-color:var(--black)}
+  .card-area{flex:1;display:flex;flex-direction:column;padding:20px 16px 16px}
+  .card{flex:1;border:2px solid var(--black);border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;cursor:pointer;min-height:240px;margin-bottom:16px;position:relative;background:var(--white);user-select:none}
+  .card.revealed{background:var(--gray-light)}
+  .card-hint{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-dark);margin-bottom:20px;font-style:italic}
+  .card-en{font-size:22px;line-height:1.4;margin-bottom:8px;color:var(--gray-dark)}
+  .card-tr{font-size:36px;font-weight:bold;line-height:1.3;color:var(--black);margin-bottom:12px}
+  .card-cat{font-size:12px;border:1px solid var(--gray-mid);border-radius:20px;padding:3px 12px;color:var(--gray-dark);font-style:italic;position:absolute;bottom:16px}
+  .audio-btn{position:absolute;top:14px;right:14px;width:44px;height:44px;border-radius:50%;border:1.5px solid var(--gray-mid);background:var(--white);cursor:pointer;display:none;align-items:center;justify-content:center;font-size:20px}
+  .audio-btn.visible{display:flex}
+  .audio-btn.playing{border-color:var(--black);background:var(--gray-light)}
+  .tap-prompt{font-size:13px;color:var(--gray-dark);text-align:center;margin-bottom:12px;font-style:italic;min-height:20px}
+  .rating-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:4px}
+  .rating-row.hidden{visibility:hidden}
+  .r-btn{min-height:var(--tap);border-radius:var(--radius);border:2px solid var(--black);background:var(--white);cursor:pointer;font-family:Georgia,serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:12px 6px}
+  .r-btn.miss{border-style:dashed}
+  .r-btn.knew{background:var(--black);color:var(--white)}
+  .r-label{font-size:15px;font-weight:bold}
+  .r-sub{font-size:10px;color:var(--gray-dark);letter-spacing:.03em}
+  .r-btn.knew .r-sub{color:var(--gray-mid)}
+  .done-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center}
+  .done-pct{font-size:72px;font-weight:bold;line-height:1;margin-bottom:8px}
+  .done-msg{font-size:18px;font-style:italic;color:var(--gray-dark);margin-bottom:32px;line-height:1.5}
+  .done-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;margin-bottom:32px}
+  .done-stat{border:1.5px solid var(--black);border-radius:var(--radius);padding:16px 8px;text-align:center}
+  .done-stat-n{font-size:28px;font-weight:bold}
+  .done-stat-l{font-size:11px;color:var(--gray-dark);margin-top:4px;letter-spacing:.04em}
+  .restart-btn{width:100%;min-height:var(--tap);border:2px solid var(--black);border-radius:var(--radius);background:var(--black);color:var(--white);font-size:18px;font-family:Georgia,serif;cursor:pointer;font-weight:bold}
+  .mode-wrap{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--gray-mid)}
+  .mode-btn{padding:10px 8px;font-size:13px;border:none;border-right:1px solid var(--gray-mid);background:var(--white);color:var(--gray-dark);cursor:pointer;font-family:Georgia,serif}
+  .mode-btn:last-child{border-right:none}
+  .mode-btn.active{background:var(--black);color:var(--white);font-weight:bold}
+  .tab-nav{display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid var(--black)}
+  .tab-btn{padding:12px 8px;font-size:14px;font-weight:bold;border:none;border-right:2px solid var(--black);background:var(--gray-light);color:var(--gray-dark);cursor:pointer;font-family:Georgia,serif}
+  .tab-btn:last-child{border-right:none}
+  .tab-btn.active{background:var(--black);color:var(--white)}
+  .ref-view{flex:1;overflow-y:auto;padding:12px 16px 40px}
+  .ref-section{margin-bottom:32px}
+  .ref-section-title{font-size:16px;font-weight:bold;border-bottom:2px solid var(--black);padding-bottom:6px;margin-bottom:4px}
+  .ref-note{font-size:13px;color:var(--gray-dark);font-style:italic;margin-bottom:12px;line-height:1.6;padding:8px 0}
+  .ref-table{width:100%;border-collapse:collapse}
+  .ref-table th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--gray-dark);padding:6px 8px;border-bottom:1.5px solid var(--black);text-align:left;font-weight:normal}
+  .ref-table td{padding:9px 8px;border-bottom:1px solid var(--gray-mid);font-size:15px;vertical-align:top}
+  .ref-table td:first-child{font-weight:bold;width:45%}
+  .ref-table tr:last-child td{border-bottom:none}
+  .ref-table tr:nth-child(even) td{background:var(--gray-light)}
+  .ref-sub{font-size:11px;color:var(--gray-dark);font-style:italic;margin-top:2px}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <span class="header-title">Te Reo Māori</span>
+    <span class="header-sub" id="queue-count"></span>
+  </div>
+  <div class="tab-nav">
+    <button class="tab-btn active" id="tab-drill" onclick="showTab('drill',this)">Drill</button>
+    <button class="tab-btn" id="tab-ref" onclick="showTab('ref',this)">Reference</button>
+  </div>
+  <div id="drill-view" style="display:flex;flex-direction:column;flex:1">
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-n" id="s-knew">0</div><div class="stat-l">Knew it</div></div>
+    <div class="stat"><div class="stat-n" id="s-unsure">0</div><div class="stat-l">Unsure</div></div>
+    <div class="stat"><div class="stat-n" id="s-miss">0</div><div class="stat-l">Missed</div></div>
+  </div>
+  <div class="progress-wrap"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+  <div class="deck-wrap">
+    <button class="deck-btn active" onclick="setDeck('all',this)">All</button>
+    <button class="deck-btn" onclick="setDeck('vocab',this)">Vocab</button>
+    <button class="deck-btn" onclick="setDeck('sentences',this)">Sentences</button>
+    <button class="deck-btn" onclick="setDeck('particles',this)">Particles</button>
+    <button class="deck-btn" onclick="setDeck('pronouns',this)">Pronouns</button>
+    <button class="deck-btn" onclick="setDeck('numbers',this)">Numbers</button>
+    <button class="deck-btn" onclick="setDeck('possessives',this)">Possessives</button>
+    <button class="deck-btn" onclick="setDeck('colours',this)">Colours</button>
+    <button class="deck-btn" onclick="setDeck('shapes',this)">Shapes</button>
+    <button class="deck-btn" onclick="setDeck('body',this)">Body</button>
+    <button class="deck-btn" onclick="setDeck('body',this)">Body</button>
+  </div>
+  <div class="mode-wrap">
+    <button class="mode-btn active" id="mode-en" onclick="setMode('en',this)">English → te reo</button>
+    <button class="mode-btn" id="mode-tr" onclick="setMode('tr',this)">Te reo → English</button>
+  </div>
+  <div id="main-view" class="card-area">
+    <div class="card" id="card" onclick="handleCardTap(event)">
+      <button class="audio-btn" id="audio-btn" onclick="event.stopPropagation();playAudio()">&#9654;</button>
+      <div class="card-hint" id="card-hint">what is this in te reo?</div>
+      <div class="card-en" id="card-en"></div>
+      <div class="card-tr" id="card-tr" style="display:none"></div>
+      <div class="card-cat" id="card-cat"></div>
+    </div>
+    <div class="tap-prompt" id="tap-prompt">tap card to reveal</div>
+    <div class="rating-row hidden" id="rating-row">
+      <button class="r-btn miss" onclick="rate('miss')"><span class="r-label">Miss</span><span class="r-sub">comes back</span></button>
+      <button class="r-btn unsure" onclick="rate('unsure')"><span class="r-label">Unsure</span><span class="r-sub">soon again</span></button>
+      <button class="r-btn knew" onclick="rate('knew')"><span class="r-label">Knew it</span><span class="r-sub">spaced out</span></button>
+    </div>
+  </div>
+  <div id="done-view" class="hidden">
+    <div class="done-screen">
+      <div class="done-pct" id="done-pct"></div>
+      <div class="done-msg" id="done-msg"></div>
+      <div class="done-grid">
+        <div class="done-stat"><div class="done-stat-n" id="d-knew">0</div><div class="done-stat-l">Knew it</div></div>
+        <div class="done-stat"><div class="done-stat-n" id="d-unsure">0</div><div class="done-stat-l">Unsure</div></div>
+        <div class="done-stat"><div class="done-stat-n" id="d-miss">0</div><div class="done-stat-l">Missed it</div></div>
+      </div>
+      <div style="width:100%;text-align:left;margin-bottom:24px">
+        <div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--gray-dark);margin-bottom:10px;font-family:Georgia,serif">First attempt misses</div>
+        <div id="miss-list"></div>
+      </div>
+      <button class="restart-btn" onclick="restart()">Ka haere anō — go again</button>
+    </div>
+  </div><!-- end done-view -->
+  </div><!-- end drill-view -->
+
+  <div id="ref-view" class="ref-view" style="display:none">
+    <div class="ref-section">
+      <div class="ref-section-title">Greetings &amp; basics</div>
+      <div class="ref-note">Use tēnā koe / kōrua / koutou for formal settings depending on how many people you're addressing. Kia ora works everywhere, any number.</div>
+      <table class="ref-table"><tr><th>Te Reo</th><th>English</th></tr>
+        <tr><td>kia ora</td><td>hello / thank you</td></tr>
+        <tr><td>tēnā koe</td><td>greetings (to one)</td></tr>
+        <tr><td>tēnā kōrua</td><td>greetings (to two)</td></tr>
+        <tr><td>tēnā koutou</td><td>greetings (to three+)</td></tr>
+        <tr><td>nau mai</td><td>welcome</td></tr>
+        <tr><td>haere rā</td><td>goodbye (to someone leaving)</td></tr>
+        <tr><td>e noho rā</td><td>goodbye (said by the one leaving)</td></tr>
+        <tr><td>āe</td><td>yes</td></tr>
+        <tr><td>kāo</td><td>no</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Pronouns</div>
+      <div class="ref-note">Te reo has singular, dual (two people), and plural (three+) — plus inclusive vs exclusive "we". The box shows who is included in the pronoun. Green = speaker, blue = listener, gray = others.</div>
+      <svg viewBox="0 0 340 440" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:340px;display:block;margin:8px auto 12px">
+      <defs><style>.pl{font-family:Georgia,serif;font-size:13px;font-weight:bold;fill:#000}.ps{font-family:Georgia,serif;font-size:10px;fill:#555;font-style:italic}</style></defs>
+
+      <!-- SINGULAR ROW -->
+      <text x="170" y="14" text-anchor="middle" class="ps">singular</text>
+      <!-- au -->
+      <rect x="8" y="20" width="62" height="46" rx="7" fill="none" stroke="#000" stroke-width="2"/>
+      <circle cx="26" cy="36" r="8" fill="#1a7a4a"/><path d="M18 50 Q26 45 34 50" stroke="#1a7a4a" stroke-width="1.5" fill="none"/>
+      <circle cx="52" cy="36" r="8" fill="#bbb"/><path d="M44 50 Q52 45 60 50" stroke="#bbb" stroke-width="1.5" fill="none"/>
+      <text x="39" y="78" text-anchor="middle" class="pl">au</text>
+      <text x="39" y="89" text-anchor="middle" class="ps">I / me</text>
+      <!-- koe -->
+      <rect x="139" y="20" width="62" height="46" rx="7" fill="none" stroke="#000" stroke-width="2"/>
+      <circle cx="157" cy="36" r="8" fill="#1a7a4a"/><path d="M149 50 Q157 45 165 50" stroke="#1a7a4a" stroke-width="1.5" fill="none"/>
+      <circle cx="183" cy="36" r="8" fill="#1a6aaa"/><path d="M175 50 Q183 45 191 50" stroke="#1a6aaa" stroke-width="1.5" fill="none"/>
+      <text x="170" y="78" text-anchor="middle" class="pl">koe</text>
+      <text x="170" y="89" text-anchor="middle" class="ps">you (one)</text>
+      <!-- ia -->
+      <circle cx="279" cy="36" r="8" fill="#1a7a4a"/><path d="M271 50 Q279 45 287 50" stroke="#1a7a4a" stroke-width="1.5" fill="none"/>
+      <rect x="260" y="20" width="62" height="46" rx="7" fill="none" stroke="#000" stroke-width="2"/>
+      <circle cx="304" cy="36" r="8" fill="#888"/><path d="M296 50 Q304 45 312 50" stroke="#888" stroke-width="1.5" fill="none"/>
+      <text x="291" y="78" text-anchor="middle" class="pl">ia</text>
+      <text x="291" y="89" text-anchor="middle" class="ps">he/she/they</text>
+
+      <!-- DUAL ROW -->
+      <text x="170" y="108" text-anchor="middle" class="ps">dual (two people)</text>
+      <!-- tāua -->
+      <rect x="2" y="114" width="72" height="64" rx="7" fill="none" stroke="#000" stroke-width="2"/>
+      <circle cx="22" cy="128" r="8" fill="#1a7a4a"/><path d="M14 142 Q22 137 30 142" stroke="#1a7a4a" stroke-width="1.5" fill="none"/>
+      <circle cx="52" cy="128" r="8" fill="#1a6aaa"/><path d="M44 142 Q52 137 60 142" stroke="#1a6aaa" stroke-width="1.5" fill="none"/>
+      <circle cx="37" cy="154" r="8" fill="#bbb"/><path d="M29 168 Q37 163 45 168" stroke="#bbb" stroke-width="1.5" fill="none"/>
+      <text x="38" y="190" text-anchor="middle" class="pl">tāua</text>
+      <text x="38" y="201" text-anchor="middle" class="ps">we two (incl)</text>
+      <!-- māua -->
+      <rect x="94" y="130" width="72" height="46" rx="7" fill="none" stroke="#000" stroke-width="2"/>
+      <circle cx="114" cy="130" r="8" fill="#1a7a4a"/><path d="M106 144 Q114 139 122 144" stroke="#1a7a4a" stroke-width="1.5" fill="none"/>
+      <circle cx="152" cy="114" r="8" fill="#1a6aaa"/><path d="M144 128 Q152 123 160 128" stroke="#1a6aaa" stroke-width="1.5" fill="none"/>
+      <circle cx="144" cy="154" r="8" fill="#888"/><path d="M136 168 Q144 163 152 168" stroke="#888" stroke-width="1.5" fill="none"/>
+      <text x="130" y="190" text-anchor="middle" class="pl">māua</text>
+      <text x="130" y="201" text-anchor="middle" class="ps">we two (excl)</text>
+      <!-- kōrua -->
+      <circle cx="210" cy="114" r="8" fill="#1a7a4a"/><path d="M202 128 Q210 123 218 128" stroke="#1a7a4a" stroke-width="1.5" fill="none"/>
+      <rect x="196" y="124" width="72" height="46" rx="7" fill="none" stroke="#000" stroke-width="2"/>
+      <circle cx="216" cy="140" r="8" fill="#1a6aaa"/><path d="M208 154 Q216 149 224 154" stroke="#1a6aaa" stroke-width="1.5" fill="none"/>
+      <circle cx="248" cy="140" r="8" fill="#1a6aaa"/><path d="M240 154 Q248 149 256 154" stroke="#1a6aaa" stroke-width="1.5" fill="none"/>
+      <text x="232" y="190" text-anchor="middle" class="pl">kōrua</text>
+      <text x="232" y="201" text-anchor="middle" class="ps">you two</text>
+      <!-- rāua -->
+      <circle cx="305" cy="114" r="8" fill="#1a7a4a"/><path d="M297 128 Q305 123 313 128" stroke="#1a7a4a" stroke-width="1.5" fill="none"/>
+      <rect x="286" y="124" width="52" height="46" rx="7" fill="none" stroke="#000" stroke-width="2"/>
+      <circle cx="300" cy="140" r="8" fill="#888"/><path d="M292 154 Q300 149 308 154" stroke="#888" stroke-width="1.5" fill="none"/>
+      <circle cx="324" cy="140" r="8" fill="#888"/><path d="M316 154 Q324 149 332 154" stroke="#888" stroke-width="1.5" fill="none"/>
+      <text x="312" y="190" text-anchor="middle" class="pl">rāua</text>
+      <text x="312" y="201" text-anchor="middle" class="ps">they two</text>
+
+      <!-- PLURAL ROW -->
+      <text x="170" y="220" text-anchor="middle" class="ps">plural (three or more)</text>
+      <!-- tātou -->
+      <rect x="2" y="226" width="72" height="80" rx="7" fill="none" stroke="#000" stroke-width="2"/>
+      <circle cx="22" cy="242" r="8" fill="#1a7a4a"/><path d="M14 256 Q22 251 30 256" stroke="#1a7a4a" stroke-width="1.5" fill="none"/>
+      <circle cx="52" cy="242" r="8" fill="#1a6aaa"/><path d="M44 256 Q52 251 60 256" stroke="#1a6aaa" stroke-width="1.5" fill="none"/>
+      <circle cx="22" cy="270" r="8" fill="#888"/><path d="M14 284 Q22 279 30 284" stroke="#888" stroke-width="1.5" fill="none"/>
+      <circle cx="52" cy="270" r="8" fill="#888"/><path d="M44 284 Q52 279 60 284" stroke="#888" stroke-width="1.5" fill="none"/>
+      <text x="38" y="320" text-anchor="middle" class="pl">tātou</text>
+      <text x="38" y="331" text-anchor="middle" class="ps">we all (incl)</text>
+      <!-- mātou -->
+      <rect x="94" y="242" width="72" height="64" rx="7" fill="none" stroke="#000" stroke-width="2"/>
+      <circle cx="114" cy="242" r="8" fill="#1a7a4a"/><path d="M106 256 Q114 251 122 256" stroke="#1a7a4a" stroke-width="1.5" fill="none"/>
+      <circle cx="152" cy="226" r="8" fill="#1a6aaa"/><path d="M144 240 Q152 235 160 240" stroke="#1a6aaa" stroke-width="1.5" fill="none"/>
+      <circle cx="114" cy="270" r="8" fill="#888"/><path d="M106 284 Q114 279 122 284" stroke="#888" stroke-width="1.5" fill="none"/>
+      <circle cx="144" cy="270" r="8" fill="#888"/><path d="M136 284 Q144 279 152 284" stroke="#888" stroke-width="1.5" fill="none"/>
+      <text x="130" y="320" text-anchor="middle" class="pl">mātou</text>
+      <text x="130" y="331" text-anchor="middle" class="ps">we (excl)</text>
+      <!-- koutou -->
+      <circle cx="210" cy="226" r="8" fill="#1a7a4a"/><path d="M202 240 Q210 235 218 240" stroke="#1a7a4a" stroke-width="1.5" fill="none"/>
+      <rect x="196" y="236" width="72" height="70" rx="7" fill="none" stroke="#000" stroke-width="2"/>
+      <circle cx="216" cy="252" r="8" fill="#1a6aaa"/><path d="M208 266 Q216 261 224 266" stroke="#1a6aaa" stroke-width="1.5" fill="none"/>
+      <circle cx="248" cy="252" r="8" fill="#1a6aaa"/><path d="M240 266 Q248 261 256 266" stroke="#1a6aaa" stroke-width="1.5" fill="none"/>
+      <circle cx="232" cy="278" r="8" fill="#1a6aaa"/><path d="M224 292 Q232 287 240 292" stroke="#1a6aaa" stroke-width="1.5" fill="none"/>
+      <text x="232" y="320" text-anchor="middle" class="pl">koutou</text>
+      <text x="232" y="331" text-anchor="middle" class="ps">you all</text>
+      <!-- rātou -->
+      <circle cx="305" cy="226" r="8" fill="#1a7a4a"/><path d="M297 240 Q305 235 313 240" stroke="#1a7a4a" stroke-width="1.5" fill="none"/>
+      <rect x="284" y="236" width="54" height="70" rx="7" fill="none" stroke="#000" stroke-width="2"/>
+      <circle cx="298" cy="252" r="8" fill="#888"/><path d="M290 266 Q298 261 306 266" stroke="#888" stroke-width="1.5" fill="none"/>
+      <circle cx="326" cy="252" r="8" fill="#888"/><path d="M318 266 Q326 261 334 266" stroke="#888" stroke-width="1.5" fill="none"/>
+      <circle cx="312" cy="278" r="8" fill="#888"/><path d="M304 292 Q312 287 320 292" stroke="#888" stroke-width="1.5" fill="none"/>
+      <text x="311" y="320" text-anchor="middle" class="pl">rātou</text>
+      <text x="311" y="331" text-anchor="middle" class="ps">they (3+)</text>
+
+      <!-- LEGEND -->
+      <rect x="4" y="348" width="332" height="38" rx="6" fill="#f0f0f0"/>
+      <circle cx="22" cy="367" r="6" fill="#1a7a4a"/><text x="32" y="371" class="ps">speaker</text>
+      <circle cx="90" cy="367" r="6" fill="#1a6aaa"/><text x="100" y="371" class="ps">listener</text>
+      <circle cx="160" cy="367" r="6" fill="#888"/><text x="170" y="371" class="ps">other(s)</text>
+      <rect x="228" y="360" width="18" height="14" rx="3" fill="none" stroke="#000" stroke-width="2"/>
+      <text x="250" y="371" class="ps">= included</text>
+
+      <!-- KEY NOTE -->
+      <text x="170" y="410" text-anchor="middle" class="ps">incl = listener included · excl = listener excluded</text>
+      </svg>
+
+      <table class="ref-table" style="margin-top:8px"><tr><th>Te Reo</th><th>English</th><th>Type</th></tr>
+        <tr><td>au</td><td>I / me</td><td style="color:#555;font-size:13px">singular</td></tr>
+        <tr><td>koe</td><td>you (one)</td><td style="color:#555;font-size:13px">singular</td></tr>
+        <tr><td>ia</td><td>he / she / they (one)</td><td style="color:#555;font-size:13px">singular</td></tr>
+        <tr><td>tāua</td><td>we two — incl you</td><td style="color:#555;font-size:13px">dual</td></tr>
+        <tr><td>māua</td><td>we two — excl you</td><td style="color:#555;font-size:13px">dual</td></tr>
+        <tr><td>kōrua</td><td>you two</td><td style="color:#555;font-size:13px">dual</td></tr>
+        <tr><td>rāua</td><td>they two</td><td style="color:#555;font-size:13px">dual</td></tr>
+        <tr><td>tātou</td><td>we all — incl you</td><td style="color:#555;font-size:13px">plural</td></tr>
+        <tr><td>mātou</td><td>we (3+) — excl you</td><td style="color:#555;font-size:13px">plural</td></tr>
+        <tr><td>koutou</td><td>you all (3+)</td><td style="color:#555;font-size:13px">plural</td></tr>
+        <tr><td>rātou</td><td>they (3+)</td><td style="color:#555;font-size:13px">plural</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Question words</div>
+      <div class="ref-note">Questions are formed by putting these at the start of a sentence. He aha = what, Ko wai = who (using ko for identity).</div>
+      <table class="ref-table"><tr><th>Te Reo</th><th>English</th></tr>
+        <tr><td>aha</td><td>what</td></tr>
+        <tr><td>wai</td><td>who</td></tr>
+        <tr><td>hea</td><td>where</td></tr>
+        <tr><td>āhea</td><td>when (future)</td></tr>
+        <tr><td>nōnahea</td><td>when (past)</td></tr>
+        <tr><td>pēhea</td><td>how / what like</td></tr>
+        <tr><td>hia</td><td>how many</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Verbs</div>
+      <div class="ref-note">Verbs don't change form in te reo — tense is carried by the particle before them (kei te, i, ka). The verb always comes first in a sentence.</div>
+      <table class="ref-table"><tr><th>Te Reo</th><th>English</th></tr>
+        <tr><td>kai</td><td>eat (also: food)</td></tr>
+        <tr><td>moe</td><td>sleep</td></tr>
+        <tr><td>haere</td><td>go / travel</td></tr>
+        <tr><td>hoki</td><td>return / also</td></tr>
+        <tr><td>noho</td><td>sit / stay / live</td></tr>
+        <tr><td>kōrero</td><td>speak / talk</td></tr>
+        <tr><td>whakarongo</td><td>listen</td></tr>
+        <tr><td>titiro</td><td>look</td></tr>
+        <tr><td>mahi</td><td>work / do</td></tr>
+        <tr><td>ako</td><td>learn / teach</td></tr>
+        <tr><td>aroha</td><td>love / care</td></tr>
+        <tr><td>tū</td><td>stand</td></tr>
+        <tr><td>oma</td><td>run</td></tr>
+        <tr><td>huri</td><td>turn</td></tr>
+        <tr><td>homai</td><td>give (to me)</td></tr>
+        <tr><td>mōhio</td><td>know / understand</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Nouns</div>
+      <div class="ref-note">Some words carry layered meanings — marama means moon, month, and understanding. Whenua means both land and placenta. These double meanings are culturally significant, not coincidental.</div>
+      <table class="ref-table"><tr><th>Te Reo</th><th>English</th></tr>
+        <tr><td>whare</td><td>house / building</td></tr>
+        <tr><td>kāinga</td><td>home / village</td></tr>
+        <tr><td>wāhi</td><td>place</td></tr>
+        <tr><td>whenua</td><td>land / placenta</td></tr>
+        <tr><td>moana</td><td>sea / ocean</td></tr>
+        <tr><td>awa</td><td>river</td></tr>
+        <tr><td>maunga</td><td>mountain</td></tr>
+        <tr><td>ngahere</td><td>forest</td></tr>
+        <tr><td>rangi</td><td>sky / day</td></tr>
+        <tr><td>rā</td><td>sun / day / sail</td></tr>
+        <tr><td>marama</td><td>moon / month / understanding</td></tr>
+        <tr><td>wai</td><td>water</td></tr>
+        <tr><td>ahi</td><td>fire</td></tr>
+        <tr><td>tangata</td><td>person</td></tr>
+        <tr><td>tāne</td><td>man</td></tr>
+        <tr><td>wahine</td><td>woman</td></tr>
+        <tr><td>tamariki</td><td>children</td></tr>
+        <tr><td>tamaiti</td><td>child</td></tr>
+        <tr><td>whānau</td><td>family</td></tr>
+        <tr><td>iwi</td><td>tribe / people / bones</td></tr>
+        <tr><td>hapū</td><td>subtribe / pregnant</td></tr>
+        <tr><td>ingoa</td><td>name</td></tr>
+        <tr><td>reo</td><td>language / voice</td></tr>
+        <tr><td>waka</td><td>canoe / vehicle</td></tr>
+        <tr><td>pō</td><td>night</td></tr>
+        <tr><td>atarau</td><td>moonlit / reflected moonlight</td></tr>
+        <tr><td>katoa</td><td>all / everyone / everything</td></tr>
+      </table>
+      <div class="ref-note" style="margin-top:8px">Pō atarau (moonlit night) opens Pōkarekare Ana — one of the most famous waiata in te reo, a love song. Pōkarekare describes water rippling and agitated, used as a metaphor for longing.</div>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Body parts</div>
+      <div class="ref-note">Manawa (breath/heart/lungs) is a rich word — it carries the sense of vitality and life force, not just the physical organ. Kanohi technically means face but is also used for eye. Ringa covers both hand and arm.</div>
+      <table class="ref-table"><tr><th>Te Reo</th><th>English</th></tr>
+        <tr><td>tinana</td><td>body</td></tr>
+        <tr><td>upoko</td><td>head</td></tr>
+        <tr><td>kanohi</td><td>face / eye</td></tr>
+        <tr><td>taringa</td><td>ear</td></tr>
+        <tr><td>ihu</td><td>nose</td></tr>
+        <tr><td>waha</td><td>mouth</td></tr>
+        <tr><td>ringa</td><td>hand / arm</td></tr>
+        <tr><td>waewae</td><td>foot / leg</td></tr>
+        <tr><td>manawa</td><td>breath / heart / lungs</td></tr>
+        <tr><td>ngākau</td><td>heart / innermost feelings</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Descriptors</div>
+      <div class="ref-note">Descriptors follow the noun they describe — he tangata pai ia (he is a good person). Pai is probably the most useful single word in the language.</div>
+      <table class="ref-table"><tr><th>Te Reo</th><th>English</th></tr>
+        <tr><td>pai</td><td>good</td></tr>
+        <tr><td>kino</td><td>bad</td></tr>
+        <tr><td>nui</td><td>big / many</td></tr>
+        <tr><td>iti</td><td>small</td></tr>
+        <tr><td>roa</td><td>long / tall</td></tr>
+        <tr><td>poto</td><td>short</td></tr>
+        <tr><td>hou</td><td>new</td></tr>
+        <tr><td>tawhito</td><td>old</td></tr>
+        <tr><td>ataahua</td><td>beautiful</td></tr>
+        <tr><td>kaha</td><td>strong</td></tr>
+        <tr><td>ngenge</td><td>tired</td></tr>
+        <tr><td>hiakai</td><td>hungry</td></tr>
+        <tr><td>hiainu</td><td>thirsty</td></tr>
+        <tr><td>hari</td><td>happy</td></tr>
+        <tr><td>pōuri</td><td>sad</td></tr>
+        <tr><td>tika</td><td>correct / right</td></tr>
+        <tr><td>hē</td><td>wrong</td></tr>
+        <tr><td>whakatoi</td><td>cheeky / playfully mischievous</td></tr>
+        <tr><td>rawe</td><td>awesome / excellent / fantastic</td></tr>
+        <tr><td>pōkarekare</td><td>rippling / agitated (as water)</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Numbers</div>
+      <div class="ref-note">Beyond 10 the system is beautifully logical: tekau mā tahi = 11, rua tekau = 20, rua tekau mā tahi = 21. Kore (zero) also means void and nothingness — it appears in the Māori creation narrative as the primordial state before existence.</div>
+      <table class="ref-table"><tr><th>Te Reo</th><th>English</th></tr>
+        <tr><td>kore</td><td>zero / void / nothingness</td></tr>
+        <tr><td>tahi</td><td>one</td></tr>
+        <tr><td>rua</td><td>two</td></tr>
+        <tr><td>toru</td><td>three</td></tr>
+        <tr><td>whā</td><td>four</td></tr>
+        <tr><td>rima</td><td>five</td></tr>
+        <tr><td>ono</td><td>six</td></tr>
+        <tr><td>whitu</td><td>seven</td></tr>
+        <tr><td>waru</td><td>eight</td></tr>
+        <tr><td>iwa</td><td>nine</td></tr>
+        <tr><td>tekau</td><td>ten</td></tr>
+        <tr><td>tekau mā tahi</td><td>eleven</td></tr>
+        <tr><td>rua tekau</td><td>twenty</td></tr>
+        <tr><td>kotahi rau</td><td>one hundred</td></tr>
+        <tr><td>kotahi mano</td><td>one thousand</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Time</div>
+      <div class="ref-note">Te reo expresses time through context and particles rather than verb tenses. These words combine with kei te / i / ka to anchor when something happens.</div>
+      <table class="ref-table"><tr><th>Te Reo</th><th>English</th></tr>
+        <tr><td>ata</td><td>morning / dawn</td></tr>
+        <tr><td>ao</td><td>daytime / world / dawn</td></tr>
+        <tr><td>ahiahi</td><td>afternoon / evening</td></tr>
+        <tr><td>pō</td><td>night</td></tr>
+        <tr><td>ināianei</td><td>now</td></tr>
+        <tr><td>āpōpō</td><td>tomorrow</td></tr>
+        <tr><td>inanahi</td><td>yesterday</td></tr>
+        <tr><td>i tēnei rā</td><td>today</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Directional particles</div>
+      <div class="ref-note">These four particles attach to verbs to show direction relative to the speaker. They are one of the most expressive features of te reo — haere (go), haere mai (come towards me), haere atu (go away from me), haere ake (go up), haere iho (go down). Whakarongo mai means listen towards me — i.e. listen here!</div>
+      <table class="ref-table"><tr><th>Te Reo</th><th>English</th></tr>
+        <tr><td>mai</td><td>towards the speaker</td></tr>
+        <tr><td>atu</td><td>away from the speaker</td></tr>
+        <tr><td>ake</td><td>upward</td></tr>
+        <tr><td>iho</td><td>downward</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Connectors</div>
+      <div class="ref-note">These words link clauses and ideas. Engari is your "but". Nā reira is extremely common in speech — it signals a conclusion or consequence, like "so" or "therefore" in English. Ā is softer, used to continue a narrative.</div>
+      <table class="ref-table"><tr><th>Te Reo</th><th>English</th></tr>
+        <tr><td>engari</td><td>but / however</td></tr>
+        <tr><td>ā</td><td>and then / and so</td></tr>
+        <tr><td>nā reira</td><td>therefore / so / that's why</td></tr>
+        <tr><td>tonu</td><td>still / always / continuously</td></tr>
+        <tr><td>kē</td><td>already / different / instead</td></tr>
+        <tr><td>anō</td><td>again / also / still</td></tr>
+        <tr><td>noa</td><td>just / only / without reason</td></tr>
+        <tr><td>katoa</td><td>all / everyone / everything</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Particles</div>
+      <div class="ref-note">These small words do enormous structural work. Mastering them is the key to sentence construction. Te reo is VSO (verb-subject-object) — the particle always opens the sentence and signals what kind of sentence it is.</div>
+      <table class="ref-table"><tr><th>Particle</th><th>Function</th></tr>
+        <tr><td>kei te</td><td>present action — kei te kai au (I am eating)</td></tr>
+        <tr><td>i</td><td>past action — i haere au (I went)</td></tr>
+        <tr><td>ka</td><td>narrative / sequence — ka haere ia (she went)</td></tr>
+        <tr><td>e...ana</td><td>emphatic present — e kai ana au (I am eating right now)</td></tr>
+        <tr><td>me</td><td>should — me haere tāua (we should go)</td></tr>
+        <tr><td>ko</td><td>identity — ko Mere tōku ingoa (my name is Mere)</td></tr>
+        <tr><td>he</td><td>a / an — he tangata pai ia (he is a good person)</td></tr>
+        <tr><td>kei</td><td>present location — kei te kāinga au (I am at home)</td></tr>
+        <tr><td>te</td><td>the (singular)</td></tr>
+        <tr><td>ngā</td><td>the (plural)</td></tr>
+        <tr><td>ki</td><td>to / towards</td></tr>
+        <tr><td>nō</td><td>from / origin — nō hea koe? (where are you from?)</td></tr>
+        <tr><td>nā</td><td>by / belonging to (recent)</td></tr>
+        <tr><td>me</td><td>and / with (also: should)</td></tr>
+        <tr><td>kāore</td><td>no / not — kāore au e mōhio ana (I don't know)</td></tr>
+        <tr><td>ehara</td><td>is not — ehara au i te kaiako (I am not a teacher)</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Sentence structure</div>
+      <div class="ref-note">Te reo is VSO — Verb, Subject, Object. English says "I eat food". Te reo says "Eating, I, food". The verb always comes first. Every sentence opens with a particle that acts as a mode selector, telling you what kind of sentence it is before anything else.</div>
+
+      <div style="font-size:13px;font-weight:bold;margin:12px 0 6px;border-bottom:1px solid var(--gray-mid);padding-bottom:4px">The six core particles</div>
+      <table class="ref-table"><tr><th>Particle</th><th>Use</th><th>Example</th></tr>
+        <tr><td>kei te</td><td>present action</td><td>kei te kai au — I am eating</td></tr>
+        <tr><td>i</td><td>simple past</td><td>i kai au — I ate</td></tr>
+        <tr><td>ka</td><td>narrative / sequence</td><td>ka haere ia — she went</td></tr>
+        <tr><td>e...ana</td><td>emphatic present (right now)</td><td>e kai ana au — I am eating right now</td></tr>
+        <tr><td>ko</td><td>identity — specific thing</td><td>ko Mere tōku ingoa — my name is Mere</td></tr>
+        <tr><td>he</td><td>description — a/an category</td><td>he kaiako au — I am a teacher</td></tr>
+      </table>
+
+      <div style="font-size:13px;font-weight:bold;margin:16px 0 6px;border-bottom:1px solid var(--gray-mid);padding-bottom:4px">Ko vs He — the common confusion</div>
+      <div class="ref-note">Ko spotlights a specific identity. He places something in a general category. Ko Mere tōku ingoa = my name IS Mere (that specific name). He kaiako ia = she is A teacher (one of many). Ko = spotlight. He = category.</div>
+
+      <div style="font-size:13px;font-weight:bold;margin:16px 0 6px;border-bottom:1px solid var(--gray-mid);padding-bottom:4px">Negatives</div>
+      <table class="ref-table"><tr><th>Positive</th><th>Negative</th></tr>
+        <tr><td>kei te kai au</td><td>kāore au i te kai</td></tr>
+        <tr><td>i haere ia</td><td>kāore ia i haere</td></tr>
+        <tr><td>he kaiako au</td><td>ehara au i te kaiako</td></tr>
+        <tr><td>ko Mere tōku ingoa</td><td>ehara tōku ingoa i a Mere</td></tr>
+      </table>
+      <div class="ref-note">Pattern for kei te negation: kāore + subject + i te + verb. Pattern for he/ko negation: ehara + subject + i te/i a + thing.</div>
+
+      <div style="font-size:13px;font-weight:bold;margin:16px 0 6px;border-bottom:1px solid var(--gray-mid);padding-bottom:4px">Questions</div>
+      <div class="ref-note">Put the question word where the answer would go. No rearranging needed.</div>
+      <table class="ref-table"><tr><th>Statement</th><th>Question</th></tr>
+        <tr><td>kei te kai au</td><td>kei te kai wai? — who is eating?</td></tr>
+        <tr><td>kei te haere au ki te whare</td><td>kei te haere koe ki hea? — where are you going?</td></tr>
+        <tr><td>he kaiako ia</td><td>he aha ia? — what does she do?</td></tr>
+      </table>
+
+      <div style="font-size:13px;font-weight:bold;margin:16px 0 6px;border-bottom:1px solid var(--gray-mid);padding-bottom:4px">Location</div>
+      <div class="ref-note">Location comes at the end. Ki = to/towards (movement). Kei = at (present state).</div>
+      <table class="ref-table"><tr><th>Te Reo</th><th>English</th></tr>
+        <tr><td>kei te haere au ki te whare</td><td>I am going to the house</td></tr>
+        <tr><td>kei te noho ia ki Rānana</td><td>she lives in London</td></tr>
+        <tr><td>kei te kāinga au</td><td>I am at home</td></tr>
+      </table>
+
+      <div style="font-size:13px;font-weight:bold;margin:16px 0 6px;border-bottom:1px solid var(--gray-mid);padding-bottom:4px">Directionals on verbs</div>
+      <table class="ref-table"><tr><th>Te Reo</th><th>English</th></tr>
+        <tr><td>haere mai</td><td>come (towards me)</td></tr>
+        <tr><td>haere atu</td><td>go away (from me)</td></tr>
+        <tr><td>titiro mai</td><td>look here / look at me</td></tr>
+        <tr><td>whakarongo mai</td><td>listen here</td></tr>
+        <tr><td>homai</td><td>give to me (hoa + mai fused)</td></tr>
+      </table>
+
+      <div style="font-size:13px;font-weight:bold;margin:16px 0 6px;border-bottom:1px solid var(--gray-mid);padding-bottom:4px">The full formula</div>
+      <div class="ref-note" style="font-style:normal;background:var(--gray-light);padding:10px 12px;border-radius:8px;font-size:14px;line-height:2">
+        <strong>[particle]</strong> + <strong>[verb]</strong> + <strong>[subject]</strong> + <strong>[object/location]</strong><br>
+        <span style="color:var(--gray-dark);font-size:12px;font-style:italic">kei te &nbsp;&nbsp; haere &nbsp;&nbsp; au &nbsp;&nbsp; ki te toa &nbsp;&nbsp; → I am going to the shop</span><br>
+        <span style="color:var(--gray-dark);font-size:12px;font-style:italic">i &nbsp;&nbsp; kōrero &nbsp;&nbsp; māua &nbsp;&nbsp; ki a ia &nbsp;&nbsp; → we two spoke to him/her</span><br>
+        <span style="color:var(--gray-dark);font-size:12px;font-style:italic">ka &nbsp;&nbsp; nui te hari &nbsp;&nbsp; o tōku ngākau &nbsp;&nbsp; → my heart is very happy</span>
+      </div>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Sentence templates</div>
+      <div class="ref-note">The core pattern is always: [particle] + [verb] + [subject] + [location/object]. Once you have this skeleton, you just swap the parts. Kei te is your most useful particle — put it before almost any verb and you have a present tense sentence.</div>
+      <table class="ref-table"><tr><th>Te Reo</th><th>English</th></tr>
+        <tr><td>kei te kai au</td><td>I am eating</td></tr>
+        <tr><td>kei te pai</td><td>it's good / that's fine</td></tr>
+        <tr><td>kei te ngenge au</td><td>I'm tired</td></tr>
+        <tr><td>kei te hiakai au</td><td>I'm hungry</td></tr>
+        <tr><td>kei te haere au ki te whare</td><td>I am going to the house</td></tr>
+        <tr><td>i haere au</td><td>I went</td></tr>
+        <tr><td>ka haere ia</td><td>she / he went</td></tr>
+        <tr><td>me haere tāua</td><td>we two should go</td></tr>
+        <tr><td>ko ___ tōku ingoa</td><td>my name is ___</td></tr>
+        <tr><td>ko wai tōu ingoa?</td><td>what is your name?</td></tr>
+        <tr><td>nō hea koe?</td><td>where are you from?</td></tr>
+        <tr><td>nō ___ au</td><td>I am from ___</td></tr>
+        <tr><td>he aha tāu mahi?</td><td>what are you doing?</td></tr>
+        <tr><td>he tangata pai ia</td><td>he / she is a good person</td></tr>
+        <tr><td>kāore au e mōhio ana</td><td>I don't know</td></tr>
+        <tr><td>whakarongo mai!</td><td>listen here!</td></tr>
+        <tr><td>kia kaha</td><td>be strong / keep going</td></tr>
+        <tr><td>āta haere</td><td>take it easy / go gently</td></tr>
+        <tr><td>ka kite</td><td>see you</td></tr>
+        <tr><td>ka kite anō</td><td>see you again</td></tr>
+        <tr><td>kia ora rawa atu</td><td>thank you very much</td></tr>
+        <tr><td>ka mutu</td><td>it's finished / that's it</td></tr>
+        <tr><td>aroha mai</td><td>sorry / excuse me / forgive me</td></tr>
+        <tr><td>kei te pēhea koe?</td><td>how are you?</td></tr>
+        <tr><td>kei te pai rawa atu au</td><td>I'm very well</td></tr>
+        <tr><td>kei te āhua pai au</td><td>I'm pretty good</td></tr>
+        <tr><td>kei te māuiui au</td><td>I'm unwell / sick</td></tr>
+        <tr><td>e hia ō tau?</td><td>how old are you?</td></tr>
+        <tr><td>e ___ ōku tau</td><td>I am ___ years old</td></tr>
+        <tr><td>he aha tō mahi?</td><td>what is your job?</td></tr>
+        <tr><td>he kaiako au</td><td>I am a teacher</td></tr>
+        <tr><td>he ākonga au</td><td>I am a student</td></tr>
+        <tr><td>nō Ingarani au</td><td>I am from England</td></tr>
+        <tr><td>e noho ana au i ___</td><td>I live in ___</td></tr>
+        <tr><td>kāore au i te mārama</td><td>I don't understand</td></tr>
+        <tr><td>kei te mārama koe?</td><td>do you understand?</td></tr>
+        <tr><td>tēnā, kōrero anō</td><td>please say that again</td></tr>
+        <tr><td>āta kōrero mai</td><td>speak slowly please</td></tr>
+        <tr><td>he aha te tikanga o ___?</td><td>what does ___ mean?</td></tr>
+        <tr><td>kei te ako au i te reo Māori</td><td>I am learning te reo Māori</td></tr>
+        <tr><td>kāore he aha</td><td>no worries / it's nothing</td></tr>
+        <tr><td>tino pai!</td><td>excellent! / very good!</td></tr>
+        <tr><td>me kai tātou</td><td>let's eat</td></tr>
+        <tr><td>he aha tāu e hiahia ana?</td><td>what do you want?</td></tr>
+        <tr><td>homai tēnā</td><td>give me that</td></tr>
+        <tr><td>kāore au e hiahia ana</td><td>I don't want it</td></tr>
+        <tr><td>i tēnei rā</td><td>today</td></tr>
+        <tr><td>kei hea ___?</td><td>where is ___?</td></tr>
+        <tr><td>ka nui te hari o tōku ngākau</td><td>my heart is very happy</td></tr>
+        <tr><td>he nui ake ōku mihi</td><td>my regards / much love</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Body</div>
+      <div class="ref-note">Body parts are ō class possessives — your body is something you inhabit rather than control. So "my head" is tōku upoko, "my hand" is tōku ringa. Manawa is beautifully layered — breath, heart, and lungs all in one word, reflecting how connected these are in te ao Māori.</div>
+      <table class="ref-table"><tr><th>Te Reo</th><th>English</th></tr>
+        <tr><td>tinana</td><td>body</td></tr>
+        <tr><td>upoko</td><td>head</td></tr>
+        <tr><td>kanohi</td><td>face / eye</td></tr>
+        <tr><td>taringa</td><td>ear</td></tr>
+        <tr><td>waha</td><td>mouth</td></tr>
+        <tr><td>ihu</td><td>nose</td></tr>
+        <tr><td>ringa</td><td>hand / arm</td></tr>
+        <tr><td>waewae</td><td>foot / leg</td></tr>
+        <tr><td>manawa</td><td>breath / heart / lungs</td></tr>
+        <tr><td>ngākau</td><td>heart / innermost feelings</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Time</div>
+      <div class="ref-note">Te reo moves through the day with ao (the world of light) and pō (night/darkness) as the two poles. These aren't just time words — they carry cosmological weight from the creation narrative where Te Ao (the light) emerged from Te Pō (the darkness).</div>
+      <table class="ref-table"><tr><th>Te Reo</th><th>English</th></tr>
+        <tr><td>ata</td><td>morning / dawn</td></tr>
+        <tr><td>ao</td><td>daytime / world / dawn</td></tr>
+        <tr><td>ahiahi</td><td>afternoon / evening</td></tr>
+        <tr><td>pō</td><td>night</td></tr>
+        <tr><td>ināianei</td><td>now</td></tr>
+        <tr><td>inanahi</td><td>yesterday</td></tr>
+        <tr><td>i tēnei rā</td><td>today</td></tr>
+        <tr><td>āpōpō</td><td>tomorrow</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Directional particles</div>
+      <div class="ref-note">These four particles attach to verbs to indicate direction relative to the speaker. They're small but change meaning significantly — haere means go, haere mai means come (towards me), haere atu means go away. Mai and atu are the most common pair you'll encounter daily.</div>
+      <table class="ref-table"><tr><th>Particle</th><th>Direction</th><th>Example</th></tr>
+        <tr><td>mai</td><td>towards speaker</td><td>haere mai — come here</td></tr>
+        <tr><td>atu</td><td>away from speaker</td><td>haere atu — go away</td></tr>
+        <tr><td>ake</td><td>upward</td><td>pikitia ake — climb up</td></tr>
+        <tr><td>iho</td><td>downward</td><td>heke iho — descend</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Connectors &amp; manner particles</div>
+      <div class="ref-note">These small words connect clauses and add nuance to how something is done or said. Tonu and kē are especially common — you'll see them constantly once you start reading te reo.</div>
+      <table class="ref-table"><tr><th>Te Reo</th><th>English</th></tr>
+        <tr><td>engari</td><td>but / however</td></tr>
+        <tr><td>ā</td><td>and then / and so</td></tr>
+        <tr><td>nā reira</td><td>therefore / so / that's why</td></tr>
+        <tr><td>tonu</td><td>still / always / continuously</td></tr>
+        <tr><td>kē</td><td>already / different / instead</td></tr>
+        <tr><td>anō</td><td>again / still / also</td></tr>
+        <tr><td>noa</td><td>just / only / freely</td></tr>
+        <tr><td>katoa</td><td>all / everyone / everything</td></tr>
+        <tr><td>tino</td><td>very / extremely</td></tr>
+        <tr><td>āhua</td><td>somewhat / about / appearance</td></tr>
+        <tr><td>rawa</td><td>very / too / extremely (intensifier)</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Shapes</div>
+      <div class="ref-note">Tapa means side or edge — so tapatoru is three-sided, tapawhā is four-sided. The same number roots from the numbers deck apply throughout. Whetu means both star shape and actual stars in the sky.</div>
+      <table class="ref-table"><tr><th>Te Reo</th><th>English</th></tr>
+        <tr><td>tapatoru</td><td>triangle</td></tr>
+        <tr><td>tapawhā</td><td>square / rectangle</td></tr>
+        <tr><td>porohīta</td><td>circle</td></tr>
+        <tr><td>whetu</td><td>star</td></tr>
+        <tr><td>porotītaha</td><td>oval / ellipse</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Colours</div>
+      <div class="ref-note">Colours in te reo often have natural world origins — kākāriki is both green and a native parakeet, kōwhai is both yellow and the native flowering tree, karaka is both orange and a native tree with orange berries. The language and the land are deeply connected.</div>
+      <table class="ref-table"><tr><th>Te Reo</th><th>English</th></tr>
+        <tr><td>whero</td><td>red</td></tr>
+        <tr><td>kōwhai</td><td>yellow</td></tr>
+        <tr><td>kākāriki</td><td>green</td></tr>
+        <tr><td>kikorangi</td><td>blue</td></tr>
+        <tr><td>mā</td><td>white</td></tr>
+        <tr><td>mangu</td><td>black</td></tr>
+        <tr><td>karaka</td><td>orange</td></tr>
+        <tr><td>kākaka</td><td>brown</td></tr>
+        <tr><td>māwhero</td><td>pink</td></tr>
+        <tr><td>pāpura</td><td>purple</td></tr>
+      </table>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Possessives</div>
+      <div class="ref-note">Te reo has two possession classes — ō and ā. Ō class is for things you don't control or are subordinate to: family, body parts, feelings, your home, your land. Ā class is for things you control or are active over: objects you make or use, actions, food you eat. Practical shortcut: tō- for people and places, tā- for things you do or make. Not perfectly accurate but covers 90% of everyday use.</div>
+      <table class="ref-table"><tr><th>Te Reo</th><th>English</th><th>Class</th></tr>
+        <tr><td>tōku</td><td>my</td><td>ō — people, places, feelings</td></tr>
+        <tr><td>tōu</td><td>your (one person)</td><td>ō</td></tr>
+        <tr><td>tō māua</td><td>our (two, not you)</td><td>ō</td></tr>
+        <tr><td>tō tāua</td><td>our (two, incl. you)</td><td>ō</td></tr>
+        <tr><td>tō mātou</td><td>our (three+, not you)</td><td>ō</td></tr>
+        <tr><td>tō tātou</td><td>our (all)</td><td>ō</td></tr>
+        <tr><td>tāku</td><td>my</td><td>ā — actions, objects</td></tr>
+        <tr><td>tāu</td><td>your (one person)</td><td>ā</td></tr>
+        <tr><td>tā māua</td><td>our (two, not you)</td><td>ā</td></tr>
+        <tr><td>tā tāua</td><td>our (two, incl. you)</td><td>ā</td></tr>
+        <tr><td>tā mātou</td><td>our (three+, not you)</td><td>ā</td></tr>
+        <tr><td>tā tātou</td><td>our (all)</td><td>ā</td></tr>
+      </table>
+      <div class="ref-note" style="margin-top:12px">Examples from our sentences: ko ___ tōku ingoa (my name — ō class because you don't control your name / identity) vs he aha tāu mahi (your work — ā class because work is something you do actively).</div>
+    </div>
+
+  </div><!-- end ref-view -->
+
+<script>
+const BASE = 'https://storage.googleapis.com/maori-dictionary-prod2-web-assets/public/';
+
+const AUDIO = {
+  'kia kaha':11337,'ka mutu':2146,
+  'kia ora':2608,'tēnā koe':7919,'tēnā kōrua':7920,'tēnā koutou':7921,'nau mai':4356,'haere rā':721,'e noho rā':660,
+  'āe':54,'kāo':2193,
+  'au':502,'koe':41987,'ia':1644,'māua':3934,'tāua':15321,'rātou':6589,
+  'mātou':3910,'tātou':7664,'kōrua':3076,'koutou':3165,
+  'aha':50,'wai (who)':9017,'hea':1006,'āhea':307,'nōnahea':4459,'pēhea':5421,'hia':1129,
+  'kai':1894,'moe':50550,'haere':715,'hoki':1352,'noho':4438,'kōrero':3003,
+  'whakarongo':9838,'titiro':8226,'mahi':14146,'ako':158,'aroha':414,'tū':8562,
+  'oma':15572,'huri':1602,'homai':1371,'mōhio':4147,'i':1640,'ka':1828,'kite':2722,'āta':13937,'mutu':4294,'ana':206,'anō':239,'tōku':8398,'tōu':8547,'tāu':7674,'tāku':7309,'whero':10283,'kōwhai':3180,'kākāriki':2104,'kikorangi':2641,'mā':3481,'mangu':3636,'karaka':2273,'kākaka':38979,'māwhero':3982,'pāpura':5202,'tapatoru':7470,'tapawhā':7476,'porohīta':5865,'whetu':10293,'porotītaha':43998,'rawe':6654,'pō':5689,'atarau':470,'pōkarekare':5766,'katoa':2399,'rāua':6595,'ao':256,'ata':456,'ahiahi':71,'tonu':8429,'kē':2504,'atu':493,'ake':143,'iho':1668,'mai':3474,'engari':661,'ā':39,'nā reira':4347,'tinana':8108,'upoko':8896,'kanohi':2178,'taringa':7586,'waha':8981,'ringa':6789,'waewae':8974,'manawa':3443,'ihu':1674,'ao':256,'ata':456,'ahiahi':71,'tonu':8429,'kē':2504,'atu':493,'ake':143,'mai':3474,'engari':661,'ā':39,'nā reira':4347,'tinana':8108,'upoko':8896,'kanohi':2178,'taringa':7586,'waha':8981,'ringa':6789,'waewae':8974,'manawa':3443,'ihu':1674,'māuiui':3941,'tau':7680,'kaiako':1899,'ākonga':162,'Ingarani':13501,'tikanga':8043,'aroha mai':10803,'ināianei':1713,'āpōpō':323,'inanahi':1721,'hiahia':1132,'auē':524,'ngākau':53136,'mihi':4059,'tino':8122,'āhua':87,'noa':4428,
+  'whare':10111,'kāinga':1971,'wāhi':8996,'whenua':10256,'moana':52948,'awa':563,
+  'maunga':3952,'ngahere':4512,'rangi':6482,'rā':6402,'marama':3673,'mārama':3672,'wai':9019,
+  'ahi':69,'tangata':7411,'tāne':51482,'wahine':52001,'tamariki':7339,'tamaiti':7326,
+  'whānau':10062,'iwi':1822,'hapū':877,'ingoa':1760,'reo':6700,'waka':9104,
+  'pai':4936,'kino':2663,'nui':4488,'iti':1813,'roa':6850,'poto':5925,'hou':1464,
+  'tawhito':7871,'ataahua':457,'kaha':1835,'ngenge':53183,'hiakai':1134,'hiainu':1133,
+  'hari':899,'pōuri':5962,'tika':51697,'hē':1004,'whakatoi':9952,
+  'tahi':7059,'rua':6941,'toru':8517,'whā':9293,'rima':6777,'ono':4782,
+  'whitu':10356,'waru':9175,'iwa':1820,'tekau':7900,'kore':2989,
+  'te':15648,'ngā':53126,'he':1005,'ko':2741,'kei':2514,'ki':2596,
+  'nō':4426,'nā':4300,'me':3987,'kāore':2198,'ehara':615
+};
+
+const ALL_CARDS = [
+  {en:"hello / thank you",tr:"kia ora",cat:"greetings"},
+  {en:"greetings (to one person)",tr:"tēnā koe",cat:"greetings"},
+  {en:"greetings (to two people)",tr:"tēnā kōrua",cat:"greetings"},
+  {en:"greetings (to three or more)",tr:"tēnā koutou",cat:"greetings"},
+  {en:"welcome",tr:"nau mai",cat:"greetings"},
+  {en:"goodbye (to someone leaving)",tr:"haere rā",cat:"greetings"},
+  {en:"goodbye (said by the one leaving)",tr:"e noho rā",cat:"greetings"},
+  {en:"yes",tr:"āe",cat:"basics"},
+  {en:"no",tr:"kāo",cat:"basics"},
+  {en:"I / me",tr:"au",cat:"pronouns"},
+  {en:"you (one person)",tr:"koe",cat:"pronouns"},
+  {en:"he / she / they (one)",tr:"ia",cat:"pronouns"},
+  {en:"we two (not you)",tr:"māua",cat:"pronouns"},
+  {en:"we two (including you)",tr:"tāua",cat:"pronouns"},
+  {en:"they (three or more)",tr:"rātou",cat:"pronouns"},
+  {en:"they two",tr:"rāua",cat:"pronouns"},
+  {en:"we (three+, not you)",tr:"mātou",cat:"pronouns"},
+  {en:"we all (three+, including you)",tr:"tātou",cat:"pronouns"},
+  {en:"you two",tr:"kōrua",cat:"pronouns"},
+  {en:"you all (three+)",tr:"koutou",cat:"pronouns"},
+  {en:"what",tr:"aha",cat:"questions"},
+  {en:"who",tr:"wai",cat:"questions"},
+  {en:"where",tr:"hea",cat:"questions"},
+  {en:"when (future)",tr:"āhea",cat:"questions"},
+  {en:"when (past)",tr:"nōnahea",cat:"questions"},
+  {en:"how / what like",tr:"pēhea",cat:"questions"},
+  {en:"how many",tr:"hia",cat:"questions"},
+  {en:"eat / food",tr:"kai",cat:"verbs"},
+  {en:"sleep",tr:"moe",cat:"verbs"},
+  {en:"go / travel",tr:"haere",cat:"verbs"},
+  {en:"return / also",tr:"hoki",cat:"verbs"},
+  {en:"sit / stay / live",tr:"noho",cat:"verbs"},
+  {en:"speak / talk",tr:"kōrero",cat:"verbs"},
+  {en:"listen",tr:"whakarongo",cat:"verbs"},
+  {en:"look",tr:"titiro",cat:"verbs"},
+  {en:"work / do",tr:"mahi",cat:"verbs"},
+  {en:"learn / teach",tr:"ako",cat:"verbs"},
+  {en:"love / care",tr:"aroha",cat:"verbs"},
+  {en:"stand",tr:"tū",cat:"verbs"},
+  {en:"run",tr:"oma",cat:"verbs"},
+  {en:"turn",tr:"huri",cat:"verbs"},
+  {en:"give (to me)",tr:"homai",cat:"verbs"},
+  {en:"know / understand",tr:"mōhio",cat:"verbs"},
+  {en:"see / find",tr:"kite",cat:"verbs"},
+  {en:"past tense marker",tr:"i",cat:"particles"},
+  {en:"narrative / sequential tense marker",tr:"ka",cat:"particles"},
+  {en:"ongoing action suffix",tr:"ana",cat:"particles"},
+  {en:"again / still / also",tr:"anō",cat:"particles"},
+  {en:"gently / carefully",tr:"āta",cat:"particles"},
+  {en:"understand / clear / bright",tr:"mārama",cat:"verbs"},
+  {en:"unwell / sick",tr:"māuiui",cat:"descriptors"},
+  {en:"year / to settle / count",tr:"tau",cat:"nouns"},
+  {en:"teacher",tr:"kaiako",cat:"nouns"},
+  {en:"student / learner",tr:"ākonga",cat:"nouns"},
+  {en:"England",tr:"Ingarani",cat:"nouns"},
+  {en:"custom / meaning / protocol",tr:"tikanga",cat:"nouns"},
+  {en:"want / desire",tr:"hiahia",cat:"verbs"},
+  {en:"now / at this moment",tr:"ināianei",cat:"particles"},
+  {en:"tomorrow",tr:"āpōpō",cat:"particles"},
+  {en:"yesterday",tr:"inanahi",cat:"particles"},
+  {en:"alas! / oh no!",tr:"auē",cat:"basics"},
+  {en:"heart / innermost feelings",tr:"ngākau",cat:"nouns"},
+  {en:"greet / acknowledge / tribute",tr:"mihi",cat:"verbs"},
+  {en:"very / extremely",tr:"tino",cat:"particles"},
+  {en:"appearance / somewhat / about",tr:"āhua",cat:"particles"},
+  {en:"just / only / freely / without reason",tr:"noa",cat:"particles"},
+  {en:"sorry / excuse me / forgive me",tr:"aroha mai",cat:"sentences"},
+  {en:"how are you?",tr:"kei te pēhea koe?",cat:"sentences"},
+  {en:"I'm very well",tr:"kei te pai rawa atu au",cat:"sentences"},
+  {en:"I'm pretty good",tr:"kei te āhua pai au",cat:"sentences"},
+  {en:"I'm unwell / sick",tr:"kei te māuiui au",cat:"sentences"},
+  {en:"how old are you?",tr:"e hia ō tau?",cat:"sentences"},
+  {en:"I am ___ years old",tr:"e ___ ōku tau",cat:"sentences"},
+  {en:"what is your job?",tr:"he aha tō mahi?",cat:"sentences"},
+  {en:"I am a teacher",tr:"he kaiako au",cat:"sentences"},
+  {en:"I am a student",tr:"he ākonga au",cat:"sentences"},
+  {en:"I am from England",tr:"nō Ingarani au",cat:"sentences"},
+  {en:"I live in ___",tr:"e noho ana au i ___",cat:"sentences"},
+  {en:"I don't understand",tr:"kāore au i te mārama",cat:"sentences"},
+  {en:"do you understand?",tr:"kei te mārama koe?",cat:"sentences"},
+  {en:"please say that again",tr:"tēnā, kōrero anō",cat:"sentences"},
+  {en:"speak slowly please",tr:"āta kōrero mai",cat:"sentences"},
+  {en:"what does ___ mean?",tr:"he aha te tikanga o ___?",cat:"sentences"},
+  {en:"I am learning te reo Māori",tr:"kei te ako au i te reo Māori",cat:"sentences"},
+  {en:"no worries / it's nothing",tr:"kāore he aha",cat:"sentences"},
+  {en:"excellent! / very good!",tr:"tino pai!",cat:"sentences"},
+  {en:"let's eat",tr:"me kai tātou",cat:"sentences"},
+  {en:"what do you want?",tr:"he aha tāu e hiahia ana?",cat:"sentences"},
+  {en:"give me that",tr:"homai tēnā",cat:"sentences"},
+  {en:"I don't want it",tr:"kāore au e hiahia ana",cat:"sentences"},
+  {en:"today",tr:"i tēnei rā",cat:"sentences"},
+  {en:"where is ___?",tr:"kei hea ___?",cat:"sentences"},
+  {en:"my heart is very happy",tr:"ka nui te hari o tōku ngākau",cat:"sentences"},
+  {en:"my regards / much love",tr:"he nui ake ōku mihi",cat:"sentences"},
+  {en:"finished / ended",tr:"mutu",cat:"particles"},
+  {en:"my (ō class — people, places, feelings)",tr:"tōku",cat:"possessives"},
+  {en:"your (ō class — one person)",tr:"tōu",cat:"possessives"},
+  {en:"my (ā class — actions, objects)",tr:"tāku",cat:"possessives"},
+  {en:"your (ā class — one person)",tr:"tāu",cat:"possessives"},
+  {en:"red",tr:"whero",cat:"colours"},
+  {en:"yellow",tr:"kōwhai",cat:"colours"},
+  {en:"green",tr:"kākāriki",cat:"colours"},
+  {en:"blue",tr:"kikorangi",cat:"colours"},
+  {en:"white",tr:"mā",cat:"colours"},
+  {en:"black",tr:"mangu",cat:"colours"},
+  {en:"orange",tr:"karaka",cat:"colours"},
+  {en:"brown",tr:"kākaka",cat:"colours"},
+  {en:"pink",tr:"māwhero",cat:"colours"},
+  {en:"purple",tr:"pāpura",cat:"colours"},
+  {en:"awesome / excellent / fantastic",tr:"rawe",cat:"descriptors"},
+  {en:"night",tr:"pō",cat:"nouns"},
+  {en:"moonlit / reflected moonlight",tr:"atarau",cat:"nouns"},
+  {en:"rippling / agitated (as water)",tr:"pōkarekare",cat:"descriptors"},
+  {en:"all / everyone / everything",tr:"katoa",cat:"particles"},
+  {en:"daytime / world / dawn",tr:"ao",cat:"nouns"},
+  {en:"morning / dawn",tr:"ata",cat:"nouns"},
+  {en:"afternoon / evening",tr:"ahiahi",cat:"nouns"},
+  {en:"still / always / continuously",tr:"tonu",cat:"particles"},
+  {en:"already / different / instead",tr:"kē",cat:"particles"},
+  {en:"away from speaker",tr:"atu",cat:"particles"},
+  {en:"upward",tr:"ake",cat:"particles"},
+  {en:"downward",tr:"iho",cat:"particles"},
+  {en:"towards speaker",tr:"mai",cat:"particles"},
+  {en:"but / however",tr:"engari",cat:"particles"},
+  {en:"and then / and so",tr:"ā",cat:"particles"},
+  {en:"therefore / so / that's why",tr:"nā reira",cat:"particles"},
+  {en:"body",tr:"tinana",cat:"body"},
+  {en:"head",tr:"upoko",cat:"body"},
+  {en:"face / eye",tr:"kanohi",cat:"body"},
+  {en:"ear",tr:"taringa",cat:"body"},
+  {en:"mouth",tr:"waha",cat:"body"},
+  {en:"hand / arm",tr:"ringa",cat:"body"},
+  {en:"foot / leg",tr:"waewae",cat:"body"},
+  {en:"breath / heart / lungs",tr:"manawa",cat:"body"},
+  {en:"nose",tr:"ihu",cat:"body"},
+  {en:"daytime / world / dawn",tr:"ao",cat:"nouns"},
+  {en:"morning / dawn",tr:"ata",cat:"nouns"},
+  {en:"afternoon / evening",tr:"ahiahi",cat:"nouns"},
+  {en:"still / always / continuously",tr:"tonu",cat:"particles"},
+  {en:"already / different / instead",tr:"kē",cat:"particles"},
+  {en:"away from speaker",tr:"atu",cat:"particles"},
+  {en:"upward",tr:"ake",cat:"particles"},
+  {en:"downward",tr:"iho",cat:"particles"},
+  {en:"towards speaker",tr:"mai",cat:"particles"},
+  {en:"but / however",tr:"engari",cat:"particles"},
+  {en:"and then / and so",tr:"ā",cat:"particles"},
+  {en:"therefore / so / that's why",tr:"nā reira",cat:"particles"},
+  {en:"body",tr:"tinana",cat:"body"},
+  {en:"head",tr:"upoko",cat:"body"},
+  {en:"face / eye",tr:"kanohi",cat:"body"},
+  {en:"ear",tr:"taringa",cat:"body"},
+  {en:"mouth",tr:"waha",cat:"body"},
+  {en:"hand / arm",tr:"ringa",cat:"body"},
+  {en:"foot / leg",tr:"waewae",cat:"body"},
+  {en:"breath / heart / lungs",tr:"manawa",cat:"body"},
+  {en:"nose",tr:"ihu",cat:"body"},
+  {en:"triangle",tr:"tapatoru",cat:"shapes"},
+  {en:"square / rectangle",tr:"tapawhā",cat:"shapes"},
+  {en:"circle",tr:"porohīta",cat:"shapes"},
+  {en:"star",tr:"whetu",cat:"shapes"},
+  {en:"oval / ellipse",tr:"porotītaha",cat:"shapes"},
+  {en:"house / building",tr:"whare",cat:"nouns"},
+  {en:"home / village",tr:"kāinga",cat:"nouns"},
+  {en:"place",tr:"wāhi",cat:"nouns"},
+  {en:"land",tr:"whenua",cat:"nouns"},
+  {en:"sea / ocean",tr:"moana",cat:"nouns"},
+  {en:"river",tr:"awa",cat:"nouns"},
+  {en:"mountain",tr:"maunga",cat:"nouns"},
+  {en:"forest",tr:"ngahere",cat:"nouns"},
+  {en:"sky / day",tr:"rangi",cat:"nouns"},
+  {en:"sun / day / sail",tr:"rā",cat:"nouns"},
+  {en:"moon / month",tr:"marama",cat:"nouns"},
+  {en:"water",tr:"wai",cat:"nouns"},
+  {en:"fire",tr:"ahi",cat:"nouns"},
+  {en:"person",tr:"tangata",cat:"nouns"},
+  {en:"man",tr:"tāne",cat:"nouns"},
+  {en:"woman",tr:"wahine",cat:"nouns"},
+  {en:"children",tr:"tamariki",cat:"nouns"},
+  {en:"child",tr:"tamaiti",cat:"nouns"},
+  {en:"family",tr:"whānau",cat:"nouns"},
+  {en:"tribe / people",tr:"iwi",cat:"nouns"},
+  {en:"subtribe",tr:"hapū",cat:"nouns"},
+  {en:"name",tr:"ingoa",cat:"nouns"},
+  {en:"language / voice",tr:"reo",cat:"nouns"},
+  {en:"canoe / vehicle",tr:"waka",cat:"nouns"},
+  {en:"good",tr:"pai",cat:"descriptors"},
+  {en:"bad",tr:"kino",cat:"descriptors"},
+  {en:"big / many",tr:"nui",cat:"descriptors"},
+  {en:"small",tr:"iti",cat:"descriptors"},
+  {en:"long / tall",tr:"roa",cat:"descriptors"},
+  {en:"short",tr:"poto",cat:"descriptors"},
+  {en:"new",tr:"hou",cat:"descriptors"},
+  {en:"old",tr:"tawhito",cat:"descriptors"},
+  {en:"beautiful",tr:"ataahua",cat:"descriptors"},
+  {en:"strong",tr:"kaha",cat:"descriptors"},
+  {en:"tired",tr:"ngenge",cat:"descriptors"},
+  {en:"hungry",tr:"hiakai",cat:"descriptors"},
+  {en:"thirsty",tr:"hiainu",cat:"descriptors"},
+  {en:"happy",tr:"hari",cat:"descriptors"},
+  {en:"sad",tr:"pōuri",cat:"descriptors"},
+  {en:"correct / right",tr:"tika",cat:"descriptors"},
+  {en:"wrong",tr:"hē",cat:"descriptors"},
+  {en:"cheeky / playfully mischievous",tr:"whakatoi",cat:"descriptors"},
+  {en:"one",tr:"tahi",cat:"numbers"},
+  {en:"two",tr:"rua",cat:"numbers"},
+  {en:"three",tr:"toru",cat:"numbers"},
+  {en:"four",tr:"whā",cat:"numbers"},
+  {en:"five",tr:"rima",cat:"numbers"},
+  {en:"six",tr:"ono",cat:"numbers"},
+  {en:"seven",tr:"whitu",cat:"numbers"},
+  {en:"eight",tr:"waru",cat:"numbers"},
+  {en:"nine",tr:"iwa",cat:"numbers"},
+  {en:"ten",tr:"tekau",cat:"numbers"},
+  {en:"zero / void / nothingness",tr:"kore",cat:"numbers"},
+  {en:"the (singular)",tr:"te",cat:"particles"},
+  {en:"the (plural)",tr:"ngā",cat:"particles"},
+  {en:"a / an / some",tr:"he",cat:"particles"},
+  {en:"is / identifies",tr:"ko",cat:"particles"},
+  {en:"at (present location)",tr:"kei",cat:"particles"},
+  {en:"to / towards",tr:"ki",cat:"particles"},
+  {en:"from / origin (past)",tr:"nō",cat:"particles"},
+  {en:"by / belonging to (recent)",tr:"nā",cat:"particles"},
+  {en:"and / with",tr:"me",cat:"particles"},
+  {en:"no / not",tr:"kāore",cat:"particles"},
+  {en:"is not",tr:"ehara",cat:"particles"},
+  {en:"present action: I am eating",tr:"kei te kai au",cat:"sentences"},
+  {en:"past action: I went",tr:"i haere au",cat:"sentences"},
+  {en:"narrative tense: she went",tr:"ka haere ia",cat:"sentences"},
+  {en:"should: we two should go",tr:"me haere tāua",cat:"sentences"},
+  {en:"my name is...",tr:"ko ___ tōku ingoa",cat:"sentences"},
+  {en:"what is your name?",tr:"ko wai tōu ingoa?",cat:"sentences"},
+  {en:"where are you from?",tr:"nō hea koe?",cat:"sentences"},
+  {en:"I am from...",tr:"nō ___ au",cat:"sentences"},
+  {en:"I don't know",tr:"kāore au e mōhio ana",cat:"sentences"},
+  {en:"he / she is a good person",tr:"he tangata pai ia",cat:"sentences"},
+  {en:"listen here!",tr:"whakarongo mai!",cat:"sentences"},
+  {en:"be strong / keep going",tr:"kia kaha",cat:"sentences"},
+  {en:"take it easy / go gently",tr:"āta haere",cat:"sentences"},
+  {en:"see you",tr:"ka kite",cat:"sentences"},
+  {en:"see you again",tr:"ka kite anō",cat:"sentences"},
+  {en:"it's good / that's fine",tr:"kei te pai",cat:"sentences"},
+  {en:"I'm tired",tr:"kei te ngenge au",cat:"sentences"},
+  {en:"I'm hungry",tr:"kei te hiakai au",cat:"sentences"},
+  {en:"what are you doing?",tr:"he aha tāu mahi?",cat:"sentences"},
+  {en:"I am going to the house",tr:"kei te haere au ki te whare",cat:"sentences"},
+  {en:"thank you very much",tr:"kia ora rawa atu",cat:"sentences"},
+  {en:"it's finished / that's it",tr:"ka mutu",cat:"sentences"},
+];
+
+const DECKS = {
+  all: ALL_CARDS,
+  vocab: ALL_CARDS.filter(c=>['nouns','verbs','descriptors'].includes(c.cat)),
+  sentences: ALL_CARDS.filter(c=>c.cat==='sentences'),
+  possessives: ALL_CARDS.filter(c=>c.cat==='possessives'),
+  colours: ALL_CARDS.filter(c=>c.cat==='colours'),
+  shapes: ALL_CARDS.filter(c=>c.cat==='shapes'),
+  body: ALL_CARDS.filter(c=>c.cat==='body'),
+  body: ALL_CARDS.filter(c=>c.cat==='body'),
+  particles: ALL_CARDS.filter(c=>c.cat==='particles'),
+  pronouns: ALL_CARDS.filter(c=>c.cat==='pronouns'),
+  numbers: ALL_CARDS.filter(c=>c.cat==='numbers'),
+};
+
+let queue=[],deck=[],scores={knew:0,unsure:0,miss:0},flipped=false,current=null,currentAudio=null,mode='en',firstMisses=[],seenThisRound=new Set();
+
+function setMode(m,btn){
+  mode=m;
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  restart();
+}
+
+function getAudioId(tr) {
+  if (AUDIO[tr] !== undefined) return AUDIO[tr];
+  const clean = tr.toLowerCase().replace(/[^a-zāēīōū\s]/g,'').trim();
+  return AUDIO[clean] || null;
+}
+
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function setDeck(name,btn){
+  document.querySelectorAll('.deck-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  deck=shuffle(DECKS[name]||ALL_CARDS);
+  queue=[...deck];
+  scores={knew:0,unsure:0,miss:0};
+  firstMisses=[];
+  seenThisRound=new Set();
+  flipped=false;
+  document.getElementById('done-view').classList.add('hidden');
+  document.getElementById('main-view').classList.remove('hidden');
+  updateStats();
+  nextCard();
+}
+
+function restart(){
+  const activeBtn=document.querySelector('.deck-btn.active');
+  setDeck(activeBtn?activeBtn.textContent.toLowerCase().trim():'all', activeBtn||document.querySelector('.deck-btn'));
+}
+
+function nextCard(){
+  if(queue.length===0){showDone();return}
+  if(currentAudio){currentAudio.pause();currentAudio=null}
+  current=queue.shift();
+  flipped=false;
+  document.getElementById('card').classList.remove('revealed');
+  document.getElementById('audio-btn').classList.remove('visible','playing');
+  document.getElementById('card-cat').textContent=current.cat;
+  document.getElementById('tap-prompt').textContent='tap card to reveal';
+  document.getElementById('rating-row').classList.add('hidden');
+  if(mode==='en'){
+    document.getElementById('card-hint').textContent='what is this in te reo?';
+    document.getElementById('card-en').textContent=current.en;
+    document.getElementById('card-en').style.display='block';
+    document.getElementById('card-tr').style.display='none';
+  } else {
+    document.getElementById('card-hint').textContent='what does this mean?';
+    document.getElementById('card-tr').textContent=current.tr;
+    document.getElementById('card-tr').style.display='block';
+    document.getElementById('card-en').style.display='none';
+    const id=getAudioId(current.tr);
+    if(id){
+      document.getElementById('audio-btn').classList.add('visible');
+      playAudio();
+    }
+  }
+  updateProgress();
+  document.getElementById('queue-count').textContent=queue.length+' remaining';
+}
+
+function handleCardTap(e){
+  if(e.target.closest('.audio-btn')) return;
+  flip();
+}
+
+function flip(){
+  if(flipped) return;
+  flipped=true;
+  document.getElementById('card').classList.add('revealed');
+  document.getElementById('rating-row').classList.remove('hidden');
+  document.getElementById('tap-prompt').textContent='';
+  if(mode==='en'){
+    document.getElementById('card-hint').textContent='te reo māori';
+    document.getElementById('card-en').style.display='none';
+    document.getElementById('card-tr').textContent=current.tr;
+    document.getElementById('card-tr').style.display='block';
+    const id=getAudioId(current.tr);
+    if(id){
+      document.getElementById('audio-btn').classList.add('visible');
+      playAudio();
+    }
+  } else {
+    document.getElementById('card-hint').textContent='english meaning';
+    document.getElementById('card-tr').style.display='none';
+    document.getElementById('card-en').textContent=current.en;
+    document.getElementById('card-en').style.display='block';
+  }
+}
+
+function playAudio(){
+  const id=getAudioId(current.tr);
+  if(!id) return;
+  if(currentAudio){currentAudio.pause();currentAudio=null}
+  const btn=document.getElementById('audio-btn');
+  btn.classList.add('playing');
+  const a=new Audio(BASE+id+'.mp3');
+  currentAudio=a;
+  a.onended=()=>{btn.classList.remove('playing');currentAudio=null};
+  a.onerror=()=>{btn.classList.remove('playing');currentAudio=null};
+  a.play().catch(()=>btn.classList.remove('playing'));
+}
+
+function rate(r){
+  scores[r]++;
+  if(!seenThisRound.has(current.tr)){
+    seenThisRound.add(current.tr);
+    if(r==='miss'||r==='unsure') firstMisses.push(current);
+  }
+  if(r==='miss') queue.push(current);
+  else if(r==='unsure'){const pos=Math.min(4,queue.length);queue.splice(pos,0,current)}
+  updateStats();
+  nextCard();
+}
+
+function updateStats(){
+  document.getElementById('s-knew').textContent=scores.knew;
+  document.getElementById('s-unsure').textContent=scores.unsure;
+  document.getElementById('s-miss').textContent=scores.miss;
+}
+
+function updateProgress(){
+  const pct=deck.length>0?Math.round((scores.knew/deck.length)*100):0;
+  document.getElementById('prog').style.width=pct+'%';
+}
+
+function showDone(){
+  document.getElementById('main-view').classList.add('hidden');
+  document.getElementById('done-view').classList.remove('hidden');
+  const total=scores.knew+scores.unsure+scores.miss;
+  const pct=total>0?Math.round((scores.knew/total)*100):0;
+  document.getElementById('done-pct').textContent=pct+'%';
+  const msgs=[[80,'Ka pai rawa atu! Outstanding.'],[60,'Ka pai! Keep going.'],[40,'Kia kaha — progress!'],[ 0,'Ka mutu. Practice makes perfect!']];
+  document.getElementById('done-msg').textContent=msgs.find(m=>pct>=m[0])[1];
+  document.getElementById('d-knew').textContent=scores.knew;
+  document.getElementById('d-unsure').textContent=scores.unsure;
+  document.getElementById('d-miss').textContent=scores.miss;
+  const missEl=document.getElementById('miss-list');
+  if(firstMisses.length===0){
+    missEl.innerHTML='<div style="font-style:italic;color:var(--gray-dark);font-size:14px">Ka pai — no misses on first attempt!</div>';
+  } else {
+    missEl.innerHTML=firstMisses.map(c=>`
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--gray-mid)">
+        <span style="font-weight:bold;font-size:16px">${c.tr}</span>
+        <span style="color:var(--gray-dark);font-size:14px">${c.en}</span>
+      </div>`).join('');
+  }
+}
+
+setDeck('all', document.querySelector('.deck-btn.active'));
+
+function showTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const drill = document.getElementById('drill-view');
+  const ref = document.getElementById('ref-view');
+  if(tab==='drill'){
+    drill.style.display='flex';
+    drill.style.flexDirection='column';
+    ref.style.display='none';
+  } else {
+    drill.style.display='none';
+    ref.style.display='block';
+  }
+}
+</script>
+</body>
+</html>
