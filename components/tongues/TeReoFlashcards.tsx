@@ -204,7 +204,7 @@ export default function TeReoFlashcards() {
 
     let newFirstMisses = firstMisses
     if (!seenThisRound.has(current.tr)) {
-      setSeenThisRound(prev => new Set([...prev, current.tr]))
+      setSeenThisRound(prev => { const s = new Set(Array.from(prev)); s.add(current.tr); return s })
       if (r !== 'knew') newFirstMisses = [...firstMisses, current]
       setFirstMisses(newFirstMisses)
     }
