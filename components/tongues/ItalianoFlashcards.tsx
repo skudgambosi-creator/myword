@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ITALIANO_CARDS, ITALIANO_CATS, type ItalianoCard } from '@/lib/tongues/italiano-data'
 
 type Mode = 'en-it' | 'it-en'
@@ -61,12 +61,7 @@ const s = {
   cardEn: { fontSize: 22, lineHeight: 1.4, marginBottom: 8, color: '#444' },
   cardIt: { fontSize: 36, fontWeight: 'bold', lineHeight: 1.3, color: '#000', marginBottom: 12 },
   cardCat: { fontSize: 12, border: '1px solid #ccc', borderRadius: 20, padding: '3px 12px', color: '#444', fontStyle: 'italic', position: 'absolute' as const, bottom: 16 },
-  audioBtn: (playing: boolean): React.CSSProperties => ({
-    position: 'absolute', top: 14, right: 14, width: 44, height: 44,
-    borderRadius: '50%', border: playing ? '1.5px solid #000' : '1.5px solid #ccc',
-    background: playing ? '#f0f0f0' : '#fff', cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
-  }),
+  audioBtn: { position: 'absolute', top: 14, right: 14, width: 44, height: 44, borderRadius: '50%', border: '1.5px solid #ccc', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 } as React.CSSProperties,
   tapPrompt: { fontSize: 13, color: '#444', textAlign: 'center' as const, marginBottom: 12, fontStyle: 'italic', minHeight: 20 },
   ratingRow: { display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 4 },
   rBtn: (variant: 'miss' | 'unsure' | 'knew'): React.CSSProperties => ({
@@ -114,9 +109,12 @@ const doneMessages: [number, string][] = [
 ]
 
 function playTTS(text: string) {
-  const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=it&client=tw-ob`
-  const audio = new Audio(url)
-  audio.play().catch(() => {})
+  if (!window.speechSynthesis) return
+  window.speechSynthesis.cancel()
+  const utterance = new SpeechSynthesisUtterance(text)
+  utterance.lang = 'it-IT'
+  utterance.rate = 0.9
+  window.speechSynthesis.speak(utterance)
 }
 
 export default function ItalianoFlashcards() {
@@ -131,27 +129,16 @@ export default function ItalianoFlashcards() {
   const [seenThisRound, setSeenThisRound] = useState<Set<string>>(new Set())
   const [mode, setMode] = useState<Mode>('en-it')
   const [done, setDone] = useState(false)
-  const [audioPlaying, setAudioPlaying] = useState(false)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const stopAudio = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause()
-      audioRef.current = null
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel()
     }
-    setAudioPlaying(false)
   }, [])
 
   const playAudio = useCallback((text: string) => {
-    stopAudio()
-    const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=it&client=tw-ob`
-    const a = new Audio(url)
-    audioRef.current = a
-    setAudioPlaying(true)
-    a.onended = () => { setAudioPlaying(false); audioRef.current = null }
-    a.onerror = () => { setAudioPlaying(false); audioRef.current = null }
-    a.play().catch(() => setAudioPlaying(false))
-  }, [stopAudio])
+    playTTS(text)
+  }, [])
 
   const startDeck = useCallback((cat: Cat, currentMode: Mode = mode) => {
     stopAudio()
@@ -277,7 +264,7 @@ export default function ItalianoFlashcards() {
               {current && (
                 <div style={s.card(flipped)} onClick={handleFlip}>
                   <button
-                    style={s.audioBtn(audioPlaying)}
+                    style={s.audioBtn}
                     onClick={e => { e.stopPropagation(); if (current) playAudio(current.it) }}
                   >
                     ▶
