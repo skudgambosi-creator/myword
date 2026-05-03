@@ -17,23 +17,23 @@ export default function TonguesPage() {
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(true)
-  const [userId, setUserId] = useState<string | null>(null)
   const [isTeReoUnlocked, setIsTeReoUnlocked] = useState(false)
+  const [isItalianoUnlocked, setIsItalianoUnlocked] = useState(false)
 
   useEffect(() => {
     async function load() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.push('/login'); return }
-      setUserId(session.user.id)
 
       const { data } = await supabase
         .from('tongues_unlocks')
         .select('language_id')
         .eq('user_id', session.user.id)
-        .eq('language_id', 'te-reo')
-        .maybeSingle()
+        .in('language_id', ['te-reo', 'italiano'])
 
-      setIsTeReoUnlocked(!!data)
+      const unlocked = new Set((data || []).map((r: { language_id: string }) => r.language_id))
+      setIsTeReoUnlocked(unlocked.has('te-reo'))
+      setIsItalianoUnlocked(unlocked.has('italiano'))
       setLoading(false)
     }
     load()
@@ -44,11 +44,22 @@ export default function TonguesPage() {
     return () => subscription.unsubscribe()
   }, [])
 
-  const handleUnlock = async (password: string): Promise<{ error?: string }> => {
+  const handleUnlockTeReo = async (password: string): Promise<{ error?: string }> => {
     const res = await fetch('/api/tongues/unlock', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ languageId: 'te-reo', password }),
+    })
+    const data = await res.json()
+    if (!res.ok) return { error: data.error || 'Incorrect password' }
+    return {}
+  }
+
+  const handleUnlockItaliano = async (password: string): Promise<{ error?: string }> => {
+    const res = await fetch('/api/tongues/unlock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ languageId: 'italiano', password }),
     })
     const data = await res.json()
     if (!res.ok) return { error: data.error || 'Incorrect password' }
@@ -80,15 +91,27 @@ export default function TonguesPage() {
           </div>
         </div>
 
-        <LanguageCard
-          languageId="te-reo"
-          displayName="Te Reo Māori"
-          nativeName="Te reo o Aotearoa"
-          description="The indigenous language of Aotearoa New Zealand. ~200 flashcards covering greetings, pronouns, verbs, nouns, numbers, colours, and full sentence patterns — plus a reference guide with the pronoun system and sentence structure."
-          href="/tongues/te-reo"
-          isUnlocked={isTeReoUnlocked}
-          onUnlock={handleUnlock}
-        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <LanguageCard
+            languageId="te-reo"
+            displayName="Te Reo Māori"
+            nativeName="Te reo o Aotearoa"
+            description="The indigenous language of Aotearoa New Zealand. ~200 flashcards covering greetings, pronouns, verbs, nouns, numbers, colours, and full sentence patterns — plus a reference guide with the pronoun system and sentence structure."
+            href="/tongues/te-reo"
+            isUnlocked={isTeReoUnlocked}
+            onUnlock={handleUnlockTeReo}
+          />
+
+          <LanguageCard
+            languageId="italiano"
+            displayName="Italiano"
+            nativeName="Lingua italiana"
+            description="Italian for everyday use. 250+ flashcards covering greetings, pronouns, verbs, nouns, numbers, colours, days, months, body parts, and full sentence templates — with Google Translate audio on every card."
+            href="/tongues/italiano"
+            isUnlocked={isItalianoUnlocked}
+            onUnlock={handleUnlockItaliano}
+          />
+        </div>
 
       </main>
       <Footer />

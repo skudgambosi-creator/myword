@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MY WORD — Italiano</title>
+<style>
+  :root {
+    --black: #000;
+    --white: #fff;
+    --gray-light: #f0f0f0;
+    --gray-mid: #ccc;
+    --gray-dark: #444;
+    --radius: 12px;
+    --tap: 64px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--white);
+    color: var(--black);
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    max-width: 600px;
+    margin: 0 auto;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .site-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--black);
+    position: relative;
+    letter-spacing: 0.18em;
+    font-size: 13px;
+    font-family: Georgia, serif;
+  }
+  .site-header .site-title {
+    font-weight: bold;
+    letter-spacing: 0.25em;
+    font-size: 15px;
+  }
+  .site-header .lang-label {
+    position: absolute;
+    right: 20px;
+    font-style: italic;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--gray-dark);
+  }
+
+  /* TAB NAV */
+  .tab-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid var(--black);
+  }
+  .tab-btn {
+    background: var(--white);
+    border: none;
+    border-right: 1px solid var(--black);
+    padding: 16px;
+    font-family: Georgia, serif;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    color: var(--black);
+  }
+  .tab-btn:last-child { border-right: none; }
+  .tab-btn.active { background: var(--black); color: var(--white); }
+
+  /* DRILL VIEW */
+  #drill-view {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 0;
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    border-bottom: 1px solid var(--black);
+  }
+  .stat-cell {
+    padding: 12px 8px;
+    text-align: center;
+    border-right: 1px solid var(--black);
+  }
+  .stat-cell:last-child { border-right: none; }
+  .stat-num {
+    font-size: 28px;
+    font-weight: bold;
+    font-family: Georgia, serif;
+    display: block;
+  }
+  .stat-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--gray-dark);
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* PROGRESS BAR */
+  .progress-wrap {
+    height: 3px;
+    background: var(--gray-light);
+  }
+  .progress-bar {
+    height: 3px;
+    background: var(--black);
+    width: 0%;
+  }
+
+  /* DECK FILTER */
+  .deck-wrap {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--gray-mid);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .deck-btn {
+    background: var(--white);
+    border: 1px solid var(--black);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-family: Georgia, serif;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--black);
+  }
+  .deck-btn.active {
+    background: var(--black);
+    color: var(--white);
+  }
+
+  /* MODE TOGGLE */
+  .mode-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid var(--black);
+  }
+  .mode-btn {
+    background: var(--white);
+    border: none;
+    border-right: 1px solid var(--black);
+    padding: 13px 8px;
+    font-family: Georgia, serif;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    color: var(--black);
+    letter-spacing: 0.04em;
+  }
+  .mode-btn:last-child { border-right: none; }
+  .mode-btn.active { background: var(--black); color: var(--white); }
+
+  /* REMAINING */
+  .remaining-row {
+    text-align: right;
+    padding: 6px 16px;
+    font-size: 12px;
+    color: var(--gray-dark);
+    font-style: italic;
+  }
+
+  /* CARD AREA */
+  #main-view {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+  }
+  .card {
+    width: 100%;
+    min-height: 220px;
+    border: 1px solid var(--black);
+    border-radius: var(--radius);
+    padding: 24px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    background: var(--white);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .card-audio-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--gray-mid);
+    background: var(--white);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--black);
+  }
+  .card-prompt {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--gray-dark);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+  .card-front {
+    font-size: 26px;
+    font-family: Georgia, serif;
+    text-align: center;
+    font-weight: normal;
+  }
+  .card-back {
+    font-size: 36px;
+    font-family: Georgia, serif;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 16px;
+  }
+  .card-note {
+    font-size: 13px;
+    font-style: italic;
+    color: var(--gray-dark);
+    margin-top: 8px;
+    text-align: center;
+  }
+  .card-cat-tag {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    font-style: italic;
+    color: var(--gray-dark);
+    border: 1px solid var(--gray-mid);
+    border-radius: 10px;
+    padding: 2px 10px;
+    white-space: nowrap;
+  }
+  .tap-prompt {
+    font-size: 13px;
+    font-style: italic;
+    color: var(--gray-dark);
+    margin-top: 12px;
+    text-align: center;
+  }
+  .rating-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    margin-top: 14px;
+  }
+  .rating-row.hidden { display: none; }
+  .rate-btn {
+    min-height: var(--tap);
+    border: 1px solid var(--black);
+    border-radius: var(--radius);
+    background: var(--white);
+    font-family: Georgia, serif;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--black);
+    font-weight: bold;
+  }
+  .rate-btn:active { background: var(--gray-light); }
+
+  /* DONE VIEW */
+  #done-view {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px;
+    flex: 1;
+  }
+  #done-view h2 {
+    font-size: 22px;
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+  #done-view .score-line {
+    font-size: 15px;
+    color: var(--gray-dark);
+    margin-bottom: 24px;
+    font-style: italic;
+  }
+  .restart-btn {
+    background: var(--black);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius);
+    padding: 16px 40px;
+    font-family: Georgia, serif;
+    font-size: 15px;
+    cursor: pointer;
+    margin-bottom: 28px;
+    letter-spacing: 0.08em;
+  }
+  .misses-section { width: 100%; }
+  .misses-section h3 {
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--black);
+    padding-bottom: 8px;
+  }
+  .miss-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--gray-light);
+    font-size: 14px;
+  }
+  .miss-it { font-weight: bold; }
+  .miss-en { color: var(--gray-dark); font-style: italic; }
+
+  /* REF VIEW */
+  #ref-view {
+    display: none;
+    padding: 0 0 40px 0;
+    overflow-y: auto;
+  }
+  .ref-section {
+    padding: 0 16px;
+    margin-top: 24px;
+  }
+  .ref-section h2 {
+    font-size: 17px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--black);
+  }
+  .ref-note {
+    font-size: 13px;
+    font-style: italic;
+    color: var(--gray-dark);
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+  .ref-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .ref-table thead tr {
+    border-bottom: 1px solid var(--black);
+  }
+  .ref-table th {
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 4px;
+    font-weight: normal;
+    color: var(--gray-dark);
+  }
+  .ref-table td {
+    padding: 9px 4px;
+    vertical-align: top;
+    border-bottom: 1px solid var(--gray-light);
+  }
+  .ref-table tr:nth-child(even) td { background: var(--gray-light); }
+  .ref-table .it-col { font-weight: bold; }
+  .ref-table .note-col { font-style: italic; color: var(--gray-dark); font-size: 12px; }
+
+  .ref-sub {
+    font-size: 14px;
+    font-weight: bold;
+    margin: 16px 0 8px;
+    letter-spacing: 0.05em;
+  }
+
+  .conj-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  .conj-table th {
+    background: var(--black);
+    color: var(--white);
+    padding: 6px 8px;
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+  }
+  .conj-table td {
+    padding: 7px 8px;
+    border-bottom: 1px solid var(--gray-light);
+    font-size: 13px;
+  }
+  .conj-table tr:nth-child(even) td { background: var(--gray-light); }
+</style>
+</head>
+<body>
+
+<div class="site-header">
+  <span class="site-title">MY WORD</span>
+  <span class="lang-label">Italiano</span>
+</div>
+
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="showTab('drill',this)">Drill</button>
+  <button class="tab-btn" onclick="showTab('ref',this)">Reference</button>
+</div>
+
+<div id="drill-view" style="display:flex;flex-direction:column;flex:1">
+
+  <div class="stats-bar">
+    <div class="stat-cell">
+      <span class="stat-num" id="stat-knew">0</span>
+      <span class="stat-label">Knew it</span>
+    </div>
+    <div class="stat-cell">
+      <span class="stat-num" id="stat-unsure">0</span>
+      <span class="stat-label">Unsure</span>
+    </div>
+    <div class="stat-cell">
+      <span class="stat-num" id="stat-missed">0</span>
+      <span class="stat-label">Missed</span>
+    </div>
+  </div>
+
+  <div class="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+
+  <div class="deck-wrap" id="deck-wrap"></div>
+
+  <div class="mode-wrap">
+    <button class="mode-btn active" id="mode-en-it" onclick="setMode('en-it',this)">English → Italian</button>
+    <button class="mode-btn" id="mode-it-en" onclick="setMode('it-en',this)">Italian → English</button>
+  </div>
+
+  <div class="remaining-row"><span id="remaining-count">0</span> remaining</div>
+
+  <div id="main-view">
+    <div class="card" id="card" onclick="flipCard()">
+      <button class="card-audio-btn" id="audio-btn" onclick="event.stopPropagation();replayAudio()">▶</button>
+      <div class="card-prompt" id="card-prompt"></div>
+      <div class="card-front" id="card-front"></div>
+      <div class="card-back" id="card-back" style="display:none"></div>
+      <div class="card-note" id="card-note" style="display:none"></div>
+      <div class="card-cat-tag" id="card-cat"></div>
+    </div>
+    <div class="tap-prompt" id="tap-prompt">tap card to reveal</div>
+    <div class="rating-row hidden" id="rating-row">
+      <button class="rate-btn" onclick="rate('miss')">Miss</button>
+      <button class="rate-btn" onclick="rate('unsure')">Unsure</button>
+      <button class="rate-btn" onclick="rate('knew')">Knew it</button>
+    </div>
+  </div>
+
+  <div id="done-view">
+    <h2>Ottimo lavoro!</h2>
+    <div class="score-line" id="done-score"></div>
+    <button class="restart-btn" onclick="restart()">Drill again</button>
+    <div class="misses-section">
+      <h3>First attempt misses</h3>
+      <div id="miss-list"></div>
+    </div>
+  </div>
+
+</div><!-- end drill-view -->
+
+<div id="ref-view">
+
+  <div class="ref-section">
+    <h2>Greetings &amp; basics</h2>
+    <p class="ref-note">Use <em>buongiorno</em> until around 5pm; <em>buonasera</em> after. <em>Ciao</em> is informal — don't use with strangers or elders. <em>Lei</em> (capital L) is the formal "you" — used with strangers, professionals, people older than you.</p>
+    <table class="ref-table">
+      <thead><tr><th>Italiano</th><th>English</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td class="it-col">ciao</td><td>hello / bye</td><td class="note-col">informal only</td></tr>
+        <tr><td class="it-col">buongiorno</td><td>good morning / good day</td><td class="note-col">formal; til ~5pm</td></tr>
+        <tr><td class="it-col">buonasera</td><td>good evening</td><td class="note-col">formal; from ~5pm</td></tr>
+        <tr><td class="it-col">buonanotte</td><td>good night</td><td class="note-col">when parting at night</td></tr>
+        <tr><td class="it-col">arrivederci</td><td>goodbye</td><td class="note-col">formal</td></tr>
+        <tr><td class="it-col">addio</td><td>farewell</td><td class="note-col">permanent / emotional</td></tr>
+        <tr><td class="it-col">prego</td><td>you're welcome / please / go ahead</td><td class="note-col">very versatile</td></tr>
+        <tr><td class="it-col">grazie</td><td>thank you</td><td></td></tr>
+        <tr><td class="it-col">grazie mille</td><td>thank you very much</td><td class="note-col">lit. "a thousand thanks"</td></tr>
+        <tr><td class="it-col">per favore / per piacere</td><td>please</td><td></td></tr>
+        <tr><td class="it-col">scusa / scusi</td><td>excuse me / sorry</td><td class="note-col">scusa informal, scusi formal</td></tr>
+        <tr><td class="it-col">mi dispiace</td><td>I'm sorry</td><td class="note-col">for condolences / apologies</td></tr>
+        <tr><td class="it-col">sì / no</td><td>yes / no</td><td></td></tr>
+        <tr><td class="it-col">come stai?</td><td>how are you?</td><td class="note-col">informal</td></tr>
+        <tr><td class="it-col">come sta?</td><td>how are you?</td><td class="note-col">formal</td></tr>
+        <tr><td class="it-col">bene, grazie</td><td>fine, thanks</td><td></td></tr>
+        <tr><td class="it-col">come ti chiami?</td><td>what's your name?</td><td class="note-col">informal</td></tr>
+        <tr><td class="it-col">mi chiamo…</td><td>my name is…</td><td></td></tr>
+        <tr><td class="it-col">piacere</td><td>pleased to meet you</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ref-section">
+    <h2>Pronouns</h2>
+    <p class="ref-note">Italian verbs conjugate per person, so subject pronouns are often dropped — the verb ending makes the subject clear. <em>Lei</em> (capital L) = formal singular "you"; same conjugation as third person she/he. <em>Voi</em> is both "you all" and used as formal plural.</p>
+    <table class="ref-table">
+      <thead><tr><th>Pronoun</th><th>English</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td class="it-col">io</td><td>I</td><td></td></tr>
+        <tr><td class="it-col">tu</td><td>you (singular, informal)</td><td></td></tr>
+        <tr><td class="it-col">Lei</td><td>you (singular, formal)</td><td class="note-col">capital L; uses 3rd person verb</td></tr>
+        <tr><td class="it-col">lui</td><td>he</td><td></td></tr>
+        <tr><td class="it-col">lei</td><td>she</td><td class="note-col">lowercase; same verb as formal Lei</td></tr>
+        <tr><td class="it-col">noi</td><td>we</td><td></td></tr>
+        <tr><td class="it-col">voi</td><td>you (plural / formal plural)</td><td></td></tr>
+        <tr><td class="it-col">loro</td><td>they</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ref-section">
+    <h2>Sentence structure</h2>
+    <p class="ref-note">Italian word order is generally Subject–Verb–Object, like English. But adjectives usually follow nouns. Negation: put <strong>non</strong> before the verb. Questions: use rising intonation, or start with a question word.</p>
+    <div class="ref-sub">Negation</div>
+    <table class="ref-table">
+      <thead><tr><th>Positive</th><th>Negative</th></tr></thead>
+      <tbody>
+        <tr><td>Parlo italiano.</td><td>Non parlo italiano.</td></tr>
+        <tr><td>Ho fame.</td><td>Non ho fame.</td></tr>
+        <tr><td>Capisco.</td><td>Non capisco.</td></tr>
+      </tbody>
+    </table>
+    <div class="ref-sub">Articles</div>
+    <p class="ref-note">Every noun has a gender (m/f). Articles must agree. Definite: <strong>il/lo/la/i/gli/le</strong>. Indefinite: <strong>un/uno/una</strong>. <em>Lo</em> used before s+consonant, z, gn, ps. <em>L'</em> before vowels.</p>
+    <table class="ref-table">
+      <thead><tr><th></th><th>Masc. sing.</th><th>Fem. sing.</th><th>Masc. pl.</th><th>Fem. pl.</th></tr></thead>
+      <tbody>
+        <tr><td><em>the</em></td><td>il / lo / l'</td><td>la / l'</td><td>i / gli</td><td>le</td></tr>
+        <tr><td><em>a / an</em></td><td>un / uno</td><td>una / un'</td><td>—</td><td>—</td></tr>
+      </tbody>
+    </table>
+    <div class="ref-sub">Essere vs Stare</div>
+    <p class="ref-note"><em>Essere</em> = permanent state, identity, origin. <em>Stare</em> = temporary state, location, health. "Come stai?" uses stare because health is temporary.</p>
+    <div class="ref-sub">Verb conjugation — essere (to be)</div>
+    <table class="conj-table">
+      <thead><tr><th>Person</th><th>Present</th></tr></thead>
+      <tbody>
+        <tr><td>io</td><td>sono</td></tr>
+        <tr><td>tu</td><td>sei</td></tr>
+        <tr><td>lui/lei/Lei</td><td>è</td></tr>
+        <tr><td>noi</td><td>siamo</td></tr>
+        <tr><td>voi</td><td>siete</td></tr>
+        <tr><td>loro</td><td>sono</td></tr>
+      </tbody>
+    </table>
+    <div class="ref-sub">Verb conjugation — avere (to have)</div>
+    <table class="conj-table">
+      <thead><tr><th>Person</th><th>Present</th></tr></thead>
+      <tbody>
+        <tr><td>io</td><td>ho</td></tr>
+        <tr><td>tu</td><td>hai</td></tr>
+        <tr><td>lui/lei/Lei</td><td>ha</td></tr>
+        <tr><td>noi</td><td>abbiamo</td></tr>
+        <tr><td>voi</td><td>avete</td></tr>
+        <tr><td>loro</td><td>hanno</td></tr>
+      </tbody>
+    </table>
+    <div class="ref-sub">Regular -are verbs (e.g. parlare)</div>
+    <table class="conj-table">
+      <thead><tr><th>Person</th><th>Ending</th><th>parlare</th></tr></thead>
+      <tbody>
+        <tr><td>io</td><td>-o</td><td>parlo</td></tr>
+        <tr><td>tu</td><td>-i</td><td>parli</td></tr>
+        <tr><td>lui/lei</td><td>-a</td><td>parla</td></tr>
+        <tr><td>noi</td><td>-iamo</td><td>parliamo</td></tr>
+        <tr><td>voi</td><td>-ate</td><td>parlate</td></tr>
+        <tr><td>loro</td><td>-ano</td><td>parlano</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ref-section">
+    <h2>Question words</h2>
+    <table class="ref-table">
+      <thead><tr><th>Italiano</th><th>English</th></tr></thead>
+      <tbody>
+        <tr><td class="it-col">chi</td><td>who</td></tr>
+        <tr><td class="it-col">cosa / che cosa</td><td>what</td></tr>
+        <tr><td class="it-col">dove</td><td>where</td></tr>
+        <tr><td class="it-col">quando</td><td>when</td></tr>
+        <tr><td class="it-col">come</td><td>how</td></tr>
+        <tr><td class="it-col">perché</td><td>why / because</td></tr>
+        <tr><td class="it-col">quanto / quanta</td><td>how much (m/f)</td></tr>
+        <tr><td class="it-col">quanti / quante</td><td>how many (m/f)</td></tr>
+        <tr><td class="it-col">quale / quali</td><td>which (sing/pl)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ref-section">
+    <h2>Verbs</h2>
+    <p class="ref-note">All infinitive forms. Italian verbs end in -are, -ere, or -ire. <em>Essere</em> and <em>avere</em> are irregular and essential — see conjugations in Sentence Structure above.</p>
+    <table class="ref-table">
+      <thead><tr><th>Italiano</th><th>English</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td class="it-col">essere</td><td>to be</td><td class="note-col">irreg; permanent state</td></tr>
+        <tr><td class="it-col">stare</td><td>to be / to stay</td><td class="note-col">irreg; temp state/health</td></tr>
+        <tr><td class="it-col">avere</td><td>to have</td><td class="note-col">irreg</td></tr>
+        <tr><td class="it-col">fare</td><td>to do / to make</td><td class="note-col">irreg</td></tr>
+        <tr><td class="it-col">dire</td><td>to say / to tell</td><td class="note-col">irreg</td></tr>
+        <tr><td class="it-col">andare</td><td>to go</td><td class="note-col">irreg</td></tr>
+        <tr><td class="it-col">venire</td><td>to come</td><td class="note-col">irreg</td></tr>
+        <tr><td class="it-col">sapere</td><td>to know (a fact)</td><td class="note-col">vs conoscere (a person)</td></tr>
+        <tr><td class="it-col">conoscere</td><td>to know (a person/place)</td><td></td></tr>
+        <tr><td class="it-col">volere</td><td>to want</td><td class="note-col">irreg</td></tr>
+        <tr><td class="it-col">potere</td><td>to be able to / can</td><td class="note-col">irreg</td></tr>
+        <tr><td class="it-col">dovere</td><td>to have to / must</td><td class="note-col">irreg</td></tr>
+        <tr><td class="it-col">dare</td><td>to give</td><td class="note-col">irreg</td></tr>
+        <tr><td class="it-col">vedere</td><td>to see</td><td></td></tr>
+        <tr><td class="it-col">sentire</td><td>to hear / to feel</td><td></td></tr>
+        <tr><td class="it-col">parlare</td><td>to speak / to talk</td><td class="note-col">regular -are</td></tr>
+        <tr><td class="it-col">mangiare</td><td>to eat</td><td class="note-col">regular -are</td></tr>
+        <tr><td class="it-col">bere</td><td>to drink</td><td class="note-col">irreg</td></tr>
+        <tr><td class="it-col">capire</td><td>to understand</td><td class="note-col">regular -ire</td></tr>
+        <tr><td class="it-col">leggere</td><td>to read</td><td class="note-col">regular -ere</td></tr>
+        <tr><td class="it-col">scrivere</td><td>to write</td><td class="note-col">regular -ere</td></tr>
+        <tr><td class="it-col">dormire</td><td>to sleep</td><td></td></tr>
+        <tr><td class="it-col">lavorare</td><td>to work</td><td class="note-col">regular -are</td></tr>
+        <tr><td class="it-col">abitare</td><td>to live (reside)</td><td class="note-col">regular -are</td></tr>
+        <tr><td class="it-col">prendere</td><td>to take</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ref-section">
+    <h2>Nouns</h2>
+    <p class="ref-note">Gender matters in Italian — it affects articles, adjectives, and agreement. Nouns ending in -o are usually masculine; -a usually feminine; -e can be either. Always learn a noun with its article.</p>
+    <table class="ref-table">
+      <thead><tr><th>Italiano</th><th>English</th><th>Gender</th></tr></thead>
+      <tbody>
+        <tr><td class="it-col">la casa</td><td>house / home</td><td class="note-col">f</td></tr>
+        <tr><td class="it-col">il tempo</td><td>time / weather</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">la persona</td><td>person</td><td class="note-col">f</td></tr>
+        <tr><td class="it-col">l'uomo</td><td>man</td><td class="note-col">m (pl. gli uomini)</td></tr>
+        <tr><td class="it-col">la donna</td><td>woman</td><td class="note-col">f</td></tr>
+        <tr><td class="it-col">il bambino / la bambina</td><td>child (m/f)</td><td class="note-col">m/f</td></tr>
+        <tr><td class="it-col">il giorno</td><td>day</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">l'anno</td><td>year</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">la volta</td><td>time (occasion)</td><td class="note-col">f</td></tr>
+        <tr><td class="it-col">la cosa</td><td>thing</td><td class="note-col">f</td></tr>
+        <tr><td class="it-col">il modo</td><td>way / manner</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">il paese</td><td>country / village</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">la città</td><td>city</td><td class="note-col">f (invariable pl)</td></tr>
+        <tr><td class="it-col">il lavoro</td><td>work / job</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">il libro</td><td>book</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">la parola</td><td>word</td><td class="note-col">f</td></tr>
+        <tr><td class="it-col">il problema</td><td>problem</td><td class="note-col">m (despite -a ending)</td></tr>
+        <tr><td class="it-col">la vita</td><td>life</td><td class="note-col">f</td></tr>
+        <tr><td class="it-col">il mondo</td><td>world</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">il cibo</td><td>food</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">l'acqua</td><td>water</td><td class="note-col">f</td></tr>
+        <tr><td class="it-col">il vino</td><td>wine</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">l'amico / l'amica</td><td>friend (m/f)</td><td class="note-col">m/f</td></tr>
+        <tr><td class="it-col">la famiglia</td><td>family</td><td class="note-col">f</td></tr>
+        <tr><td class="it-col">il posto</td><td>place / seat</td><td class="note-col">m</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ref-section">
+    <h2>Body parts</h2>
+    <table class="ref-table">
+      <thead><tr><th>Italiano</th><th>English</th><th>Gender</th></tr></thead>
+      <tbody>
+        <tr><td class="it-col">la testa</td><td>head</td><td class="note-col">f</td></tr>
+        <tr><td class="it-col">il viso / la faccia</td><td>face</td><td class="note-col">m / f</td></tr>
+        <tr><td class="it-col">l'occhio</td><td>eye</td><td class="note-col">m (pl. gli occhi)</td></tr>
+        <tr><td class="it-col">il naso</td><td>nose</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">la bocca</td><td>mouth</td><td class="note-col">f</td></tr>
+        <tr><td class="it-col">l'orecchio</td><td>ear</td><td class="note-col">m (pl. le orecchie)</td></tr>
+        <tr><td class="it-col">il collo</td><td>neck</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">la spalla</td><td>shoulder</td><td class="note-col">f</td></tr>
+        <tr><td class="it-col">il braccio</td><td>arm</td><td class="note-col">m (pl. le braccia)</td></tr>
+        <tr><td class="it-col">la mano</td><td>hand</td><td class="note-col">f (pl. le mani)</td></tr>
+        <tr><td class="it-col">il dito</td><td>finger</td><td class="note-col">m (pl. le dita)</td></tr>
+        <tr><td class="it-col">il petto</td><td>chest</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">lo stomaco</td><td>stomach</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">la schiena</td><td>back</td><td class="note-col">f</td></tr>
+        <tr><td class="it-col">la gamba</td><td>leg</td><td class="note-col">f</td></tr>
+        <tr><td class="it-col">il ginocchio</td><td>knee</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">il piede</td><td>foot</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">il cuore</td><td>heart</td><td class="note-col">m</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ref-section">
+    <h2>Descriptors</h2>
+    <p class="ref-note">Adjectives agree with the noun in gender and number. Most end in -o (m) / -a (f) / -i (m pl) / -e (f pl). Adjectives ending in -e are the same for m and f, changing only in plural (-i).</p>
+    <table class="ref-table">
+      <thead><tr><th>Masc.</th><th>Fem.</th><th>English</th></tr></thead>
+      <tbody>
+        <tr><td class="it-col">grande</td><td class="it-col">grande</td><td>big / great</td></tr>
+        <tr><td class="it-col">piccolo</td><td class="it-col">piccola</td><td>small</td></tr>
+        <tr><td class="it-col">bello</td><td class="it-col">bella</td><td>beautiful / nice</td></tr>
+        <tr><td class="it-col">brutto</td><td class="it-col">brutta</td><td>ugly / bad</td></tr>
+        <tr><td class="it-col">buono</td><td class="it-col">buona</td><td>good</td></tr>
+        <tr><td class="it-col">cattivo</td><td class="it-col">cattiva</td><td>bad / naughty</td></tr>
+        <tr><td class="it-col">nuovo</td><td class="it-col">nuova</td><td>new</td></tr>
+        <tr><td class="it-col">vecchio</td><td class="it-col">vecchia</td><td>old</td></tr>
+        <tr><td class="it-col">lungo</td><td class="it-col">lunga</td><td>long</td></tr>
+        <tr><td class="it-col">corto</td><td class="it-col">corta</td><td>short</td></tr>
+        <tr><td class="it-col">alto</td><td class="it-col">alta</td><td>tall / high</td></tr>
+        <tr><td class="it-col">basso</td><td class="it-col">bassa</td><td>short (height) / low</td></tr>
+        <tr><td class="it-col">caldo</td><td class="it-col">calda</td><td>hot / warm</td></tr>
+        <tr><td class="it-col">freddo</td><td class="it-col">fredda</td><td>cold</td></tr>
+        <tr><td class="it-col">forte</td><td class="it-col">forte</td><td>strong / loud</td></tr>
+        <tr><td class="it-col">difficile</td><td class="it-col">difficile</td><td>difficult</td></tr>
+        <tr><td class="it-col">facile</td><td class="it-col">facile</td><td>easy</td></tr>
+        <tr><td class="it-col">stanco</td><td class="it-col">stanca</td><td>tired</td></tr>
+        <tr><td class="it-col">felice</td><td class="it-col">felice</td><td>happy</td></tr>
+        <tr><td class="it-col">triste</td><td class="it-col">triste</td><td>sad</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ref-section">
+    <h2>Numbers</h2>
+    <table class="ref-table">
+      <thead><tr><th>Italiano</th><th>#</th></tr></thead>
+      <tbody>
+        <tr><td class="it-col">zero</td><td>0</td></tr>
+        <tr><td class="it-col">uno</td><td>1</td></tr>
+        <tr><td class="it-col">due</td><td>2</td></tr>
+        <tr><td class="it-col">tre</td><td>3</td></tr>
+        <tr><td class="it-col">quattro</td><td>4</td></tr>
+        <tr><td class="it-col">cinque</td><td>5</td></tr>
+        <tr><td class="it-col">sei</td><td>6</td></tr>
+        <tr><td class="it-col">sette</td><td>7</td></tr>
+        <tr><td class="it-col">otto</td><td>8</td></tr>
+        <tr><td class="it-col">nove</td><td>9</td></tr>
+        <tr><td class="it-col">dieci</td><td>10</td></tr>
+        <tr><td class="it-col">undici</td><td>11</td></tr>
+        <tr><td class="it-col">dodici</td><td>12</td></tr>
+        <tr><td class="it-col">tredici</td><td>13</td></tr>
+        <tr><td class="it-col">quattordici</td><td>14</td></tr>
+        <tr><td class="it-col">quindici</td><td>15</td></tr>
+        <tr><td class="it-col">sedici</td><td>16</td></tr>
+        <tr><td class="it-col">diciassette</td><td>17</td></tr>
+        <tr><td class="it-col">diciotto</td><td>18</td></tr>
+        <tr><td class="it-col">diciannove</td><td>19</td></tr>
+        <tr><td class="it-col">venti</td><td>20</td></tr>
+        <tr><td class="it-col">trenta</td><td>30</td></tr>
+        <tr><td class="it-col">quaranta</td><td>40</td></tr>
+        <tr><td class="it-col">cinquanta</td><td>50</td></tr>
+        <tr><td class="it-col">cento</td><td>100</td></tr>
+        <tr><td class="it-col">mille</td><td>1000</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ref-section">
+    <h2>Days of the week</h2>
+    <p class="ref-note">Days are masculine and not capitalised in Italian. The week starts on Monday. Use <em>il lunedì</em> for "every Monday".</p>
+    <table class="ref-table">
+      <thead><tr><th>Italiano</th><th>English</th></tr></thead>
+      <tbody>
+        <tr><td class="it-col">lunedì</td><td>Monday</td></tr>
+        <tr><td class="it-col">martedì</td><td>Tuesday</td></tr>
+        <tr><td class="it-col">mercoledì</td><td>Wednesday</td></tr>
+        <tr><td class="it-col">giovedì</td><td>Thursday</td></tr>
+        <tr><td class="it-col">venerdì</td><td>Friday</td></tr>
+        <tr><td class="it-col">sabato</td><td>Saturday</td></tr>
+        <tr><td class="it-col">domenica</td><td>Sunday</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ref-section">
+    <h2>Months</h2>
+    <p class="ref-note">Months are masculine and not capitalised. Use <em>in</em> + month for "in January" etc. — no article needed: <em>in gennaio</em>.</p>
+    <table class="ref-table">
+      <thead><tr><th>Italiano</th><th>English</th></tr></thead>
+      <tbody>
+        <tr><td class="it-col">gennaio</td><td>January</td></tr>
+        <tr><td class="it-col">febbraio</td><td>February</td></tr>
+        <tr><td class="it-col">marzo</td><td>March</td></tr>
+        <tr><td class="it-col">aprile</td><td>April</td></tr>
+        <tr><td class="it-col">maggio</td><td>May</td></tr>
+        <tr><td class="it-col">giugno</td><td>June</td></tr>
+        <tr><td class="it-col">luglio</td><td>July</td></tr>
+        <tr><td class="it-col">agosto</td><td>August</td></tr>
+        <tr><td class="it-col">settembre</td><td>September</td></tr>
+        <tr><td class="it-col">ottobre</td><td>October</td></tr>
+        <tr><td class="it-col">novembre</td><td>November</td></tr>
+        <tr><td class="it-col">dicembre</td><td>December</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ref-section">
+    <h2>Time words</h2>
+    <table class="ref-table">
+      <thead><tr><th>Italiano</th><th>English</th></tr></thead>
+      <tbody>
+        <tr><td class="it-col">adesso / ora</td><td>now</td></tr>
+        <tr><td class="it-col">oggi</td><td>today</td></tr>
+        <tr><td class="it-col">ieri</td><td>yesterday</td></tr>
+        <tr><td class="it-col">domani</td><td>tomorrow</td></tr>
+        <tr><td class="it-col">dopodomani</td><td>the day after tomorrow</td></tr>
+        <tr><td class="it-col">la mattina</td><td>morning</td></tr>
+        <tr><td class="it-col">il pomeriggio</td><td>afternoon</td></tr>
+        <tr><td class="it-col">la sera</td><td>evening</td></tr>
+        <tr><td class="it-col">la notte</td><td>night</td></tr>
+        <tr><td class="it-col">presto</td><td>early / soon</td></tr>
+        <tr><td class="it-col">tardi</td><td>late</td></tr>
+        <tr><td class="it-col">sempre</td><td>always</td></tr>
+        <tr><td class="it-col">mai</td><td>never</td></tr>
+        <tr><td class="it-col">spesso</td><td>often</td></tr>
+        <tr><td class="it-col">a volte</td><td>sometimes</td></tr>
+        <tr><td class="it-col">già</td><td>already</td></tr>
+        <tr><td class="it-col">ancora</td><td>still / again / yet</td></tr>
+        <tr><td class="it-col">subito</td><td>immediately / right away</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ref-section">
+    <h2>Particles &amp; prepositions</h2>
+    <p class="ref-note">Italian prepositions combine with definite articles: <em>di + il = del</em>, <em>a + il = al</em>, <em>da + il = dal</em>, <em>in + il = nel</em>, <em>su + il = sul</em>. This is called <em>articolo preposizionale</em>.</p>
+    <table class="ref-table">
+      <thead><tr><th>Italiano</th><th>English / usage</th></tr></thead>
+      <tbody>
+        <tr><td class="it-col">di</td><td>of, from, about</td></tr>
+        <tr><td class="it-col">a</td><td>to, at, in (city)</td></tr>
+        <tr><td class="it-col">da</td><td>from, by, since, at (someone's place)</td></tr>
+        <tr><td class="it-col">in</td><td>in, into, to (country/region)</td></tr>
+        <tr><td class="it-col">con</td><td>with</td></tr>
+        <tr><td class="it-col">su</td><td>on, over, about</td></tr>
+        <tr><td class="it-col">per</td><td>for, in order to, through</td></tr>
+        <tr><td class="it-col">tra / fra</td><td>between, among, in (time)</td></tr>
+        <tr><td class="it-col">che</td><td>that, which, who (relative)</td></tr>
+        <tr><td class="it-col">non</td><td>not</td></tr>
+        <tr><td class="it-col">e / ed</td><td>and (ed before vowels)</td></tr>
+        <tr><td class="it-col">o</td><td>or</td></tr>
+        <tr><td class="it-col">ma</td><td>but</td></tr>
+        <tr><td class="it-col">però</td><td>however / but</td></tr>
+        <tr><td class="it-col">anche</td><td>also / too</td></tr>
+        <tr><td class="it-col">molto</td><td>very / much / many</td></tr>
+        <tr><td class="it-col">poco</td><td>a little / few</td></tr>
+        <tr><td class="it-col">più</td><td>more</td></tr>
+        <tr><td class="it-col">meno</td><td>less</td></tr>
+        <tr><td class="it-col">qui / qua</td><td>here</td></tr>
+        <tr><td class="it-col">lì / là</td><td>there</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ref-section">
+    <h2>Colours</h2>
+    <p class="ref-note">Colours agree with the noun they modify. Most follow -o/-a pattern. Some are invariable: <em>blu, rosa, viola, arancione</em> (do not change).</p>
+    <table class="ref-table">
+      <thead><tr><th>Masc.</th><th>Fem.</th><th>English</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td class="it-col">rosso</td><td class="it-col">rossa</td><td>red</td><td></td></tr>
+        <tr><td class="it-col">blu</td><td class="it-col">blu</td><td>blue</td><td class="note-col">invariable</td></tr>
+        <tr><td class="it-col">azzurro</td><td class="it-col">azzurra</td><td>light blue / sky blue</td><td></td></tr>
+        <tr><td class="it-col">verde</td><td class="it-col">verde</td><td>green</td><td class="note-col">same m/f</td></tr>
+        <tr><td class="it-col">giallo</td><td class="it-col">gialla</td><td>yellow</td><td></td></tr>
+        <tr><td class="it-col">arancione</td><td class="it-col">arancione</td><td>orange</td><td class="note-col">invariable</td></tr>
+        <tr><td class="it-col">viola</td><td class="it-col">viola</td><td>purple / violet</td><td class="note-col">invariable</td></tr>
+        <tr><td class="it-col">rosa</td><td class="it-col">rosa</td><td>pink</td><td class="note-col">invariable</td></tr>
+        <tr><td class="it-col">bianco</td><td class="it-col">bianca</td><td>white</td><td></td></tr>
+        <tr><td class="it-col">nero</td><td class="it-col">nera</td><td>black</td><td></td></tr>
+        <tr><td class="it-col">grigio</td><td class="it-col">grigia</td><td>grey</td><td></td></tr>
+        <tr><td class="it-col">marrone</td><td class="it-col">marrone</td><td>brown</td><td class="note-col">same m/f</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ref-section">
+    <h2>Shapes</h2>
+    <table class="ref-table">
+      <thead><tr><th>Italiano</th><th>English</th><th>Gender</th></tr></thead>
+      <tbody>
+        <tr><td class="it-col">il cerchio</td><td>circle</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">il quadrato</td><td>square</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">il rettangolo</td><td>rectangle</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">il triangolo</td><td>triangle</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">l'ovale</td><td>oval</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">la stella</td><td>star</td><td class="note-col">f</td></tr>
+        <tr><td class="it-col">il cuore</td><td>heart</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">il diamante</td><td>diamond</td><td class="note-col">m</td></tr>
+        <tr><td class="it-col">la spirale</td><td>spiral</td><td class="note-col">f</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ref-section">
+    <h2>Sentence templates</h2>
+    <p class="ref-note">50 high-frequency conversational phrases. Learn these and you'll cover a huge range of real situations.</p>
+    <table class="ref-table">
+      <thead><tr><th>Italiano</th><th>English</th></tr></thead>
+      <tbody>
+        <tr><td class="it-col">Non capisco.</td><td>I don't understand.</td></tr>
+        <tr><td class="it-col">Non lo so.</td><td>I don't know.</td></tr>
+        <tr><td class="it-col">Puoi ripetere?</td><td>Can you repeat?</td></tr>
+        <tr><td class="it-col">Puoi parlare più lentamente?</td><td>Can you speak more slowly?</td></tr>
+        <tr><td class="it-col">Come si dice… in italiano?</td><td>How do you say… in Italian?</td></tr>
+        <tr><td class="it-col">Cosa vuol dire…?</td><td>What does… mean?</td></tr>
+        <tr><td class="it-col">Parli inglese?</td><td>Do you speak English?</td></tr>
+        <tr><td class="it-col">Sto imparando l'italiano.</td><td>I'm learning Italian.</td></tr>
+        <tr><td class="it-col">Il mio italiano non è molto buono.</td><td>My Italian isn't very good.</td></tr>
+        <tr><td class="it-col">Dove si trova…?</td><td>Where is… ?</td></tr>
+        <tr><td class="it-col">Quanto costa?</td><td>How much does it cost?</td></tr>
+        <tr><td class="it-col">Vorrei…</td><td>I would like…</td></tr>
+        <tr><td class="it-col">Ho fame.</td><td>I'm hungry.</td></tr>
+        <tr><td class="it-col">Ho sete.</td><td>I'm thirsty.</td></tr>
+        <tr><td class="it-col">Ho caldo.</td><td>I'm hot.</td></tr>
+        <tr><td class="it-col">Ho freddo.</td><td>I'm cold.</td></tr>
+        <tr><td class="it-col">Ho bisogno di aiuto.</td><td>I need help.</td></tr>
+        <tr><td class="it-col">Sto bene.</td><td>I'm fine / I'm well.</td></tr>
+        <tr><td class="it-col">Non mi sento bene.</td><td>I don't feel well.</td></tr>
+        <tr><td class="it-col">Mi fa male…</td><td>My… hurts.</td></tr>
+        <tr><td class="it-col">Dov'è il bagno?</td><td>Where is the bathroom?</td></tr>
+        <tr><td class="it-col">A che ora…?</td><td>At what time…?</td></tr>
+        <tr><td class="it-col">Posso avere il conto?</td><td>Can I have the bill?</td></tr>
+        <tr><td class="it-col">È incluso il servizio?</td><td>Is service included?</td></tr>
+        <tr><td class="it-col">Sono allergico/a a…</td><td>I'm allergic to…</td></tr>
+        <tr><td class="it-col">Sono vegetariano/a.</td><td>I'm vegetarian.</td></tr>
+        <tr><td class="it-col">Che ore sono?</td><td>What time is it?</td></tr>
+        <tr><td class="it-col">Sono di…</td><td>I'm from…</td></tr>
+        <tr><td class="it-col">Abito a…</td><td>I live in…</td></tr>
+        <tr><td class="it-col">Lavoro come…</td><td>I work as…</td></tr>
+        <tr><td class="it-col">Quanti anni hai?</td><td>How old are you?</td></tr>
+        <tr><td class="it-col">Ho… anni.</td><td>I am… years old.</td></tr>
+        <tr><td class="it-col">Ti piace…?</td><td>Do you like…?</td></tr>
+        <tr><td class="it-col">Mi piace molto.</td><td>I like it a lot.</td></tr>
+        <tr><td class="it-col">Non mi piace.</td><td>I don't like it.</td></tr>
+        <tr><td class="it-col">È delizioso!</td><td>It's delicious!</td></tr>
+        <tr><td class="it-col">Che bello!</td><td>How beautiful! / How nice!</td></tr>
+        <tr><td class="it-col">Che peccato!</td><td>What a shame!</td></tr>
+        <tr><td class="it-col">Meno male!</td><td>Thank goodness!</td></tr>
+        <tr><td class="it-col">Dai!</td><td>Come on! / No way!</td></tr>
+        <tr><td class="it-col">Magari!</td><td>I wish! / Maybe!</td></tr>
+        <tr><td class="it-col">Figurati!</td><td>Don't mention it! / Not at all!</td></tr>
+        <tr><td class="it-col">Dipende.</td><td>It depends.</td></tr>
+        <tr><td class="it-col">Forse.</td><td>Maybe / Perhaps.</td></tr>
+        <tr><td class="it-col">Certo!</td><td>Of course! / Certainly!</td></tr>
+        <tr><td class="it-col">Assolutamente.</td><td>Absolutely.</td></tr>
+        <tr><td class="it-col">Va bene.</td><td>OK / That's fine.</td></tr>
+        <tr><td class="it-col">Non fa niente.</td><td>It doesn't matter.</td></tr>
+        <tr><td class="it-col">In bocca al lupo!</td><td>Good luck! (lit. "in the wolf's mouth")</td></tr>
+        <tr><td class="it-col">Crepi!</td><td>Thanks! (response to "in bocca al lupo")</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ref-section">
+    <h2>False friends</h2>
+    <p class="ref-note">Words that look like English but mean something completely different.</p>
+    <table class="ref-table">
+      <thead><tr><th>Italian word</th><th>Looks like</th><th>Actually means</th></tr></thead>
+      <tbody>
+        <tr><td class="it-col">morbido</td><td>morbid</td><td>soft / gentle</td></tr>
+        <tr><td class="it-col">sensibile</td><td>sensible</td><td>sensitive</td></tr>
+        <tr><td class="it-col">attuale</td><td>actual</td><td>current / present-day</td></tr>
+        <tr><td class="it-col">eventualmente</td><td>eventually</td><td>if necessary / possibly</td></tr>
+        <tr><td class="it-col">pretendere</td><td>to pretend</td><td>to demand / to expect</td></tr>
+        <tr><td class="it-col">educato</td><td>educated</td><td>polite / well-mannered</td></tr>
+        <tr><td class="it-col">argomento</td><td>argument</td><td>topic / subject</td></tr>
+        <tr><td class="it-col">la libreria</td><td>library</td><td>bookshop</td></tr>
+        <tr><td class="it-col">la biblioteca</td><td>—</td><td>library (the actual one)</td></tr>
+        <tr><td class="it-col">annoiato</td><td>annoyed</td><td>bored</td></tr>
+        <tr><td class="it-col">confuso</td><td>confused</td><td>mixed up / blended</td></tr>
+        <tr><td class="it-col">conveniente</td><td>convenient</td><td>affordable / cheap</td></tr>
+        <tr><td class="it-col">la camera</td><td>camera</td><td>bedroom / room</td></tr>
+        <tr><td class="it-col">il magazine</td><td>magazine</td><td>warehouse / storage</td></tr>
+        <tr><td class="it-col">preservare</td><td>to preserve</td><td>to use a condom (careful!)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- end ref-view -->
+
+<script>
+// ============================================================
+// CARD DATA
+// ============================================================
+const CARDS = [
+  // greetings
+  {en:"hello / bye",it:"ciao",cat:"greetings"},
+  {en:"good morning",it:"buongiorno",cat:"greetings"},
+  {en:"good evening",it:"buonasera",cat:"greetings"},
+  {en:"good night",it:"buonanotte",cat:"greetings"},
+  {en:"goodbye",it:"arrivederci",cat:"greetings"},
+  {en:"thank you",it:"grazie",cat:"greetings"},
+  {en:"thank you very much",it:"grazie mille",cat:"greetings"},
+  {en:"please",it:"per favore",cat:"greetings"},
+  {en:"you're welcome",it:"prego",cat:"greetings"},
+  {en:"excuse me (informal)",it:"scusa",cat:"greetings"},
+  {en:"excuse me (formal)",it:"scusi",cat:"greetings"},
+  {en:"I'm sorry",it:"mi dispiace",cat:"greetings"},
+  {en:"yes",it:"sì",cat:"greetings"},
+  {en:"no",it:"no",cat:"greetings"},
+  {en:"how are you? (informal)",it:"come stai?",cat:"greetings"},
+  {en:"fine, thanks",it:"bene, grazie",cat:"greetings"},
+  {en:"what's your name?",it:"come ti chiami?",cat:"greetings"},
+  {en:"my name is…",it:"mi chiamo…",cat:"greetings"},
+  {en:"pleased to meet you",it:"piacere",cat:"greetings"},
+  // pronouns
+  {en:"I",it:"io",cat:"pronouns"},
+  {en:"you (singular, informal)",it:"tu",cat:"pronouns"},
+  {en:"you (singular, formal)",it:"Lei",cat:"pronouns"},
+  {en:"he",it:"lui",cat:"pronouns"},
+  {en:"she",it:"lei",cat:"pronouns"},
+  {en:"we",it:"noi",cat:"pronouns"},
+  {en:"you (plural)",it:"voi",cat:"pronouns"},
+  {en:"they",it:"loro",cat:"pronouns"},
+  // questions
+  {en:"who",it:"chi",cat:"questions"},
+  {en:"what",it:"cosa",cat:"questions"},
+  {en:"where",it:"dove",cat:"questions"},
+  {en:"when",it:"quando",cat:"questions"},
+  {en:"how",it:"come",cat:"questions"},
+  {en:"why / because",it:"perché",cat:"questions"},
+  {en:"how much (m)",it:"quanto",cat:"questions"},
+  {en:"how many (m)",it:"quanti",cat:"questions"},
+  {en:"which",it:"quale",cat:"questions"},
+  // verbs
+  {en:"to be (permanent)",it:"essere",cat:"verbs"},
+  {en:"to be / stay (temporary)",it:"stare",cat:"verbs"},
+  {en:"to have",it:"avere",cat:"verbs"},
+  {en:"to do / make",it:"fare",cat:"verbs"},
+  {en:"to say / tell",it:"dire",cat:"verbs"},
+  {en:"to go",it:"andare",cat:"verbs"},
+  {en:"to come",it:"venire",cat:"verbs"},
+  {en:"to know (a fact)",it:"sapere",cat:"verbs"},
+  {en:"to know (a person)",it:"conoscere",cat:"verbs"},
+  {en:"to want",it:"volere",cat:"verbs"},
+  {en:"to be able to / can",it:"potere",cat:"verbs"},
+  {en:"to have to / must",it:"dovere",cat:"verbs"},
+  {en:"to give",it:"dare",cat:"verbs"},
+  {en:"to see",it:"vedere",cat:"verbs"},
+  {en:"to hear / feel",it:"sentire",cat:"verbs"},
+  {en:"to speak",it:"parlare",cat:"verbs"},
+  {en:"to eat",it:"mangiare",cat:"verbs"},
+  {en:"to drink",it:"bere",cat:"verbs"},
+  {en:"to understand",it:"capire",cat:"verbs"},
+  {en:"to read",it:"leggere",cat:"verbs"},
+  {en:"to write",it:"scrivere",cat:"verbs"},
+  {en:"to sleep",it:"dormire",cat:"verbs"},
+  {en:"to work",it:"lavorare",cat:"verbs"},
+  {en:"to live (reside)",it:"abitare",cat:"verbs"},
+  {en:"to take",it:"prendere",cat:"verbs"},
+  // nouns
+  {en:"house / home",it:"la casa",cat:"nouns"},
+  {en:"time / weather",it:"il tempo",cat:"nouns"},
+  {en:"person",it:"la persona",cat:"nouns"},
+  {en:"man",it:"l'uomo",cat:"nouns"},
+  {en:"woman",it:"la donna",cat:"nouns"},
+  {en:"child",it:"il bambino",cat:"nouns"},
+  {en:"day",it:"il giorno",cat:"nouns"},
+  {en:"year",it:"l'anno",cat:"nouns"},
+  {en:"thing",it:"la cosa",cat:"nouns"},
+  {en:"country / village",it:"il paese",cat:"nouns"},
+  {en:"city",it:"la città",cat:"nouns"},
+  {en:"work / job",it:"il lavoro",cat:"nouns"},
+  {en:"book",it:"il libro",cat:"nouns"},
+  {en:"word",it:"la parola",cat:"nouns"},
+  {en:"problem",it:"il problema",cat:"nouns"},
+  {en:"life",it:"la vita",cat:"nouns"},
+  {en:"world",it:"il mondo",cat:"nouns"},
+  {en:"food",it:"il cibo",cat:"nouns"},
+  {en:"water",it:"l'acqua",cat:"nouns"},
+  {en:"wine",it:"il vino",cat:"nouns"},
+  {en:"friend",it:"l'amico",cat:"nouns"},
+  {en:"family",it:"la famiglia",cat:"nouns"},
+  {en:"place / seat",it:"il posto",cat:"nouns"},
+  {en:"name",it:"il nome",cat:"nouns"},
+  {en:"money",it:"i soldi",cat:"nouns"},
+  // descriptors
+  {en:"big / great",it:"grande",cat:"descriptors"},
+  {en:"small",it:"piccolo/piccola",cat:"descriptors"},
+  {en:"beautiful / nice",it:"bello/bella",cat:"descriptors"},
+  {en:"ugly / bad",it:"brutto/brutta",cat:"descriptors"},
+  {en:"good",it:"buono/buona",cat:"descriptors"},
+  {en:"bad / naughty",it:"cattivo/cattiva",cat:"descriptors"},
+  {en:"new",it:"nuovo/nuova",cat:"descriptors"},
+  {en:"old",it:"vecchio/vecchia",cat:"descriptors"},
+  {en:"long",it:"lungo/lunga",cat:"descriptors"},
+  {en:"short",it:"corto/corta",cat:"descriptors"},
+  {en:"tall / high",it:"alto/alta",cat:"descriptors"},
+  {en:"hot / warm",it:"caldo/calda",cat:"descriptors"},
+  {en:"cold",it:"freddo/fredda",cat:"descriptors"},
+  {en:"strong",it:"forte",cat:"descriptors"},
+  {en:"difficult",it:"difficile",cat:"descriptors"},
+  {en:"easy",it:"facile",cat:"descriptors"},
+  {en:"tired",it:"stanco/stanca",cat:"descriptors"},
+  {en:"happy",it:"felice",cat:"descriptors"},
+  {en:"sad",it:"triste",cat:"descriptors"},
+  {en:"fast",it:"veloce",cat:"descriptors"},
+  // numbers
+  {en:"zero",it:"zero",cat:"numbers"},
+  {en:"one",it:"uno",cat:"numbers"},
+  {en:"two",it:"due",cat:"numbers"},
+  {en:"three",it:"tre",cat:"numbers"},
+  {en:"four",it:"quattro",cat:"numbers"},
+  {en:"five",it:"cinque",cat:"numbers"},
+  {en:"six",it:"sei",cat:"numbers"},
+  {en:"seven",it:"sette",cat:"numbers"},
+  {en:"eight",it:"otto",cat:"numbers"},
+  {en:"nine",it:"nove",cat:"numbers"},
+  {en:"ten",it:"dieci",cat:"numbers"},
+  {en:"eleven",it:"undici",cat:"numbers"},
+  {en:"twelve",it:"dodici",cat:"numbers"},
+  {en:"thirteen",it:"tredici",cat:"numbers"},
+  {en:"fourteen",it:"quattordici",cat:"numbers"},
+  {en:"fifteen",it:"quindici",cat:"numbers"},
+  {en:"sixteen",it:"sedici",cat:"numbers"},
+  {en:"seventeen",it:"diciassette",cat:"numbers"},
+  {en:"eighteen",it:"diciotto",cat:"numbers"},
+  {en:"nineteen",it:"diciannove",cat:"numbers"},
+  {en:"twenty",it:"venti",cat:"numbers"},
+  {en:"thirty",it:"trenta",cat:"numbers"},
+  {en:"forty",it:"quaranta",cat:"numbers"},
+  {en:"fifty",it:"cinquanta",cat:"numbers"},
+  {en:"one hundred",it:"cento",cat:"numbers"},
+  {en:"one thousand",it:"mille",cat:"numbers"},
+  // colours
+  {en:"red",it:"rosso/rossa",cat:"colours"},
+  {en:"blue",it:"blu",cat:"colours"},
+  {en:"light blue",it:"azzurro/azzurra",cat:"colours"},
+  {en:"green",it:"verde",cat:"colours"},
+  {en:"yellow",it:"giallo/gialla",cat:"colours"},
+  {en:"orange",it:"arancione",cat:"colours"},
+  {en:"purple",it:"viola",cat:"colours"},
+  {en:"pink",it:"rosa",cat:"colours"},
+  {en:"white",it:"bianco/bianca",cat:"colours"},
+  {en:"black",it:"nero/nera",cat:"colours"},
+  {en:"grey",it:"grigio/grigia",cat:"colours"},
+  {en:"brown",it:"marrone",cat:"colours"},
+  // shapes
+  {en:"circle",it:"il cerchio",cat:"shapes"},
+  {en:"square",it:"il quadrato",cat:"shapes"},
+  {en:"rectangle",it:"il rettangolo",cat:"shapes"},
+  {en:"triangle",it:"il triangolo",cat:"shapes"},
+  {en:"oval",it:"l'ovale",cat:"shapes"},
+  {en:"star",it:"la stella",cat:"shapes"},
+  {en:"heart",it:"il cuore",cat:"shapes"},
+  // days
+  {en:"Monday",it:"lunedì",cat:"days"},
+  {en:"Tuesday",it:"martedì",cat:"days"},
+  {en:"Wednesday",it:"mercoledì",cat:"days"},
+  {en:"Thursday",it:"giovedì",cat:"days"},
+  {en:"Friday",it:"venerdì",cat:"days"},
+  {en:"Saturday",it:"sabato",cat:"days"},
+  {en:"Sunday",it:"domenica",cat:"days"},
+  // months
+  {en:"January",it:"gennaio",cat:"months"},
+  {en:"February",it:"febbraio",cat:"months"},
+  {en:"March",it:"marzo",cat:"months"},
+  {en:"April",it:"aprile",cat:"months"},
+  {en:"May",it:"maggio",cat:"months"},
+  {en:"June",it:"giugno",cat:"months"},
+  {en:"July",it:"luglio",cat:"months"},
+  {en:"August",it:"agosto",cat:"months"},
+  {en:"September",it:"settembre",cat:"months"},
+  {en:"October",it:"ottobre",cat:"months"},
+  {en:"November",it:"novembre",cat:"months"},
+  {en:"December",it:"dicembre",cat:"months"},
+  // body
+  {en:"head",it:"la testa",cat:"body"},
+  {en:"face",it:"il viso",cat:"body"},
+  {en:"eye",it:"l'occhio",cat:"body"},
+  {en:"nose",it:"il naso",cat:"body"},
+  {en:"mouth",it:"la bocca",cat:"body"},
+  {en:"ear",it:"l'orecchio",cat:"body"},
+  {en:"neck",it:"il collo",cat:"body"},
+  {en:"shoulder",it:"la spalla",cat:"body"},
+  {en:"arm",it:"il braccio",cat:"body"},
+  {en:"hand",it:"la mano",cat:"body"},
+  {en:"finger",it:"il dito",cat:"body"},
+  {en:"chest",it:"il petto",cat:"body"},
+  {en:"stomach",it:"lo stomaco",cat:"body"},
+  {en:"back",it:"la schiena",cat:"body"},
+  {en:"leg",it:"la gamba",cat:"body"},
+  {en:"knee",it:"il ginocchio",cat:"body"},
+  {en:"foot",it:"il piede",cat:"body"},
+  {en:"heart",it:"il cuore",cat:"body"},
+  // time
+  {en:"now",it:"adesso",cat:"time"},
+  {en:"today",it:"oggi",cat:"time"},
+  {en:"yesterday",it:"ieri",cat:"time"},
+  {en:"tomorrow",it:"domani",cat:"time"},
+  {en:"morning",it:"la mattina",cat:"time"},
+  {en:"afternoon",it:"il pomeriggio",cat:"time"},
+  {en:"evening",it:"la sera",cat:"time"},
+  {en:"night",it:"la notte",cat:"time"},
+  {en:"early / soon",it:"presto",cat:"time"},
+  {en:"late",it:"tardi",cat:"time"},
+  {en:"always",it:"sempre",cat:"time"},
+  {en:"never",it:"mai",cat:"time"},
+  {en:"often",it:"spesso",cat:"time"},
+  {en:"sometimes",it:"a volte",cat:"time"},
+  {en:"already",it:"già",cat:"time"},
+  {en:"still / again",it:"ancora",cat:"time"},
+  {en:"immediately",it:"subito",cat:"time"},
+  // particles
+  {en:"of / from / about",it:"di",cat:"particles"},
+  {en:"to / at",it:"a",cat:"particles"},
+  {en:"from / by / since",it:"da",cat:"particles"},
+  {en:"in / into / to",it:"in",cat:"particles"},
+  {en:"with",it:"con",cat:"particles"},
+  {en:"on / over / about",it:"su",cat:"particles"},
+  {en:"for / in order to",it:"per",cat:"particles"},
+  {en:"between / among",it:"tra",cat:"particles"},
+  {en:"that / which / who",it:"che",cat:"particles"},
+  {en:"not",it:"non",cat:"particles"},
+  {en:"and",it:"e",cat:"particles"},
+  {en:"but",it:"ma",cat:"particles"},
+  {en:"also / too",it:"anche",cat:"particles"},
+  {en:"very / much",it:"molto",cat:"particles"},
+  {en:"more",it:"più",cat:"particles"},
+  {en:"less",it:"meno",cat:"particles"},
+  {en:"here",it:"qui",cat:"particles"},
+  {en:"there",it:"lì",cat:"particles"},
+  // sentences
+  {en:"I don't understand.",it:"Non capisco.",cat:"sentences"},
+  {en:"I don't know.",it:"Non lo so.",cat:"sentences"},
+  {en:"Can you repeat?",it:"Puoi ripetere?",cat:"sentences"},
+  {en:"Can you speak more slowly?",it:"Puoi parlare più lentamente?",cat:"sentences"},
+  {en:"How do you say… in Italian?",it:"Come si dice… in italiano?",cat:"sentences"},
+  {en:"What does… mean?",it:"Cosa vuol dire…?",cat:"sentences"},
+  {en:"Do you speak English?",it:"Parli inglese?",cat:"sentences"},
+  {en:"I'm learning Italian.",it:"Sto imparando l'italiano.",cat:"sentences"},
+  {en:"I would like…",it:"Vorrei…",cat:"sentences"},
+  {en:"I'm hungry.",it:"Ho fame.",cat:"sentences"},
+  {en:"I'm thirsty.",it:"Ho sete.",cat:"sentences"},
+  {en:"I'm hot.",it:"Ho caldo.",cat:"sentences"},
+  {en:"I'm cold.",it:"Ho freddo.",cat:"sentences"},
+  {en:"I need help.",it:"Ho bisogno di aiuto.",cat:"sentences"},
+  {en:"I'm fine / I'm well.",it:"Sto bene.",cat:"sentences"},
+  {en:"I don't feel well.",it:"Non mi sento bene.",cat:"sentences"},
+  {en:"Where is the bathroom?",it:"Dov'è il bagno?",cat:"sentences"},
+  {en:"At what time…?",it:"A che ora…?",cat:"sentences"},
+  {en:"Can I have the bill?",it:"Posso avere il conto?",cat:"sentences"},
+  {en:"I'm allergic to…",it:"Sono allergico/a a…",cat:"sentences"},
+  {en:"I'm vegetarian.",it:"Sono vegetariano/a.",cat:"sentences"},
+  {en:"What time is it?",it:"Che ore sono?",cat:"sentences"},
+  {en:"I'm from…",it:"Sono di…",cat:"sentences"},
+  {en:"I live in…",it:"Abito a…",cat:"sentences"},
+  {en:"How old are you?",it:"Quanti anni hai?",cat:"sentences"},
+  {en:"I am… years old.",it:"Ho… anni.",cat:"sentences"},
+  {en:"Do you like…?",it:"Ti piace…?",cat:"sentences"},
+  {en:"I like it a lot.",it:"Mi piace molto.",cat:"sentences"},
+  {en:"I don't like it.",it:"Non mi piace.",cat:"sentences"},
+  {en:"It's delicious!",it:"È delizioso!",cat:"sentences"},
+  {en:"How beautiful!",it:"Che bello!",cat:"sentences"},
+  {en:"What a shame!",it:"Che peccato!",cat:"sentences"},
+  {en:"Thank goodness!",it:"Meno male!",cat:"sentences"},
+  {en:"Come on! / No way!",it:"Dai!",cat:"sentences"},
+  {en:"I wish! / Maybe!",it:"Magari!",cat:"sentences"},
+  {en:"Don't mention it!",it:"Figurati!",cat:"sentences"},
+  {en:"It depends.",it:"Dipende.",cat:"sentences"},
+  {en:"Maybe / Perhaps.",it:"Forse.",cat:"sentences"},
+  {en:"Of course!",it:"Certo!",cat:"sentences"},
+  {en:"Absolutely.",it:"Assolutamente.",cat:"sentences"},
+  {en:"OK / That's fine.",it:"Va bene.",cat:"sentences"},
+  {en:"It doesn't matter.",it:"Non fa niente.",cat:"sentences"},
+  {en:"Good luck!",it:"In bocca al lupo!",cat:"sentences"},
+  {en:"Thanks! (reply to good luck)",it:"Crepi!",cat:"sentences"},
+  {en:"Where is…?",it:"Dove si trova…?",cat:"sentences"},
+  {en:"How much does it cost?",it:"Quanto costa?",cat:"sentences"},
+  {en:"Is service included?",it:"È incluso il servizio?",cat:"sentences"},
+  {en:"How are you? (formal)",it:"Come sta?",cat:"sentences"},
+  {en:"I work as…",it:"Lavoro come…",cat:"sentences"},
+  {en:"My Italian isn't very good.",it:"Il mio italiano non è molto buono.",cat:"sentences"},
+];
+
+const CATS = ["All","greetings","pronouns","questions","verbs","nouns","descriptors","numbers","colours","shapes","days","months","body","time","particles","sentences"];
+
+// ============================================================
+// STATE
+// ============================================================
+let queue = [];
+let current = null;
+let flipped = false;
+let mode = 'en-it'; // 'en-it' | 'it-en'
+let activeCat = 'All';
+let scores = {knew:0, unsure:0, miss:0};
+let seenThisRound = new Set();
+let firstMisses = [];
+let totalCards = 0;
+let currentItText = '';
+
+// ============================================================
+// TTS — Google Translate TTS
+// ============================================================
+let currentAudio = null;
+
+function playTTS(text) {
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+  }
+  const url = 'https://translate.google.com/translate_tts?ie=UTF-8&q='
+    + encodeURIComponent(text)
+    + '&tl=it&client=tw-ob';
+  currentAudio = new Audio(url);
+  currentAudio.play().catch(() => {});
+}
+
+function replayAudio() {
+  if (currentItText) playTTS(currentItText);
+}
+
+// ============================================================
+// DECK SETUP
+// ============================================================
+function buildDecks() {
+  const wrap = document.getElementById('deck-wrap');
+  wrap.innerHTML = '';
+  CATS.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'deck-btn' + (cat === activeCat ? ' active' : '');
+    btn.textContent = cat === 'All' ? 'All' : cat;
+    btn.onclick = () => setCat(cat, btn);
+    wrap.appendChild(btn);
+  });
+}
+
+function setCat(cat, btn) {
+  activeCat = cat;
+  document.querySelectorAll('.deck-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  restart();
+}
+
+function setMode(m, btn) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  restart();
+}
+
+// ============================================================
+// GAME LOGIC
+// ============================================================
+function buildQueue() {
+  const filtered = activeCat === 'All' ? [...CARDS] : CARDS.filter(c => c.cat === activeCat);
+  queue = filtered.sort(() => Math.random() - 0.5);
+  totalCards = queue.length;
+  scores = {knew:0, unsure:0, miss:0};
+  seenThisRound = new Set();
+  firstMisses = [];
+  updateStats();
+}
+
+function restart() {
+  buildQueue();
+  const doneView = document.getElementById('done-view');
+  const mainView = document.getElementById('main-view');
+  doneView.style.display = 'none';
+  mainView.style.display = 'flex';
+  mainView.style.flexDirection = 'column';
+  mainView.style.alignItems = 'center';
+  nextCard();
+}
+
+function nextCard() {
+  if (queue.length === 0) {
+    showDone();
+    return;
+  }
+  current = queue.shift();
+  flipped = false;
+  renderCard();
+  updateRemaining();
+}
+
+function renderCard() {
+  const front = document.getElementById('card-front');
+  const back = document.getElementById('card-back');
+  const note = document.getElementById('card-note');
+  const prompt = document.getElementById('card-prompt');
+  const catTag = document.getElementById('card-cat');
+  const tapPrompt = document.getElementById('tap-prompt');
+  const ratingRow = document.getElementById('rating-row');
+
+  back.style.display = 'none';
+  note.style.display = 'none';
+  ratingRow.classList.add('hidden');
+  tapPrompt.style.display = 'block';
+
+  catTag.textContent = current.cat;
+
+  if (mode === 'en-it') {
+    prompt.textContent = 'WHAT IS THIS IN ITALIAN?';
+    front.textContent = current.en;
+    currentItText = current.it;
+  } else {
+    prompt.textContent = 'WHAT DOES THIS MEAN?';
+    front.textContent = current.it;
+    currentItText = current.it;
+    playTTS(current.it);
+  }
+}
+
+function flipCard() {
+  if (flipped) return;
+  flipped = true;
+
+  const back = document.getElementById('card-back');
+  const tapPrompt = document.getElementById('tap-prompt');
+  const ratingRow = document.getElementById('rating-row');
+
+  if (mode === 'en-it') {
+    back.textContent = current.it;
+    back.style.display = 'block';
+    currentItText = current.it;
+    playTTS(current.it);
+  } else {
+    back.textContent = current.en;
+    back.style.display = 'block';
+  }
+
+  tapPrompt.style.display = 'none';
+  ratingRow.classList.remove('hidden');
+}
+
+function rate(r) {
+  scores[r]++;
+  if (!seenThisRound.has(current.it)) {
+    seenThisRound.add(current.it);
+    if (r === 'miss' || r === 'unsure') firstMisses.push(current);
+  }
+  if (r === 'miss') {
+    queue.push(current);
+  } else if (r === 'unsure') {
+    const pos = Math.min(4, queue.length);
+    queue.splice(pos, 0, current);
+  }
+  updateStats();
+  nextCard();
+}
+
+function updateStats() {
+  document.getElementById('stat-knew').textContent = scores.knew;
+  document.getElementById('stat-unsure').textContent = scores.unsure;
+  document.getElementById('stat-missed').textContent = scores.miss;
+  const done = scores.knew + scores.unsure + scores.miss;
+  const pct = totalCards > 0 ? Math.round((scores.knew / Math.max(done, 1)) * 100) : 0;
+  const progress = totalCards > 0 ? Math.min(100, Math.round((scores.knew / totalCards) * 100)) : 0;
+  document.getElementById('progress-bar').style.width = progress + '%';
+}
+
+function updateRemaining() {
+  document.getElementById('remaining-count').textContent = queue.length;
+}
+
+function showDone() {
+  const mainView = document.getElementById('main-view');
+  const doneView = document.getElementById('done-view');
+  mainView.style.display = 'none';
+  doneView.style.display = 'flex';
+
+  const total = scores.knew + scores.miss;
+  const pct = total > 0 ? Math.round((scores.knew / total) * 100) : 100;
+  document.getElementById('done-score').textContent = pct + '% knew it — ' + scores.knew + ' correct, ' + scores.miss + ' missed';
+
+  const missList = document.getElementById('miss-list');
+  if (firstMisses.length === 0) {
+    missList.innerHTML = '<p style="font-style:italic;color:#444;font-size:14px;">Ottimo — nessun errore!</p>';
+  } else {
+    missList.innerHTML = firstMisses.map(c =>
+      '<div class="miss-row"><span class="miss-it">' + c.it + '</span><span class="miss-en">' + c.en + '</span></div>'
+    ).join('');
+  }
+}
+
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+function showTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const drill = document.getElementById('drill-view');
+  const ref = document.getElementById('ref-view');
+  if (tab === 'drill') {
+    drill.style.display = 'flex';
+    drill.style.flexDirection = 'column';
+    drill.style.flex = '1';
+    ref.style.display = 'none';
+  } else {
+    drill.style.display = 'none';
+    ref.style.display = 'block';
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildDecks();
+restart();
+</script>
+</body>
+</html>
