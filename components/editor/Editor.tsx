@@ -155,11 +155,11 @@ export default function Editor({
         <span style={{ borderLeft: '1px solid #ccc', margin: '0 4px' }} />
 
         <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('left').run()}
-          isActive={editor.isActive({ textAlign: 'left' })} title="Align left">⬤</ToolbarButton>
+          isActive={editor.isActive({ textAlign: 'left' })} title="Align left">←</ToolbarButton>
         <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('center').run()}
-          isActive={editor.isActive({ textAlign: 'center' })} title="Align centre">◉</ToolbarButton>
+          isActive={editor.isActive({ textAlign: 'center' })} title="Align centre">↔</ToolbarButton>
         <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('right').run()}
-          isActive={editor.isActive({ textAlign: 'right' })} title="Align right">○</ToolbarButton>
+          isActive={editor.isActive({ textAlign: 'right' })} title="Align right">→</ToolbarButton>
 
         <span style={{ borderLeft: '1px solid #ccc', margin: '0 4px' }} />
 
