@@ -371,6 +371,12 @@ a:hover {
   font-size: 14px;
   line-height: 1.8;
 }
+.submission-card-body p {
+  margin-bottom: 1em;
+}
+.submission-card-body p:last-child {
+  margin-bottom: 0;
+}
 .submission-card-body img {
   max-width: 100%;
   height: auto;
@@ -450,6 +456,12 @@ a:hover {
   font-size: 14px;
   line-height: 1.8;
   outline: none;
+}
+.tiptap-editor p {
+  margin-bottom: 1em;
+}
+.tiptap-editor p:last-child {
+  margin-bottom: 0;
 }
 .tiptap-editor:focus {
   border-color: var(--accent);
@@ -639,6 +651,12 @@ a:hover {
   font-size: 13px;
   line-height: 1.8;
   padding: 14px 20px !important;
+}
+.strip-peek-panel p {
+  margin-bottom: 1em;
+}
+.strip-peek-panel p:last-child {
+  margin-bottom: 0;
 }
 
 @media (max-width: 480px) {

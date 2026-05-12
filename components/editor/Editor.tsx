@@ -134,6 +134,8 @@ export default function Editor({
           isActive={editor.isActive('italic')} title="Italic"><em>I</em></ToolbarButton>
         <ToolbarButton onClick={() => editor.chain().focus().toggleUnderline().run()}
           isActive={editor.isActive('underline')} title="Underline"><u>U</u></ToolbarButton>
+        <ToolbarButton onClick={() => editor.chain().focus().toggleStrike().run()}
+          isActive={editor.isActive('strike')} title="Strikethrough (Ctrl+Shift+S)"><s>S</s></ToolbarButton>
         <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()}
           isActive={editor.isActive('bulletList')} title="Bullet list">≡</ToolbarButton>
 
