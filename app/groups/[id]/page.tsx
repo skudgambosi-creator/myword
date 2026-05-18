@@ -28,9 +28,9 @@ function Countdown({ targetAt, label }: { targetAt: string; label: string }) {
   )
 }
 
-function stripHtml(html: string, maxChars = 180): string {
-  const text = html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
-  return text.length <= maxChars ? text : text.slice(0, maxChars).trim()
+function getBlurb(html: string): string {
+  const plain = html.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim()
+  return plain.slice(0, 180) + (plain.length > 180 ? '…' : '')
 }
 
 function Footer() {
@@ -43,7 +43,7 @@ function Footer() {
 
 const CARD: React.CSSProperties = {
   border: '1px solid #000',
-  background: '#fafaf8',
+  background: '#fff',
   overflow: 'hidden',
 }
 
@@ -197,7 +197,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
 
       <Nav />
 
-      <main style={{ flex: 1, padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: 800, width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
+      <main style={{ flex: 1, padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: 800, width: '100%', margin: '0 auto', boxSizing: 'border-box', background: '#fff' }}>
 
         {/* Card 1 — Header */}
         <div style={CARD}>
@@ -207,53 +207,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
           </div>
         </div>
 
-        {/* Card 2 — Progress strip */}
-        <div style={{ ...CARD, padding: '16px 20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#999' }}>Your progress</span>
-            <span style={{ fontSize: 11, fontWeight: 700 }}>{submittedCount} / 26</span>
-          </div>
-          {/* Row 1: A–M */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(13, 1fr)', gap: 5 }}>
-            {ALPHABET.slice(0, 13).map((letter, i) => {
-              const weekNum = i + 1
-              const isSubmitted = submittedWeekNums.has(weekNum)
-              const isMissed = revealedWeekNums.has(weekNum) && !isSubmitted
-              const isCurrent = currentWeek?.week_num === weekNum
-              let bg: string, border: string, color: string, borderWidth: number
-              if (isSubmitted) { bg = '#C85A5A'; border = '#C85A5A'; color = '#fff'; borderWidth = 1 }
-              else if (isMissed) { bg = '#000'; border = '#000'; color = '#fff'; borderWidth = 1 }
-              else if (isCurrent) { bg = 'transparent'; border = '#000'; color = '#000'; borderWidth = 2 }
-              else { bg = 'transparent'; border = '#ddd'; color = '#ddd'; borderWidth = 1 }
-              return (
-                <div key={letter} style={{ aspectRatio: '1', borderRadius: '50%', border: `${borderWidth}px solid ${border}`, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'clamp(9px, 1.8vw, 13px)', fontWeight: 700, fontFamily: 'monospace', lineHeight: 1, color }}>
-                  {letter}
-                </div>
-              )
-            })}
-          </div>
-          {/* Row 2: N–Z */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(13, 1fr)', gap: 5, marginTop: 5 }}>
-            {ALPHABET.slice(13, 26).map((letter, i) => {
-              const weekNum = i + 14
-              const isSubmitted = submittedWeekNums.has(weekNum)
-              const isMissed = revealedWeekNums.has(weekNum) && !isSubmitted
-              const isCurrent = currentWeek?.week_num === weekNum
-              let bg: string, border: string, color: string, borderWidth: number
-              if (isSubmitted) { bg = '#C85A5A'; border = '#C85A5A'; color = '#fff'; borderWidth = 1 }
-              else if (isMissed) { bg = '#000'; border = '#000'; color = '#fff'; borderWidth = 1 }
-              else if (isCurrent) { bg = 'transparent'; border = '#000'; color = '#000'; borderWidth = 2 }
-              else { bg = 'transparent'; border = '#ddd'; color = '#ddd'; borderWidth = 1 }
-              return (
-                <div key={letter} style={{ aspectRatio: '1', borderRadius: '50%', border: `${borderWidth}px solid ${border}`, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'clamp(9px, 1.8vw, 13px)', fontWeight: 700, fontFamily: 'monospace', lineHeight: 1, color }}>
-                  {letter}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Card 3 — Hero widget */}
+        {/* Card 2 — Hero widget */}
         {!isCompleted && (
           <div style={{ ...CARD, display: 'grid', gridTemplateColumns: 'auto 1fr auto' }}>
             {/* Left: saturn + timer */}
@@ -307,7 +261,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
           </div>
         )}
 
-        {/* Card 4 — Most recently revealed */}
+        {/* Card 3 — Most recently revealed */}
         {lastRevealedWeek && lastRevealedSubs.length > 0 && (() => {
           const mostLovedId = communityFavourites[lastRevealedWeek.id]
           const mostLoved = lastRevealedSubs.find((s: any) => s.id === mostLovedId) || null
@@ -322,19 +276,17 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               </div>
               {displayPieces.map((sub: any) => {
                 const isMostLoved = sub.id === mostLovedId
-                const blurb = stripHtml(sub.body_html || '', 180)
-                const fullText = (sub.body_html || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+                const blurb = getBlurb(sub.body_html || '')
                 return (
                   <div
                     key={sub.id}
                     onClick={() => router.push(`/groups/${params.id}/submissions?view=read&anchor=${sub.id}`)}
                     style={{
                       borderTop: '1px solid #eee',
-                      padding: '14px 20px',
-                      cursor: 'pointer',
+                      padding: '16px 20px',
+                      paddingLeft: isMostLoved ? 18 : 20,
                       borderLeft: isMostLoved ? '2px solid #C85A5A' : undefined,
-                      marginLeft: isMostLoved ? -1 : undefined,
-                      paddingLeft: isMostLoved ? 12 : undefined,
+                      cursor: 'pointer',
                     }}
                   >
                     {sub.is_signed && sub.signed_name && (
@@ -346,7 +298,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                       {sub.word_title}
                     </div>
                     <div style={{ fontSize: 11, color: '#555', lineHeight: 1.6 }}>
-                      {blurb}{fullText.length > 180 ? '…' : ''}
+                      {blurb}
                     </div>
                   </div>
                 )
@@ -366,7 +318,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
           )
         })()}
 
-        {/* Card 5 — Rules */}
+        {/* Card 4 — Rules */}
         <div style={CARD}>
           <button
             onClick={() => setRulesExpanded(v => !v)}
@@ -387,6 +339,52 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Card 5 — Progress strip */}
+        <div style={{ ...CARD, padding: '16px 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#999' }}>Your progress</span>
+            <span style={{ fontSize: 11, fontWeight: 700 }}>{submittedCount} / 26</span>
+          </div>
+          {/* Row 1: A–M */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(13, 1fr)', gap: 5 }}>
+            {ALPHABET.slice(0, 13).map((letter, i) => {
+              const weekNum = i + 1
+              const isSubmitted = submittedWeekNums.has(weekNum)
+              const isMissed = revealedWeekNums.has(weekNum) && !isSubmitted
+              const isCurrent = currentWeek?.week_num === weekNum
+              let bg: string, border: string, color: string, borderWidth: number
+              if (isSubmitted) { bg = '#C85A5A'; border = '#C85A5A'; color = '#fff'; borderWidth = 1 }
+              else if (isMissed) { bg = '#000'; border = '#000'; color = '#fff'; borderWidth = 1 }
+              else if (isCurrent) { bg = 'transparent'; border = '#000'; color = '#000'; borderWidth = 2 }
+              else { bg = 'transparent'; border = '#ddd'; color = '#ddd'; borderWidth = 1 }
+              return (
+                <div key={letter} style={{ aspectRatio: '1', borderRadius: '50%', border: `${borderWidth}px solid ${border}`, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'clamp(9px, 1.8vw, 13px)', fontWeight: 700, fontFamily: 'monospace', lineHeight: 1, color }}>
+                  {letter}
+                </div>
+              )
+            })}
+          </div>
+          {/* Row 2: N–Z */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(13, 1fr)', gap: 5, marginTop: 5 }}>
+            {ALPHABET.slice(13, 26).map((letter, i) => {
+              const weekNum = i + 14
+              const isSubmitted = submittedWeekNums.has(weekNum)
+              const isMissed = revealedWeekNums.has(weekNum) && !isSubmitted
+              const isCurrent = currentWeek?.week_num === weekNum
+              let bg: string, border: string, color: string, borderWidth: number
+              if (isSubmitted) { bg = '#C85A5A'; border = '#C85A5A'; color = '#fff'; borderWidth = 1 }
+              else if (isMissed) { bg = '#000'; border = '#000'; color = '#fff'; borderWidth = 1 }
+              else if (isCurrent) { bg = 'transparent'; border = '#000'; color = '#000'; borderWidth = 2 }
+              else { bg = 'transparent'; border = '#ddd'; color = '#ddd'; borderWidth = 1 }
+              return (
+                <div key={letter} style={{ aspectRatio: '1', borderRadius: '50%', border: `${borderWidth}px solid ${border}`, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'clamp(9px, 1.8vw, 13px)', fontWeight: 700, fontFamily: 'monospace', lineHeight: 1, color }}>
+                  {letter}
+                </div>
+              )
+            })}
+          </div>
         </div>
 
       </main>

@@ -16,9 +16,12 @@ export default function Nav() {
       {/* Left */}
       <div style={{ display: 'flex', alignItems: 'center' }}>
         <Link href="/profile" style={{
-          fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
-          textDecoration: 'none', color: '#000', whiteSpace: 'nowrap',
-        }}>
+          fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700,
+          textDecoration: 'none', color: '#000', whiteSpace: 'nowrap', padding: '4px 8px',
+        }}
+          onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = '#000'; (e.currentTarget as HTMLAnchorElement).style.color = '#fff' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = ''; (e.currentTarget as HTMLAnchorElement).style.color = '#000' }}
+        >
           PROFILE
         </Link>
       </div>
@@ -42,9 +45,12 @@ export default function Nav() {
       {/* Right */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginLeft: 'auto' }}>
         <Link href="/about" style={{
-          fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
-          textDecoration: 'none', color: '#000', whiteSpace: 'nowrap',
-        }}>
+          fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700,
+          textDecoration: 'none', color: '#000', whiteSpace: 'nowrap', padding: '4px 8px',
+        }}
+          onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = '#000'; (e.currentTarget as HTMLAnchorElement).style.color = '#fff' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = ''; (e.currentTarget as HTMLAnchorElement).style.color = '#000' }}
+        >
           ABOUT
         </Link>
         <button
