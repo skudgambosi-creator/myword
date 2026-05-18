@@ -795,6 +795,37 @@ input:-webkit-autofill:active {
   }
 }
 
+/* ── PILL HOVER ── */
+.pill-hover {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  transition: background 0.1s, color 0.1s;
+  cursor: pointer;
+  text-decoration: none;
+  color: #000;
+}
+.pill-hover:hover {
+  background: #000;
+  color: #fff;
+  text-decoration: none;
+}
+
+/* ── BRAND HOVER (outline ring, no fill) ── */
+.brand-hover {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  transition: border-color 0.1s;
+  text-decoration: none;
+  color: #000;
+}
+.brand-hover:hover {
+  border-color: #000;
+  text-decoration: none;
+}
+
 /* ── COMPLETED STATE ── */
 .completed-banner {
   background: var(--black);

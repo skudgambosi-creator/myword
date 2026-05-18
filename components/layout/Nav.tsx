@@ -15,13 +15,10 @@ export default function Nav() {
     }}>
       {/* Left */}
       <div style={{ display: 'flex', alignItems: 'center' }}>
-        <Link href="/profile" style={{
+        <Link href="/profile" className="pill-hover" style={{
           fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700,
-          textDecoration: 'none', color: '#000', whiteSpace: 'nowrap', padding: '4px 8px',
-        }}
-          onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = '#000'; (e.currentTarget as HTMLAnchorElement).style.color = '#fff' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = ''; (e.currentTarget as HTMLAnchorElement).style.color = '#000' }}
-        >
+          whiteSpace: 'nowrap',
+        }}>
           PROFILE
         </Link>
       </div>
@@ -32,9 +29,8 @@ export default function Nav() {
         display: 'flex', alignItems: 'center', gap: 16, pointerEvents: 'none',
       }}>
         <div style={{ height: 1, width: 80, background: '#000', pointerEvents: 'none' }} />
-        <Link href="/dashboard" style={{
+        <Link href="/dashboard" className="brand-hover" style={{
           fontSize: 15, letterSpacing: '0.22em', fontWeight: 400,
-          textDecoration: 'none', color: '#000', background: 'transparent',
           whiteSpace: 'nowrap', pointerEvents: 'auto',
         }}>
           MY WORD
@@ -43,22 +39,19 @@ export default function Nav() {
       </div>
 
       {/* Right */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginLeft: 'auto' }}>
-        <Link href="/about" style={{
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
+        <Link href="/about" className="pill-hover" style={{
           fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700,
-          textDecoration: 'none', color: '#000', whiteSpace: 'nowrap', padding: '4px 8px',
-        }}
-          onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = '#000'; (e.currentTarget as HTMLAnchorElement).style.color = '#fff' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = ''; (e.currentTarget as HTMLAnchorElement).style.color = '#000' }}
-        >
+          whiteSpace: 'nowrap',
+        }}>
           ABOUT
         </Link>
         <button
           onClick={handleSignOut}
+          className="pill-hover"
           style={{
-            fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
-            background: 'none', border: 'none', cursor: 'pointer', color: '#000',
-            whiteSpace: 'nowrap', padding: 0, fontFamily: 'inherit',
+            fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700,
+            background: 'none', border: 'none', fontFamily: 'inherit', whiteSpace: 'nowrap',
           }}
         >
           SIGN OUT

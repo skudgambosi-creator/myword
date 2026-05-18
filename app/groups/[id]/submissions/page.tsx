@@ -22,9 +22,21 @@ function buildWeekGroups(subs: any[]) {
 function hasImage(html: string) { return /<img[\s>]/i.test(html) }
 function hasAudio(html: string) { return /<audio[\s>]/i.test(html) }
 
-function stripHtml(html: string, maxChars = 200): string {
-  const text = html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
-  return text.length <= maxChars ? text : text.slice(0, maxChars).trim()
+function getBlurb(html: string): string {
+  if (!html) return ''
+  const withBreaks = html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<p[^>]*>/gi, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+  return withBreaks.slice(0, 300) + (withBreaks.length > 300 ? '…' : '')
 }
 
 function extractImages(html: string): string[] {
@@ -246,10 +258,10 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
   const favouriteSubs = azSubs.filter(s => communityFavourites[s.week_id] === s.id).sort((a: any, b: any) => a.weeks?.week_num - b.weeks?.week_num)
 
   const tabBtn = (active: boolean) => ({
-    padding: '6px 20px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em',
-    textTransform: 'uppercase' as const, cursor: 'pointer', fontFamily: 'inherit',
+    padding: '5px 16px', fontSize: 10, letterSpacing: '0.1em',
+    textTransform: 'uppercase' as const, cursor: 'pointer', fontFamily: 'monospace',
+    borderRadius: 20, border: '1px solid #000', marginLeft: -1,
     background: active ? '#000' : 'transparent', color: active ? '#fff' : '#000',
-    border: '1px solid #000', marginRight: -1,
   })
 
   const empty = (msg: string) => (
@@ -294,7 +306,8 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
             <div>
               <button
                 onClick={() => { setReadView(false); readMounted.current = false }}
-                style={{ fontSize: 11, color: '#999', letterSpacing: '0.1em', textTransform: 'uppercase', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}
+                className="pill-hover"
+                style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'none', border: 'none', fontFamily: 'inherit' }}
               >
                 GO BACK
               </button>
@@ -391,7 +404,7 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
         {/* Header row */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', alignItems: 'center', marginBottom: 24 }}>
           <div>
-            <Link href={`/groups/${params.id}`} style={{ fontSize: 11, color: '#999', letterSpacing: '0.1em', textTransform: 'uppercase', textDecoration: 'none' }}>
+            <Link href={`/groups/${params.id}`} className="pill-hover" style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               GO BACK
             </Link>
           </div>
@@ -459,11 +472,12 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
                         key={sub.id}
                         style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '7px 0', borderTop: '1px solid #eee', cursor: 'pointer', gap: 12 }}
                       >
-                        <div
-                          onClick={() => { setReadView(true); readMounted.current = false; setTimeout(() => { const el = document.getElementById(`sub-${sub.id}`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }) }, 150) }}
-                          style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}
-                        >
-                          <span style={{ fontSize: 14, color: '#C85A5A', letterSpacing: '0.02em' }}>{sub.word_title}</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
+                          <span
+                            className="pill-hover"
+                            onClick={() => { setReadView(true); readMounted.current = false; setTimeout(() => { const el = document.getElementById(`sub-${sub.id}`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }) }, 150) }}
+                            style={{ fontSize: 14, letterSpacing: '0.02em', alignSelf: 'flex-start' }}
+                          >{sub.word_title}</span>
                           {sub.is_signed && sub.signed_name && (
                             <span style={{ fontSize: 11, color: '#aaa', fontStyle: 'italic' }}>{sub.signed_name}</span>
                           )}
@@ -491,9 +505,7 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
                   </div>
                   {weekSubs.map(sub => {
                     const isMyVote = myFavourites[sub.week_id] === sub.id
-                    const blurb = stripHtml(sub.body_html || '', 200)
-                    const fullText = (sub.body_html || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
-                    const showEllipsis = fullText.length > 200
+                    const blurb = getBlurb(sub.body_html || '')
                     const imgs = hasImage(sub.body_html || '')
                     const auds = hasAudio(sub.body_html || '')
                     return (
@@ -510,8 +522,8 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
                             {sub.signed_name}
                           </div>
                         )}
-                        <div style={{ fontSize: 13, color: '#444', lineHeight: 1.8, marginBottom: 10 }}>
-                          {blurb}{showEllipsis ? '…' : ''}
+                        <div style={{ fontSize: 13, color: '#444', lineHeight: 1.8, marginBottom: 10, whiteSpace: 'pre-wrap' }}>
+                          {blurb}
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div style={{ display: 'flex', gap: 6 }}>

@@ -29,8 +29,20 @@ function Countdown({ targetAt, label }: { targetAt: string; label: string }) {
 }
 
 function getBlurb(html: string): string {
-  const plain = html.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim()
-  return plain.slice(0, 180) + (plain.length > 180 ? '…' : '')
+  if (!html) return ''
+  const withBreaks = html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<p[^>]*>/gi, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+  return withBreaks.slice(0, 300) + (withBreaks.length > 300 ? '…' : '')
 }
 
 function Footer() {
@@ -297,7 +309,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                     <div style={{ fontSize: 13, fontWeight: 700, color: '#000', marginBottom: 5 }}>
                       {sub.word_title}
                     </div>
-                    <div style={{ fontSize: 11, color: '#555', lineHeight: 1.6 }}>
+                    <div style={{ fontSize: 11, color: '#555', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
                       {blurb}
                     </div>
                   </div>
@@ -309,7 +321,8 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                 </span>
                 <span
                   onClick={() => router.push(`/groups/${params.id}/submissions?view=read&letter=${lastRevealedWeek.letter}`)}
-                  style={{ fontSize: 9, textTransform: 'uppercase', color: '#000', letterSpacing: '0.08em', borderBottom: '1px solid #000', cursor: 'pointer' }}
+                  className="pill-hover"
+                  style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.08em' }}
                 >
                   Read all of {lastRevealedWeek.letter} →
                 </span>
@@ -322,9 +335,9 @@ export default function GroupPage({ params }: { params: { id: string } }) {
         <div style={CARD}>
           <button
             onClick={() => setRulesExpanded(v => !v)}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', width: '100%', padding: '14px 20px', cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit', borderBottom: rulesExpanded ? '1px solid #000' : 'none' }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', width: '100%', padding: '10px 20px', cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit', borderBottom: rulesExpanded ? '1px solid #000' : 'none' }}
           >
-            <span style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700 }}>RULES</span>
+            <span className="pill-hover" style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700 }}>RULES</span>
             <span style={{ position: 'absolute', right: 20, fontSize: 10, color: '#999' }}>{rulesExpanded ? '▲' : '▼'}</span>
           </button>
           {rulesExpanded && (
