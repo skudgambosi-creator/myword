@@ -247,26 +247,42 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               {activeWeek && currentWeek && (
                 mySubmission ? (
                   <Link href={`/groups/${params.id}/submit?edit=1`} style={{ textDecoration: 'none', width: '100%' }}>
-                    <button style={{ borderRadius: 20, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'none', border: '1px solid #000', color: '#000' }}>
+                    <button
+                      style={{ borderRadius: 20, overflow: 'hidden', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'none', border: '1px solid #000', color: '#000' }}
+                      onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = '#000'; el.style.color = '#fff' }}
+                      onMouseLeave={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = ''; el.style.color = '' }}
+                    >
                       EDIT
                     </button>
                   </Link>
                 ) : (
                   <Link href={`/groups/${params.id}/submit`} style={{ textDecoration: 'none', width: '100%' }}>
-                    <button style={{ borderRadius: 20, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: '#C85A5A', border: '1px solid #C85A5A', color: '#fff' }}>
+                    <button
+                      style={{ borderRadius: 20, overflow: 'hidden', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: '#C85A5A', border: '1px solid #C85A5A', color: '#fff' }}
+                      onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = '#000'; el.style.color = '#fff' }}
+                      onMouseLeave={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = '#C85A5A'; el.style.color = '#fff' }}
+                    >
                       SUBMIT
                     </button>
                   </Link>
                 )
               )}
               <Link href={`/groups/${params.id}/leaderboard`} style={{ textDecoration: 'none', width: '100%' }}>
-                <button style={{ borderRadius: 20, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'none', border: '1px solid #000', color: '#000' }}>
+                <button
+                  style={{ borderRadius: 20, overflow: 'hidden', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'none', border: '1px solid #000', color: '#000' }}
+                  onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = '#000'; el.style.color = '#fff' }}
+                  onMouseLeave={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = ''; el.style.color = '' }}
+                >
                   LEADERBOARD
                 </button>
               </Link>
               <Link href={`/groups/${params.id}/submissions`} style={{ textDecoration: 'none', width: '100%' }}>
-                <button style={{ borderRadius: 20, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'none', border: '1px solid #000', color: '#000' }}>
-                  INDEX
+                <button
+                  style={{ borderRadius: 20, overflow: 'hidden', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'none', border: '1px solid #000', color: '#000' }}
+                  onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = '#000'; el.style.color = '#fff' }}
+                  onMouseLeave={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = ''; el.style.color = '' }}
+                >
+                  READ
                 </button>
               </Link>
             </div>
@@ -331,30 +347,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
           )
         })()}
 
-        {/* Card 4 — Rules */}
-        <div style={CARD}>
-          <button
-            onClick={() => setRulesExpanded(v => !v)}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', width: '100%', padding: '10px 20px', cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit', borderBottom: rulesExpanded ? '1px solid #000' : 'none' }}
-          >
-            <span className="pill-hover" style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700 }}>RULES</span>
-            <span style={{ position: 'absolute', right: 20, fontSize: 10, color: '#999' }}>{rulesExpanded ? '▲' : '▼'}</span>
-          </button>
-          {rulesExpanded && (
-            <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {RULES_DATA.map(([title, body], i) => (
-                <div key={i}>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>
-                    {i + 1}. {title}
-                  </div>
-                  <div style={{ fontSize: 12, color: '#555', lineHeight: 1.7 }}>{body}</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Card 5 — Progress strip */}
+        {/* Card 4 — Progress strip */}
         <div style={{ ...CARD, padding: '16px 20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
             <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#999' }}>Your progress</span>
@@ -398,6 +391,29 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               )
             })}
           </div>
+        </div>
+
+        {/* Card 5 — Rules */}
+        <div style={CARD}>
+          <button
+            onClick={() => setRulesExpanded(v => !v)}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', width: '100%', padding: '10px 20px', cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit', borderBottom: rulesExpanded ? '1px solid #000' : 'none' }}
+          >
+            <span className="pill-hover" style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700 }}>RULES</span>
+            <span style={{ position: 'absolute', right: 20, fontSize: 10, color: '#999' }}>{rulesExpanded ? '▲' : '▼'}</span>
+          </button>
+          {rulesExpanded && (
+            <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {RULES_DATA.map(([title, body], i) => (
+                <div key={i}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>
+                    {i + 1}. {title}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#555', lineHeight: 1.7 }}>{body}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
       </main>

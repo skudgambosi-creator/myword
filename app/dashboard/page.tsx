@@ -10,7 +10,7 @@ const ALPHABET_PROJECT_ID = '00000000-0000-0000-0000-000000000001'
 function Footer() {
   return (
     <footer style={{ textAlign: 'center', padding: '48px 0 28px' }}>
-      <span style={{ fontSize: 12, color: '#ccc', letterSpacing: '0.18em' }}>MOUNTFORD-GAMBOSI</span>
+      <span style={{ fontSize: 12, color: '#ccc', letterSpacing: '0.18em' }}>GAMBOSI</span>
     </footer>
   )
 }
