@@ -92,13 +92,13 @@ export default function DashboardPage() {
         >
           <div
             style={{ border: '1px solid #000', padding: '28px 32px', marginBottom: 16, textAlign: 'center', cursor: 'pointer', transition: 'background 0.12s, color 0.12s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = '#000'; (e.currentTarget as HTMLDivElement).style.color = '#fff' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = ''; (e.currentTarget as HTMLDivElement).style.color = '' }}
+            onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = '#000'; el.style.color = '#fff' }}
+            onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = ''; el.style.color = '' }}
           >
-            <div style={{ fontSize: 18, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 6 }}>
+            <div style={{ fontSize: 18, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 6, color: 'inherit' }}>
               THE ALPHABET PROJECT
             </div>
-            <div style={{ fontSize: 11, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 8 }}>
+            <div style={{ fontSize: 11, color: 'inherit', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 8, opacity: 0.6 }}>
               SEASON 1
             </div>
             <div style={{ fontSize: 10, color: 'inherit', letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.5 }}>
@@ -113,10 +113,10 @@ export default function DashboardPage() {
         >
           <div
             style={{ border: '1px solid #000', padding: '28px 32px', textAlign: 'center', cursor: 'pointer', transition: 'background 0.12s, color 0.12s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = '#000'; (e.currentTarget as HTMLDivElement).style.color = '#fff' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = ''; (e.currentTarget as HTMLDivElement).style.color = '' }}
+            onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = '#000'; el.style.color = '#fff' }}
+            onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = ''; el.style.color = '' }}
           >
-            <div style={{ fontSize: 18, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>
+            <div style={{ fontSize: 18, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8, color: 'inherit' }}>
               LORE
             </div>
             <div style={{ fontSize: 10, color: 'inherit', letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.5 }}>
@@ -131,10 +131,10 @@ export default function DashboardPage() {
         >
           <div
             style={{ border: '1px solid #000', padding: '28px 32px', textAlign: 'center', cursor: 'pointer', transition: 'background 0.12s, color 0.12s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = '#000'; (e.currentTarget as HTMLDivElement).style.color = '#fff' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = ''; (e.currentTarget as HTMLDivElement).style.color = '' }}
+            onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = '#000'; el.style.color = '#fff' }}
+            onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = ''; el.style.color = '' }}
           >
-            <div style={{ fontSize: 18, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>
+            <div style={{ fontSize: 18, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8, color: 'inherit' }}>
               TONGUES
             </div>
             <div style={{ fontSize: 10, color: 'inherit', letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.5 }}>

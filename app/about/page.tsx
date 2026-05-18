@@ -47,17 +47,13 @@ export default function AboutPage() {
 
       <main className="page-main">
 
-        <h2 style={{ ...sectionTitle, marginTop: 0 }}>MY WORD</h2>
-
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+        <div style={{ textAlign: 'center', margin: '32px auto 40px' }}>
           <img src="/saturn.svg" alt="My Word" style={{ width: 80, height: 'auto', display: 'inline-block' }} />
         </div>
 
-        <p style={signature}>MOUNTFORD-GAMBOSI</p>
-
         <hr style={rule} />
 
-        <h2 style={sectionTitle}>SEASONS</h2>
+        <h2 style={{ ...sectionTitle, marginTop: 0 }}>SEASONS</h2>
 
         <p style={para}>The Alphabet Project is a creative writing and word game, running one letter at a time.</p>
 
@@ -70,6 +66,8 @@ export default function AboutPage() {
         <p style={para}>On the cutoff date, an email goes out with all of that week's entries, and they unlock here on the submissions view. After 26 weeks, you have got half a year of yourself. Then the next season begins.</p>
 
         <p style={para}>Something like social media, but with none of the love numbers chubbing up the ego. Just a little honour for a little commitment. Put whatever you like to words, pictures, or sound. Get cheeky, get frank, get whatever. And a small score for your trouble.</p>
+
+        <p style={signature}>MOUNTFORD-GAMBOSI</p>
 
         <hr style={rule} />
 

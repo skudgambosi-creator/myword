@@ -28,15 +28,15 @@ export default function Nav() {
         position: 'absolute', left: '50%', transform: 'translateX(-50%)',
         display: 'flex', alignItems: 'center', gap: 16, pointerEvents: 'none',
       }}>
-        <div style={{ height: 1, width: 80, background: '#000' }} />
+        <div style={{ height: 1, width: 80, background: '#000', pointerEvents: 'none' }} />
         <Link href="/dashboard" style={{
           fontSize: 15, letterSpacing: '0.22em', fontWeight: 400,
-          textDecoration: 'none', color: '#000', whiteSpace: 'nowrap',
-          pointerEvents: 'auto',
+          textDecoration: 'none', color: '#000', background: 'transparent',
+          whiteSpace: 'nowrap', pointerEvents: 'auto',
         }}>
           MY WORD
         </Link>
-        <div style={{ height: 1, width: 80, background: '#000' }} />
+        <div style={{ height: 1, width: 80, background: '#000', pointerEvents: 'none' }} />
       </div>
 
       {/* Right */}

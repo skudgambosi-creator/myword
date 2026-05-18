@@ -179,12 +179,8 @@ a:hover {
   align-items: center;
   white-space: nowrap;
 }
-.nav-brand:hover {
-  background: var(--black);
-  color: var(--white);
-}
 .nav-link {
-  padding: 10px 16px;
+  padding: 8px 12px;
   font-size: 12px;
   font-weight: bold;
   text-transform: uppercase;
