@@ -175,7 +175,9 @@ async function sendRevealEmail(week: any, group: any, submissions: any[], member
       html: `
         <style>@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');</style>
         <div style="font-family: 'Inconsolata', 'Courier New', Courier, monospace; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #000;">
-          <h1 style="font-size: 32px; font-weight: bold; margin-bottom: 4px;">[ MY WORD ]</h1>
+          <div style="text-align: center; margin-bottom: 4px;">
+            <img src="https://www.my-word.co.uk/saturn.svg" alt="My Word" width="80" height="auto" style="display: inline-block;" />
+          </div>
           <p style="font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 32px;">
             Week ${week.week_num} of 26 · Letter ${week.letter}
           </p>

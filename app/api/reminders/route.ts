@@ -80,9 +80,9 @@ export async function POST(req: NextRequest) {
         html: `
           <style>@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');</style>
           <div style="font-family: 'Inconsolata', 'Courier New', Courier, monospace; max-width: 520px; margin: 0 auto; padding: 40px 20px; color: #000;">
-            <h1 style="font-size: 24px; font-weight: bold; border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
-              [ MY WORD ]
-            </h1>
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="https://www.my-word.co.uk/saturn.svg" alt="My Word" width="80" height="auto" style="display: inline-block;" />
+            </div>
             <p style="font-size: 14px; margin-bottom: 24px;">${bodies[reminderType]}</p>
             <a href="${submitUrl}" style="display: inline-block; background: #C85A5A; color: #fff; padding: 12px 24px; font-family: 'Inconsolata', 'Courier New', Courier, monospace; font-size: 13px; font-weight: bold; text-decoration: none; text-transform: uppercase; letter-spacing: 0.05em;">
               SUBMIT LETTER ${week.letter} →

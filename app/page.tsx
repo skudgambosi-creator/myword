@@ -44,6 +44,11 @@ export default async function LandingPage() {
         <Link href="/dashboard" className="btn-accent" style={{ display: 'block', width: '100%', padding: '18px', fontSize: 15 }}>
           COME IN
         </Link>
+
+        {/* About link */}
+        <Link href="/about" style={{ display: 'block', width: '100%', textAlign: 'center', fontSize: 11, color: '#999', letterSpacing: '0.1em', textDecoration: 'none', marginTop: 12 }}>
+          ABOUT
+        </Link>
       </main>
 
       <Footer />

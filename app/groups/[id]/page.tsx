@@ -1,104 +1,12 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Nav from '@/components/layout/Nav'
 
-function PlanetWidget({ letter, closesAt, hasSubmitted }: { letter: string, closesAt: string, hasSubmitted: boolean }) {
-  const [timeLeft, setTimeLeft] = useState('')
-  useEffect(() => {
-    const tick = () => {
-      const diff = new Date(closesAt).getTime() - Date.now()
-      if (diff <= 0) { setTimeLeft('CLOSED'); return }
-      const d = Math.floor(diff / 86400000)
-      const h = Math.floor((diff % 86400000) / 3600000)
-      const m = Math.floor((diff % 3600000) / 60000)
-      const s = Math.floor((diff % 60000) / 1000)
-      setTimeLeft(`${String(d).padStart(2, '0')}:${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`)
-    }
-    tick()
-    const id = setInterval(tick, 1000)
-    return () => clearInterval(id)
-  }, [closesAt])
-
-  // Planet: ~280px diameter
-  const cx = 300, cy = 150, r = 140
-
-  // Ring centred at planet equator (cy).
-  // irx/orx > r so ring extends outside the planet on both sides, flanking the timer.
-  const irx = 220, iry = 10   // inner ring  (cx±220 = 80..520)
-  const orx = 248, ory = 18   // outer ring  (cx±248 = 52..548)
-
-  // Timer sits inline with the ring equator, inside the planet
-  const timerY = cy             // = 150
-  const timerMaskW = 152        // white rect width behind timer (DD:HH:MM:SS + padding)
-
-  // Letter in upper portion of planet, clear of the ring
-  const letterY = cy - 55       // = 95
-
-  return (
-    <svg width="100%" viewBox="0 0 600 310" style={{ display: 'block', margin: '0 auto', maxWidth: 600 }}>
-      <defs>
-        {/* satBack: upper half only — ring arcs that go behind the planet */}
-        <clipPath id="satBack">
-          <rect x="-5" y="-5" width="610" height={cy + 5} />
-        </clipPath>
-        {/* satFront: lower half only — ring arcs that pass in front of the planet */}
-        <clipPath id="satFront">
-          <rect x="-5" y={cy} width="610" height="325" />
-        </clipPath>
-      </defs>
-
-      {/* 1. Back arcs — upper half of ring, will be hidden behind the planet */}
-      <ellipse cx={cx} cy={cy} rx={irx} ry={iry}
-        fill="none" stroke="#000" strokeWidth="1.5"
-        clipPath="url(#satBack)" />
-      <ellipse cx={cx} cy={cy} rx={orx} ry={ory}
-        fill="none" stroke="#000" strokeWidth="1.5"
-        clipPath="url(#satBack)" />
-
-      {/* 2. Planet sphere — white fill masks back arcs inside the circle */}
-      <circle cx={cx} cy={cy} r={r} fill="white" stroke="#000" strokeWidth="1.5" />
-
-      {/* 3. Front arcs — lower half of ring, drawn on top of the planet */}
-      <ellipse cx={cx} cy={cy} rx={irx} ry={iry}
-        fill="none" stroke="#000" strokeWidth="1.5"
-        clipPath="url(#satFront)" />
-      <ellipse cx={cx} cy={cy} rx={orx} ry={ory}
-        fill="none" stroke="#000" strokeWidth="1.5"
-        clipPath="url(#satFront)" />
-
-      {/* 4. White mask — interrupts ring lines exactly where the timer text sits */}
-      <rect
-        x={cx - timerMaskW / 2} y={cy - 14}
-        width={timerMaskW} height={28}
-        fill="white"
-      />
-
-      {/* 5. Timer — sits in the ring band, flanked by ring arcs on left and right */}
-      <text x={cx} y={timerY}
-        textAnchor="middle" dominantBaseline="middle"
-        fontFamily="'Inconsolata', 'Courier New', monospace"
-        fontSize="15" fontWeight="700"
-        fill="#000">
-        {timeLeft}
-      </text>
-
-      {/* 6. Letter in upper portion of planet */}
-      <text x={cx} y={letterY}
-        textAnchor="middle" dominantBaseline="middle"
-        fontFamily="'Inconsolata', 'Courier New', monospace"
-        fontSize="80" fontWeight="900"
-        fill={hasSubmitted ? '#246c46' : '#C85A5A'}>
-        {letter}
-      </text>
-    </svg>
-  )
-}
-
-function SimpleCountdown({ targetAt }: { targetAt: string }) {
-  const [timeLeft, setTimeLeft] = useState('')
+function Countdown({ targetAt, label }: { targetAt: string; label: string }) {
+  const [timeLeft, setTimeLeft] = useState('00:00:00')
   useEffect(() => {
     const tick = () => {
       const diff = new Date(targetAt).getTime() - Date.now()
@@ -112,7 +20,17 @@ function SimpleCountdown({ targetAt }: { targetAt: string }) {
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
   }, [targetAt])
-  return <span>{timeLeft}</span>
+  return (
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'monospace', letterSpacing: '0.05em' }}>{timeLeft}</div>
+      <div style={{ fontSize: 8, textTransform: 'uppercase', color: '#aaa', letterSpacing: '0.1em', marginTop: 2 }}>{label}</div>
+    </div>
+  )
+}
+
+function stripHtml(html: string, maxChars = 180): string {
+  const text = html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+  return text.length <= maxChars ? text : text.slice(0, maxChars).trim()
 }
 
 function Footer() {
@@ -123,13 +41,21 @@ function Footer() {
   )
 }
 
-const RULES = [
+const CARD: React.CSSProperties = {
+  border: '1px solid #000',
+  background: '#fafaf8',
+  overflow: 'hidden',
+}
+
+const RULES_DATA = [
   ['One submission per letter', 'You get one entry per week. Everyone is anonymous by default, but you can choose to sign a submission if you like. You can add pictures and music as well.'],
-  ['Your word must start with the letter', 'Your title can be any word or phrase — it just has to begin with that week\'s letter. You can write whatever you like, however you like.'],
+  ['Your word must start with the letter', 'Your title can be any word or phrase, it just has to begin with that week\'s letter. You can write whatever you like, however you like.'],
   ['Edit until Wednesday 23:59', 'You can change your submission at any time before the window closes. After that, it\'s locked.'],
   ['Hidden until midnight Wednesday', 'Nobody can see anyone else\'s submission until the reveal. Not the title, not the content. You will get an email every Wednesday with the week\'s submissions, as well as having them unlocked on here.'],
   ['Scoring', 'You score points by keeping your word. Miss a week, miss a point.'],
 ]
+
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
 
 export default function GroupPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -138,12 +64,25 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   const [group, setGroup] = useState<any>(null)
   const [currentWeek, setCurrentWeek] = useState<any>(null)
   const [mySubmission, setMySubmission] = useState<any>(null)
-  const [myScore, setMyScore] = useState(0)
   const [nextWeek, setNextWeek] = useState<any>(null)
   const [isCompleted, setIsCompleted] = useState(false)
   const [rulesExpanded, setRulesExpanded] = useState(false)
-  const [scoreExpanded, setScoreExpanded] = useState(false)
   const [submittedWeekNums, setSubmittedWeekNums] = useState<Set<number>>(new Set())
+  const [revealedWeekNums, setRevealedWeekNums] = useState<Set<number>>(new Set())
+  const [recentRevealedWeek, setRecentRevealedWeek] = useState<any>(null)
+  const [recentRevealedSubs, setRecentRevealedSubs] = useState<any[]>([])
+  const rulesInitialized = useRef(false)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !rulesInitialized.current) {
+      rulesInitialized.current = true
+      const key = `myword_rules_seen_${params.id}`
+      if (!localStorage.getItem(key)) {
+        setRulesExpanded(true)
+        localStorage.setItem(key, '1')
+      }
+    }
+  }, [params.id])
 
   useEffect(() => {
     const init = async () => {
@@ -181,19 +120,56 @@ export default function GroupPage({ params }: { params: { id: string } }) {
         setMySubmission(sub)
       }
 
-      const { data: scores } = await supabase
-        .from('scores').select('score').eq('group_id', params.id).eq('user_id', userId)
-      setMyScore((scores || []).reduce((s: number, r: any) => s + r.score, 0))
-
+      // Fetch all weeks for progress strip
       const { data: allWeeks } = await supabase
-        .from('weeks').select('id, week_num').eq('group_id', params.id)
+        .from('weeks').select('id, week_num, revealed_at, letter').eq('group_id', params.id)
+      const wks = allWeeks || []
+
+      // User submissions for progress strip
       const { data: userSubs } = await supabase
         .from('submissions').select('week_id').eq('user_id', userId).eq('is_late_catchup', false)
-      const submittedIds = new Set((userSubs || []).map((s: any) => s.week_id))
-      const weekNumSet = new Set(
-        (allWeeks || []).filter((w: any) => submittedIds.has(w.id)).map((w: any) => w.week_num as number)
-      )
-      setSubmittedWeekNums(weekNumSet)
+      const submittedWeekIds = new Set((userSubs || []).map((s: any) => s.week_id))
+
+      setSubmittedWeekNums(new Set(
+        wks.filter((w: any) => submittedWeekIds.has(w.id)).map((w: any) => w.week_num as number)
+      ))
+      setRevealedWeekNums(new Set(
+        wks.filter((w: any) => w.revealed_at).map((w: any) => w.week_num as number)
+      ))
+
+      // Card 4: most recently revealed week + its pieces
+      const revealedWeeks = wks.filter((w: any) => w.revealed_at).sort((a: any, b: any) => b.week_num - a.week_num)
+      if (revealedWeeks.length > 0) {
+        const latestWeekId = revealedWeeks[0].id
+
+        const [{ data: fullWeek }, { data: subs }, { data: favs }] = await Promise.all([
+          supabase.from('weeks').select('*').eq('id', latestWeekId).single(),
+          supabase.from('submissions').select('*').eq('week_id', latestWeekId).eq('is_late_catchup', false).order('created_at', { ascending: true }),
+          supabase.from('favourites').select('submission_id').eq('group_id', params.id),
+        ])
+
+        setRecentRevealedWeek(fullWeek)
+
+        if (subs && subs.length > 0) {
+          const favCounts: Record<string, number> = {}
+          for (const f of favs || []) {
+            favCounts[f.submission_id] = (favCounts[f.submission_id] || 0) + 1
+          }
+          const subsWithCounts = subs.map((s: any) => ({ ...s, favCount: favCounts[s.id] || 0 }))
+          const maxFav = Math.max(...subsWithCounts.map((s: any) => s.favCount))
+          const topSubs = subsWithCounts.filter((s: any) => s.favCount === maxFav)
+          const mostLoved = topSubs[Math.floor(Math.random() * topSubs.length)]
+          const rest = subsWithCounts.filter((s: any) => s.id !== mostLoved.id).sort(() => Math.random() - 0.5)
+
+          let picks: any[]
+          if (subsWithCounts.length <= 3) {
+            picks = subsWithCounts.map((s: any) => ({ ...s, isMostLoved: s.id === mostLoved.id }))
+          } else {
+            picks = [{ ...mostLoved, isMostLoved: true }, ...rest.slice(0, 2).map((s: any) => ({ ...s, isMostLoved: false }))]
+          }
+          setRecentRevealedSubs(picks)
+        }
+      }
 
       setLoading(false)
     }
@@ -208,10 +184,10 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   )
 
   const activeWeek = currentWeek || nextWeek
-  const windowClosed = currentWeek ? new Date(currentWeek.closes_at) < new Date() : false
+  const submittedCount = submittedWeekNums.size
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#f0efeb' }}>
       {isCompleted && (
         <div style={{ background: '#000', color: '#fff', textAlign: 'center', padding: 8, fontSize: 11, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
           ★ THE ALPHABET PROJECT IS COMPLETE — A TO Z ★
@@ -220,162 +196,188 @@ export default function GroupPage({ params }: { params: { id: string } }) {
 
       <Nav />
 
-      <main className="page-main">
+      <main style={{ flex: 1, padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: 800, width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
 
-        {/* Header box — title + season inside the rectangle */}
-        <div className="group-title-box">
-          <div style={{ fontSize: 22, letterSpacing: '0.2em', textTransform: 'uppercase' }}>THE ALPHABET PROJECT</div>
-          <div style={{ fontSize: 11, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: 6 }}>SEASON 1</div>
+        {/* Card 1 — Header */}
+        <div style={CARD}>
+          <div className="group-title-box" style={{ border: 'none', marginBottom: 0 }}>
+            <div style={{ fontSize: 22, letterSpacing: '0.2em', textTransform: 'uppercase' }}>THE ALPHABET PROJECT</div>
+            <div style={{ fontSize: 11, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: 6 }}>SEASON 1</div>
+          </div>
         </div>
 
-        {/* Planet widget + ENTER/EDIT button */}
+        {/* Card 2 — Progress strip */}
+        <div style={{ ...CARD, padding: '16px 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#999' }}>Your progress</span>
+            <span style={{ fontSize: 11, fontWeight: 700 }}>{submittedCount} / 26</span>
+          </div>
+          {/* Row 1: A–M */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(13, 1fr)', gap: 5 }}>
+            {ALPHABET.slice(0, 13).map((letter, i) => {
+              const weekNum = i + 1
+              const isSubmitted = submittedWeekNums.has(weekNum)
+              const isMissed = revealedWeekNums.has(weekNum) && !isSubmitted
+              const isCurrent = currentWeek?.week_num === weekNum
+              let bg: string, border: string, color: string, borderWidth: number
+              if (isSubmitted) { bg = '#C85A5A'; border = '#C85A5A'; color = '#fff'; borderWidth = 1 }
+              else if (isMissed) { bg = '#000'; border = '#000'; color = '#fff'; borderWidth = 1 }
+              else if (isCurrent) { bg = 'transparent'; border = '#000'; color = '#000'; borderWidth = 2 }
+              else { bg = 'transparent'; border = '#ddd'; color = '#ddd'; borderWidth = 1 }
+              return (
+                <div key={letter} style={{ aspectRatio: '1', borderRadius: '50%', border: `${borderWidth}px solid ${border}`, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, fontFamily: 'monospace', color }}>
+                  {letter}
+                </div>
+              )
+            })}
+          </div>
+          {/* Row 2: N–Z */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(13, 1fr)', gap: 5, marginTop: 5 }}>
+            {ALPHABET.slice(13, 26).map((letter, i) => {
+              const weekNum = i + 14
+              const isSubmitted = submittedWeekNums.has(weekNum)
+              const isMissed = revealedWeekNums.has(weekNum) && !isSubmitted
+              const isCurrent = currentWeek?.week_num === weekNum
+              let bg: string, border: string, color: string, borderWidth: number
+              if (isSubmitted) { bg = '#C85A5A'; border = '#C85A5A'; color = '#fff'; borderWidth = 1 }
+              else if (isMissed) { bg = '#000'; border = '#000'; color = '#fff'; borderWidth = 1 }
+              else if (isCurrent) { bg = 'transparent'; border = '#000'; color = '#000'; borderWidth = 2 }
+              else { bg = 'transparent'; border = '#ddd'; color = '#ddd'; borderWidth = 1 }
+              return (
+                <div key={letter} style={{ aspectRatio: '1', borderRadius: '50%', border: `${borderWidth}px solid ${border}`, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, fontFamily: 'monospace', color }}>
+                  {letter}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Card 3 — Hero widget */}
         {!isCompleted && (
-          <div style={{ marginBottom: 20, textAlign: 'center' }}>
-            {currentWeek && !windowClosed ? (
-              <>
-                <PlanetWidget
-                  letter={currentWeek.letter}
-                  closesAt={currentWeek.closes_at}
-                  hasSubmitted={!!mySubmission}
-                />
-                <div style={{ marginTop: 16 }}>
-                  <Link
-                    href={`/groups/${params.id}/submit${mySubmission ? '?edit=1' : ''}`}
-                    style={{
-                      display: 'inline-block',
-                      border: '1px solid #000',
-                      borderRadius: 8,
-                      padding: '14px 64px',
-                      fontSize: 13,
-                      fontWeight: 700,
-                      letterSpacing: '0.15em',
-                      textTransform: 'uppercase',
-                      textDecoration: 'none',
-                      color: '#000',
-                      fontFamily: 'inherit',
-                    }}
-                  >
-                    {mySubmission ? 'EDIT' : 'ENTER'}
-                  </Link>
-                </div>
-              </>
-            ) : currentWeek && windowClosed ? (
-              <div style={{ fontSize: 13, color: '#666', padding: '40px 0' }}>
-                Window closed. Reveal pending at midnight Wednesday.
-              </div>
-            ) : nextWeek ? (
-              <div style={{ padding: '40px 0' }}>
-                <div style={{ fontSize: 11, color: '#999', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Next letter opens in</div>
-                <div style={{ fontSize: 22, fontWeight: 400, letterSpacing: '0.1em' }}>
-                  <SimpleCountdown targetAt={nextWeek.opens_at} />
-                </div>
-              </div>
-            ) : null}
-          </div>
-        )}
-
-        {isCompleted && (
-          <div style={{ textAlign: 'center', padding: '20px 0 32px' }}>
-            <div style={{ fontSize: 32, marginBottom: 12, letterSpacing: '0.2em' }}>A — Z</div>
-          </div>
-        )}
-
-        {/* Score box — collapsed: just the nav row. Expanded: adds A–Z grid. */}
-        {activeWeek && (
-          <div style={{ border: scoreExpanded ? '1px solid #000' : 'none', padding: scoreExpanded ? '16px' : '8px 0', marginBottom: 12 }}>
-
-            {/* YOUR SCORE label */}
-            <div style={{ textAlign: 'center', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#999', marginBottom: 12 }}>
-              YOUR SCORE
+          <div style={{ ...CARD, display: 'grid', gridTemplateColumns: 'auto 1fr auto' }}>
+            {/* Left: saturn + timer */}
+            <div style={{ borderRight: '1px solid #000', padding: '16px 18px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, minWidth: 84 }}>
+              <img src="/saturn.svg" alt="Saturn" style={{ width: 52, height: 'auto' }} />
+              {activeWeek && currentWeek && (
+                <Countdown targetAt={currentWeek.closes_at} label="closes in" />
+              )}
+              {activeWeek && !currentWeek && nextWeek && (
+                <Countdown targetAt={nextWeek.opens_at} label="opens in" />
+              )}
             </div>
 
-            {/* LEADERBOARD — score circle (clickable toggle) — SUBMISSIONS */}
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <div style={{ flex: 1, height: 1, background: '#000' }} />
-              <Link href={`/groups/${params.id}/leaderboard`} className="score-nav-btn">
-                LEADERBOARD
+            {/* Centre: current letter */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+              {activeWeek && (
+                <div style={{ fontSize: 88, fontWeight: 900, color: '#C85A5A', fontFamily: 'monospace', lineHeight: 1 }}>
+                  {activeWeek.letter}
+                </div>
+              )}
+            </div>
+
+            {/* Right: action buttons */}
+            <div style={{ borderLeft: '1px solid #000', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center', justifyContent: 'center', minWidth: 110 }}>
+              {activeWeek && currentWeek && (
+                mySubmission ? (
+                  <Link href={`/groups/${params.id}/submit?edit=1`} style={{ textDecoration: 'none', width: '100%' }}>
+                    <button style={{ borderRadius: 20, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'none', border: '1px solid #000', color: '#000' }}>
+                      EDIT
+                    </button>
+                  </Link>
+                ) : (
+                  <Link href={`/groups/${params.id}/submit`} style={{ textDecoration: 'none', width: '100%' }}>
+                    <button style={{ borderRadius: 20, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: '#C85A5A', border: '1px solid #C85A5A', color: '#fff' }}>
+                      SUBMIT
+                    </button>
+                  </Link>
+                )
+              )}
+              <Link href={`/groups/${params.id}/leaderboard`} style={{ textDecoration: 'none', width: '100%' }}>
+                <button style={{ borderRadius: 20, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'none', border: '1px solid #000', color: '#000' }}>
+                  LEADERBOARD
+                </button>
               </Link>
-              <div style={{ flex: 1, height: 1, background: '#000' }} />
-              <button
-                onClick={() => setScoreExpanded(v => !v)}
-                className={`score-circle-btn${scoreExpanded ? ' is-expanded' : ''}`}
+              <Link href={`/groups/${params.id}/submissions`} style={{ textDecoration: 'none', width: '100%' }}>
+                <button style={{ borderRadius: 20, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'none', border: '1px solid #000', color: '#000' }}>
+                  INDEX
+                </button>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Card 4 — Most recently revealed */}
+        {recentRevealedWeek && recentRevealedSubs.length > 0 && (
+          <div style={CARD}>
+            {/* Header */}
+            <div style={{ fontSize: 9, textTransform: 'uppercase', color: '#999', letterSpacing: '0.12em', padding: '14px 20px 12px' }}>
+              Most recently revealed · {recentRevealedWeek.letter}
+            </div>
+
+            {/* Pieces */}
+            {recentRevealedSubs.map((sub, idx) => (
+              <div
+                key={sub.id}
+                onClick={() => router.push(`/groups/${params.id}/submissions?view=read&anchor=${sub.id}`)}
                 style={{
-                  width: 52, height: 52, borderRadius: '50%',
-                  border: '2px solid #C85A5A',
-                  background: scoreExpanded ? '#C85A5A' : 'none', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 22, fontWeight: 700, color: scoreExpanded ? '#fff' : '#C85A5A',
-                  margin: '0 8px', flexShrink: 0, fontFamily: 'inherit',
+                  borderTop: '1px solid #eee',
+                  padding: '14px 20px',
+                  cursor: 'pointer',
+                  borderLeft: sub.isMostLoved ? '2px solid #C85A5A' : undefined,
+                  marginLeft: sub.isMostLoved ? -1 : undefined,
+                  paddingLeft: sub.isMostLoved ? 12 : undefined,
                 }}
               >
-                {myScore}
-              </button>
-              <div style={{ flex: 1, height: 1, background: '#000' }} />
-              <Link href={`/groups/${params.id}/submissions`} className="score-nav-btn">
-                SUBMISSIONS
-              </Link>
-              <div style={{ flex: 1, height: 1, background: '#000' }} />
-            </div>
-
-            {/* Expanded: A–Z grid */}
-            {scoreExpanded && (
-              <>
-                <div style={{ borderTop: '1px solid #eee', margin: '20px 0' }} />
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(13, 1fr)', gap: 4 }}>
-                  {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter, i) => {
-                    const weekNum = i + 1
-                    const isPast = weekNum < activeWeek.week_num
-                    const isCurrent = weekNum === activeWeek.week_num
-
-                    let bg: string, border: string, color: string
-                    if (isPast) {
-                      bg = '#000'; border = '#000'; color = '#fff'
-                    } else if (isCurrent && !!mySubmission) {
-                      bg = '#C85A5A'; border = '#C85A5A'; color = '#fff'
-                    } else {
-                      bg = 'transparent'; border = '#ccc'; color = '#ccc'
-                    }
-
-                    return (
-                      <div key={letter} style={{
-                        aspectRatio: '1', borderRadius: '50%',
-                        border: `1px solid ${border}`,
-                        background: bg,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 'clamp(11px, 2.2vw, 20px)', fontWeight: 700,
-                        color,
-                      }}>
-                        {letter}
-                      </div>
-                    )
-                  })}
+                {sub.is_signed && sub.signed_name && (
+                  <div style={{ fontSize: 10, fontStyle: 'italic', color: '#888', marginBottom: 4 }}>
+                    {sub.signed_name}
+                  </div>
+                )}
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#000', marginBottom: 5 }}>
+                  {sub.word_title}
                 </div>
-              </>
-            )}
+                <div style={{ fontSize: 11, color: '#555', lineHeight: 1.6 }}>
+                  {stripHtml(sub.body_html || '', 180)}{sub.body_html && stripHtml(sub.body_html, 180).length < (sub.body_html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()).length ? '…' : ''}
+                </div>
+              </div>
+            ))}
+
+            {/* Footer */}
+            <div style={{ borderTop: '1px solid #000', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px' }}>
+              <span style={{ fontSize: 9, textTransform: 'uppercase', color: '#888', letterSpacing: '0.08em' }}>
+                Week {recentRevealedWeek.week_num} of 26
+              </span>
+              <span
+                onClick={() => router.push(`/groups/${params.id}/submissions?view=read&letter=${recentRevealedWeek.letter}`)}
+                style={{ fontSize: 9, textTransform: 'uppercase', color: '#000', letterSpacing: '0.08em', borderBottom: '1px solid #000', cursor: 'pointer' }}
+              >
+                Read all of {recentRevealedWeek.letter} →
+              </span>
+            </div>
           </div>
         )}
 
-        {/* Rules box */}
-        <div className={`rules-section${rulesExpanded ? ' is-expanded' : ''}`}>
+        {/* Card 5 — Rules */}
+        <div style={CARD}>
           <button
-            onClick={() => setRulesExpanded(!rulesExpanded)}
-            style={{
-              display: 'block', width: '100%', background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: 22, letterSpacing: '0.08em', textAlign: 'center',
-              fontFamily: 'inherit', fontWeight: 'normal', padding: 0,
-              marginBottom: rulesExpanded ? 20 : 0,
-            }}
+            onClick={() => setRulesExpanded(v => !v)}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', width: '100%', padding: '14px 20px', cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit', borderBottom: rulesExpanded ? '1px solid #000' : 'none' }}
           >
-            ?
+            <span style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700 }}>RULES</span>
+            <span style={{ position: 'absolute', right: 20, fontSize: 10, color: '#999' }}>{rulesExpanded ? '▲' : '▼'}</span>
           </button>
-          {rulesExpanded && RULES.map(([title, desc], i) => (
-            <div key={i} style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 13, marginBottom: 4 }}>
-                <strong>{i + 1}. {title}</strong>
-              </div>
-              <div style={{ fontSize: 12, lineHeight: 1.7 }}>{desc}</div>
+          {rulesExpanded && (
+            <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {RULES_DATA.map(([title, body], i) => (
+                <div key={i}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>
+                    {i + 1}. {title}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#555', lineHeight: 1.7 }}>{body}</div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
 
       </main>

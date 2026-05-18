@@ -32,9 +32,9 @@ export async function POST(req: NextRequest) {
       html: `
         <style>@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');</style>
         <div style="font-family: 'Inconsolata', 'Courier New', Courier, monospace; max-width: 560px; margin: 0 auto; padding: 40px 20px; color: #000;">
-          <h1 style="font-size: 28px; font-weight: bold; border-bottom: 3px solid #000; padding-bottom: 12px; margin-bottom: 32px;">
-            [ MY WORD ]
-          </h1>
+          <div style="text-align: center; margin-bottom: 32px;">
+            <img src="https://www.my-word.co.uk/saturn.svg" alt="My Word" width="80" height="auto" style="display: inline-block;" />
+          </div>
 
           <p style="font-size: 15px; line-height: 1.9; margin-bottom: 16px;">A belated welcome.</p>
 

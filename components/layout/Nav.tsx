@@ -24,16 +24,24 @@ export default function Nav() {
         </Link>
         <div style={{ flex: 1, height: 1, background: '#000' }} />
       </div>
-      <button
-        onClick={async () => { await supabase.auth.signOut(); window.location.href = '/' }}
-        style={{
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <Link href="/about" style={{
           fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
-          background: 'none', border: 'none', cursor: 'pointer', color: '#000',
-          whiteSpace: 'nowrap', padding: 0, fontFamily: 'inherit',
-        }}
-      >
-        SIGN OUT
-      </button>
+          textDecoration: 'none', color: '#000', whiteSpace: 'nowrap',
+        }}>
+          ABOUT
+        </Link>
+        <button
+          onClick={async () => { await supabase.auth.signOut(); window.location.href = '/' }}
+          style={{
+            fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
+            background: 'none', border: 'none', cursor: 'pointer', color: '#000',
+            whiteSpace: 'nowrap', padding: 0, fontFamily: 'inherit',
+          }}
+        >
+          SIGN OUT
+        </button>
+      </div>
     </nav>
   )
 }

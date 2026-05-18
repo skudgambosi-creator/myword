@@ -139,7 +139,7 @@ export default function DashboardPage() {
               TONGUES
             </div>
             <div style={{ fontSize: 10, color: 'inherit', letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.5 }}>
-              LANGUAGE FLASHCARDS · PASSWORD REQ.
+              LANGUAGE FLASHCARDS
             </div>
           </div>
         </Link>
