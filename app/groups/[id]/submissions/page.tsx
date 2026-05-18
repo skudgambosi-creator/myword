@@ -185,9 +185,9 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
 
       if (revealedIds.length > 0) {
         const { data } = await supabase
-          .from('submissions').select('*, weeks(*)')
+          .from('submissions').select('*, users(*), weeks(*)')
           .in('week_id', revealedIds).eq('is_late_catchup', false)
-          .order('created_at', { ascending: true })
+          .order('word_title', { ascending: true })
         setAZSubs(data || [])
       }
 
@@ -208,10 +208,10 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
     const revealedIds = weeks.filter((w: any) => w.revealed_at && new Date(w.revealed_at) < new Date()).map((w: any) => w.id)
     if (revealedIds.length === 0) { setLoadingMine(false); setMineFetched(true); return }
     const { data } = await supabase
-      .from('submissions').select('*, weeks(*)')
+      .from('submissions').select('*, users(*), weeks(*)')
       .eq('user_id', userId!).eq('is_late_catchup', false)
-      .in('week_id', revealedIds).order('created_at', { ascending: true })
-    setMySubs((data || []).sort((a: any, b: any) => a.weeks?.week_num - b.weeks?.week_num))
+      .in('week_id', revealedIds).order('word_title', { ascending: true })
+    setMySubs(data || [])
     setMineFetched(true)
     setLoadingMine(false)
   }
@@ -259,10 +259,25 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
   // Get subs for current tab
   const currentTabSubs = tab === 'all' ? azSubs : tab === 'mine' ? mySubs : favouriteSubs
 
-  // Build letter sections (most recent first for index, A→Z for read)
+  // Group subs by letter, return sorted sections
   const buildLetterSections = (subs: any[], ascending = false) => {
-    const groups = buildWeekGroups(subs)
-    return ascending ? groups : [...groups].reverse()
+    const grouped = subs.reduce((acc: Record<string, any[]>, sub: any) => {
+      const letter = sub.weeks?.letter
+      if (!letter) return acc
+      if (!acc[letter]) acc[letter] = []
+      acc[letter].push(sub)
+      return acc
+    }, {})
+    const sortedLetters = Object.keys(grouped).sort((a, b) => {
+      const aNum = grouped[a][0]?.weeks?.week_num ?? 0
+      const bNum = grouped[b][0]?.weeks?.week_num ?? 0
+      return ascending ? aNum - bNum : bNum - aNum
+    })
+    return sortedLetters.map(letter => ({
+      letter,
+      weekId: grouped[letter][0]?.week_id as string,
+      subs: grouped[letter] as any[],
+    }))
   }
 
   // ────────────────────────────────
@@ -292,11 +307,11 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
 
           {revealedWeeks.length === 0
             ? empty('No revealed weeks yet.')
-            : letterSections.map(({ week, subs: weekSubs }) => (
-              <div key={week?.id} style={{ marginBottom: 64 }}>
+            : letterSections.map(({ letter, weekId, subs: weekSubs }) => (
+              <div key={weekId} style={{ marginBottom: 64 }}>
                 {/* Letter anchor + header */}
-                <div id={`letter-${week?.letter}`} style={{ textAlign: 'center', fontSize: 80, fontWeight: 900, color: '#C85A5A', lineHeight: 1, marginBottom: 8 }}>
-                  {week?.letter}
+                <div id={`letter-${letter}`} style={{ textAlign: 'center', fontSize: 80, fontWeight: 900, color: '#C85A5A', lineHeight: 1, marginBottom: 8 }}>
+                  {letter}
                 </div>
                 <hr style={{ border: 'none', borderTop: '1px solid #000', margin: '0 0 32px' }} />
 
@@ -432,10 +447,10 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
           <div>
             {displayMode === 'titles' ? (
               // ── TITLES MODE ──
-              indexSections.map(({ week, subs: weekSubs }, gi) => (
-                <div key={week?.id}>
+              indexSections.map(({ letter, weekId, subs: weekSubs }, gi) => (
+                <div key={weekId}>
                   <div style={{ textAlign: 'center', fontSize: 48, fontWeight: 900, fontFamily: 'monospace', color: '#000', marginBottom: 8, marginTop: gi > 0 ? 32 : 0 }}>
-                    {week?.letter}
+                    {letter}
                   </div>
                   {weekSubs.map(sub => {
                     const isMyVote = myFavourites[sub.week_id] === sub.id
@@ -469,10 +484,10 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
               ))
             ) : (
               // ── BLURBS MODE ──
-              indexSections.map(({ week, subs: weekSubs }, gi) => (
-                <div key={week?.id}>
+              indexSections.map(({ letter, weekId, subs: weekSubs }, gi) => (
+                <div key={weekId}>
                   <div style={{ textAlign: 'center', fontSize: 48, fontWeight: 900, fontFamily: 'monospace', color: '#000', marginBottom: 8, marginTop: gi > 0 ? 32 : 0 }}>
-                    {week?.letter}
+                    {letter}
                   </div>
                   {weekSubs.map(sub => {
                     const isMyVote = myFavourites[sub.week_id] === sub.id

@@ -47,15 +47,15 @@ export default function AboutPage() {
 
       <main className="page-main">
 
-        <h1 style={{ ...sectionTitle, marginTop: 0 }}>MY WORD</h1>
+        <h2 style={{ ...sectionTitle, marginTop: 0 }}>MY WORD</h2>
 
-        <p style={para}>Your words. No social media nonsense.</p>
+        <p style={{ fontSize: 14, lineHeight: 1.9, color: '#333', marginBottom: 24, fontWeight: 400, background: 'none' }}>
+          Your words. No social media nonsense.
+        </p>
 
-        <div style={{ textAlign: 'center', margin: '24px 0' }}>
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <img src="/saturn.svg" alt="My Word" style={{ width: 80, height: 'auto', display: 'inline-block' }} />
         </div>
-
-        <p style={signature}>MOUNTFORD-GAMBOSI</p>
 
         <hr style={rule} />
 

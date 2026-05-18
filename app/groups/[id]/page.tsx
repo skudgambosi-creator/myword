@@ -187,7 +187,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   const submittedCount = submittedWeekNums.size
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#f0efeb' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#fff' }}>
       {isCompleted && (
         <div style={{ background: '#000', color: '#fff', textAlign: 'center', padding: 8, fontSize: 11, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
           ★ THE ALPHABET PROJECT IS COMPLETE — A TO Z ★
@@ -196,7 +196,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
 
       <Nav />
 
-      <main style={{ flex: 1, padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: 800, width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
+      <main style={{ flex: 1, padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: 800, width: '100%', margin: '0 auto', boxSizing: 'border-box', background: '#f0efeb' }}>
 
         {/* Card 1 — Header */}
         <div style={CARD}>
@@ -225,7 +225,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               else if (isCurrent) { bg = 'transparent'; border = '#000'; color = '#000'; borderWidth = 2 }
               else { bg = 'transparent'; border = '#ddd'; color = '#ddd'; borderWidth = 1 }
               return (
-                <div key={letter} style={{ aspectRatio: '1', borderRadius: '50%', border: `${borderWidth}px solid ${border}`, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, fontFamily: 'monospace', color }}>
+                <div key={letter} style={{ aspectRatio: '1', borderRadius: '50%', border: `${borderWidth}px solid ${border}`, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'clamp(9px, 1.8vw, 13px)', fontWeight: 700, fontFamily: 'monospace', lineHeight: 1, color }}>
                   {letter}
                 </div>
               )
@@ -244,7 +244,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               else if (isCurrent) { bg = 'transparent'; border = '#000'; color = '#000'; borderWidth = 2 }
               else { bg = 'transparent'; border = '#ddd'; color = '#ddd'; borderWidth = 1 }
               return (
-                <div key={letter} style={{ aspectRatio: '1', borderRadius: '50%', border: `${borderWidth}px solid ${border}`, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, fontFamily: 'monospace', color }}>
+                <div key={letter} style={{ aspectRatio: '1', borderRadius: '50%', border: `${borderWidth}px solid ${border}`, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'clamp(9px, 1.8vw, 13px)', fontWeight: 700, fontFamily: 'monospace', lineHeight: 1, color }}>
                   {letter}
                 </div>
               )

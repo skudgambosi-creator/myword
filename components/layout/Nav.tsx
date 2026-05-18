@@ -4,27 +4,43 @@ import { createClient } from '@/lib/supabase/client'
 
 export default function Nav() {
   const supabase = createClient()
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    window.location.href = '/'
+  }
+
   return (
     <nav className="site-nav" style={{
-      display: 'flex', alignItems: 'center', gap: 0,
+      display: 'flex', alignItems: 'center', position: 'relative', height: 48,
     }}>
-      <Link href="/profile" style={{
-        fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
-        textDecoration: 'none', color: '#000', whiteSpace: 'nowrap',
+      {/* Left */}
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <Link href="/profile" style={{
+          fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
+          textDecoration: 'none', color: '#000', whiteSpace: 'nowrap',
+        }}>
+          PROFILE
+        </Link>
+      </div>
+
+      {/* Centre brand — absolutely positioned for true centring */}
+      <div style={{
+        position: 'absolute', left: '50%', transform: 'translateX(-50%)',
+        display: 'flex', alignItems: 'center', gap: 16, pointerEvents: 'none',
       }}>
-        PROFILE
-      </Link>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 20, margin: '0 20px' }}>
-        <div style={{ flex: 1, height: 1, background: '#000' }} />
+        <div style={{ height: 1, width: 80, background: '#000' }} />
         <Link href="/dashboard" style={{
-          fontSize: 18, fontWeight: 700, letterSpacing: '0.2em',
-          textDecoration: 'none', color: '#000', textTransform: 'uppercase', whiteSpace: 'nowrap',
+          fontSize: 15, letterSpacing: '0.22em', fontWeight: 400,
+          textDecoration: 'none', color: '#000', whiteSpace: 'nowrap',
+          pointerEvents: 'auto',
         }}>
           MY WORD
         </Link>
-        <div style={{ flex: 1, height: 1, background: '#000' }} />
+        <div style={{ height: 1, width: 80, background: '#000' }} />
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+
+      {/* Right */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginLeft: 'auto' }}>
         <Link href="/about" style={{
           fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
           textDecoration: 'none', color: '#000', whiteSpace: 'nowrap',
@@ -32,7 +48,7 @@ export default function Nav() {
           ABOUT
         </Link>
         <button
-          onClick={async () => { await supabase.auth.signOut(); window.location.href = '/' }}
+          onClick={handleSignOut}
           style={{
             fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
             background: 'none', border: 'none', cursor: 'pointer', color: '#000',
