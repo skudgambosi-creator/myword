@@ -69,8 +69,9 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   const [rulesExpanded, setRulesExpanded] = useState(false)
   const [submittedWeekNums, setSubmittedWeekNums] = useState<Set<number>>(new Set())
   const [revealedWeekNums, setRevealedWeekNums] = useState<Set<number>>(new Set())
-  const [recentRevealedWeek, setRecentRevealedWeek] = useState<any>(null)
-  const [recentRevealedSubs, setRecentRevealedSubs] = useState<any[]>([])
+  const [lastRevealedWeek, setLastRevealedWeek] = useState<any>(null)
+  const [lastRevealedSubs, setLastRevealedSubs] = useState<any[]>([])
+  const [communityFavourites, setCommunityFavourites] = useState<Record<string, string>>({})
   const rulesInitialized = useRef(false)
 
   useEffect(() => {
@@ -138,37 +139,37 @@ export default function GroupPage({ params }: { params: { id: string } }) {
       ))
 
       // Card 4: most recently revealed week + its pieces
-      const revealedWeeks = wks.filter((w: any) => w.revealed_at).sort((a: any, b: any) => b.week_num - a.week_num)
-      if (revealedWeeks.length > 0) {
-        const latestWeekId = revealedWeeks[0].id
+      const { data: latestWeek } = await supabase
+        .from('weeks')
+        .select('*')
+        .eq('group_id', params.id)
+        .not('revealed_at', 'is', null)
+        .order('week_num', { ascending: false })
+        .limit(1)
+        .single()
 
-        const [{ data: fullWeek }, { data: subs }, { data: favs }] = await Promise.all([
-          supabase.from('weeks').select('*').eq('id', latestWeekId).single(),
-          supabase.from('submissions').select('*').eq('week_id', latestWeekId).eq('is_late_catchup', false).order('created_at', { ascending: true }),
-          supabase.from('favourites').select('submission_id').eq('group_id', params.id),
-        ])
+      if (latestWeek) {
+        const { data: latestSubs } = await supabase
+          .from('submissions')
+          .select('*, users(*)')
+          .eq('week_id', latestWeek.id)
+          .eq('is_late_catchup', false)
+        setLastRevealedWeek(latestWeek)
+        setLastRevealedSubs(latestSubs || [])
 
-        setRecentRevealedWeek(fullWeek)
-
-        if (subs && subs.length > 0) {
-          const favCounts: Record<string, number> = {}
-          for (const f of favs || []) {
-            favCounts[f.submission_id] = (favCounts[f.submission_id] || 0) + 1
-          }
-          const subsWithCounts = subs.map((s: any) => ({ ...s, favCount: favCounts[s.id] || 0 }))
-          const maxFav = Math.max(...subsWithCounts.map((s: any) => s.favCount))
-          const topSubs = subsWithCounts.filter((s: any) => s.favCount === maxFav)
-          const mostLoved = topSubs[Math.floor(Math.random() * topSubs.length)]
-          const rest = subsWithCounts.filter((s: any) => s.id !== mostLoved.id).sort(() => Math.random() - 0.5)
-
-          let picks: any[]
-          if (subsWithCounts.length <= 3) {
-            picks = subsWithCounts.map((s: any) => ({ ...s, isMostLoved: s.id === mostLoved.id }))
-          } else {
-            picks = [{ ...mostLoved, isMostLoved: true }, ...rest.slice(0, 2).map((s: any) => ({ ...s, isMostLoved: false }))]
-          }
-          setRecentRevealedSubs(picks)
+        const { data: favs } = await supabase
+          .from('favourites').select('submission_id, week_id').eq('group_id', params.id)
+        const weekCounts: Record<string, Record<string, number>> = {}
+        for (const f of favs || []) {
+          if (!weekCounts[f.week_id]) weekCounts[f.week_id] = {}
+          weekCounts[f.week_id][f.submission_id] = (weekCounts[f.week_id][f.submission_id] || 0) + 1
         }
+        const commFavMap: Record<string, string> = {}
+        for (const [weekId, counts] of Object.entries(weekCounts)) {
+          const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]
+          if (top) commFavMap[weekId] = top[0]
+        }
+        setCommunityFavourites(commFavMap)
       }
 
       setLoading(false)
@@ -196,7 +197,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
 
       <Nav />
 
-      <main style={{ flex: 1, padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: 800, width: '100%', margin: '0 auto', boxSizing: 'border-box', background: '#f0efeb' }}>
+      <main style={{ flex: 1, padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: 800, width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
 
         {/* Card 1 — Header */}
         <div style={CARD}>
@@ -307,55 +308,63 @@ export default function GroupPage({ params }: { params: { id: string } }) {
         )}
 
         {/* Card 4 — Most recently revealed */}
-        {recentRevealedWeek && recentRevealedSubs.length > 0 && (
-          <div style={CARD}>
-            {/* Header */}
-            <div style={{ fontSize: 9, textTransform: 'uppercase', color: '#999', letterSpacing: '0.12em', padding: '14px 20px 12px' }}>
-              Most recently revealed · {recentRevealedWeek.letter}
-            </div>
-
-            {/* Pieces */}
-            {recentRevealedSubs.map((sub, idx) => (
-              <div
-                key={sub.id}
-                onClick={() => router.push(`/groups/${params.id}/submissions?view=read&anchor=${sub.id}`)}
-                style={{
-                  borderTop: '1px solid #eee',
-                  padding: '14px 20px',
-                  cursor: 'pointer',
-                  borderLeft: sub.isMostLoved ? '2px solid #C85A5A' : undefined,
-                  marginLeft: sub.isMostLoved ? -1 : undefined,
-                  paddingLeft: sub.isMostLoved ? 12 : undefined,
-                }}
-              >
-                {sub.is_signed && sub.signed_name && (
-                  <div style={{ fontSize: 10, fontStyle: 'italic', color: '#888', marginBottom: 4 }}>
-                    {sub.signed_name}
-                  </div>
-                )}
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#000', marginBottom: 5 }}>
-                  {sub.word_title}
-                </div>
-                <div style={{ fontSize: 11, color: '#555', lineHeight: 1.6 }}>
-                  {stripHtml(sub.body_html || '', 180)}{sub.body_html && stripHtml(sub.body_html, 180).length < (sub.body_html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()).length ? '…' : ''}
-                </div>
+        {lastRevealedWeek && lastRevealedSubs.length > 0 && (() => {
+          const mostLovedId = communityFavourites[lastRevealedWeek.id]
+          const mostLoved = lastRevealedSubs.find((s: any) => s.id === mostLovedId) || null
+          const remaining = lastRevealedSubs.filter((s: any) => s.id !== mostLovedId)
+          const shuffled = [...remaining].sort(() => Math.random() - 0.5)
+          const picks = shuffled.slice(0, 2)
+          const displayPieces = mostLoved ? [mostLoved, ...picks] : picks.slice(0, 3)
+          return (
+            <div style={CARD}>
+              <div style={{ fontSize: 9, textTransform: 'uppercase', color: '#999', letterSpacing: '0.12em', padding: '14px 20px 12px' }}>
+                Most recently revealed · {lastRevealedWeek.letter}
               </div>
-            ))}
-
-            {/* Footer */}
-            <div style={{ borderTop: '1px solid #000', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px' }}>
-              <span style={{ fontSize: 9, textTransform: 'uppercase', color: '#888', letterSpacing: '0.08em' }}>
-                Week {recentRevealedWeek.week_num} of 26
-              </span>
-              <span
-                onClick={() => router.push(`/groups/${params.id}/submissions?view=read&letter=${recentRevealedWeek.letter}`)}
-                style={{ fontSize: 9, textTransform: 'uppercase', color: '#000', letterSpacing: '0.08em', borderBottom: '1px solid #000', cursor: 'pointer' }}
-              >
-                Read all of {recentRevealedWeek.letter} →
-              </span>
+              {displayPieces.map((sub: any) => {
+                const isMostLoved = sub.id === mostLovedId
+                const blurb = stripHtml(sub.body_html || '', 180)
+                const fullText = (sub.body_html || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+                return (
+                  <div
+                    key={sub.id}
+                    onClick={() => router.push(`/groups/${params.id}/submissions?view=read&anchor=${sub.id}`)}
+                    style={{
+                      borderTop: '1px solid #eee',
+                      padding: '14px 20px',
+                      cursor: 'pointer',
+                      borderLeft: isMostLoved ? '2px solid #C85A5A' : undefined,
+                      marginLeft: isMostLoved ? -1 : undefined,
+                      paddingLeft: isMostLoved ? 12 : undefined,
+                    }}
+                  >
+                    {sub.is_signed && sub.signed_name && (
+                      <div style={{ fontSize: 10, fontStyle: 'italic', color: '#888', marginBottom: 4 }}>
+                        {sub.signed_name}
+                      </div>
+                    )}
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#000', marginBottom: 5 }}>
+                      {sub.word_title}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#555', lineHeight: 1.6 }}>
+                      {blurb}{fullText.length > 180 ? '…' : ''}
+                    </div>
+                  </div>
+                )
+              })}
+              <div style={{ borderTop: '1px solid #000', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px' }}>
+                <span style={{ fontSize: 9, textTransform: 'uppercase', color: '#888', letterSpacing: '0.08em' }}>
+                  Week {lastRevealedWeek.week_num} of 26
+                </span>
+                <span
+                  onClick={() => router.push(`/groups/${params.id}/submissions?view=read&letter=${lastRevealedWeek.letter}`)}
+                  style={{ fontSize: 9, textTransform: 'uppercase', color: '#000', letterSpacing: '0.08em', borderBottom: '1px solid #000', cursor: 'pointer' }}
+                >
+                  Read all of {lastRevealedWeek.letter} →
+                </span>
+              </div>
             </div>
-          </div>
-        )}
+          )
+        })()}
 
         {/* Card 5 — Rules */}
         <div style={CARD}>
