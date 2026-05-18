@@ -271,7 +271,7 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
     const sortedLetters = Object.keys(grouped).sort((a, b) => {
       const aNum = grouped[a][0]?.weeks?.week_num ?? 0
       const bNum = grouped[b][0]?.weeks?.week_num ?? 0
-      return ascending ? aNum - bNum : bNum - aNum
+      return aNum - bNum
     })
     return sortedLetters.map(letter => ({
       letter,

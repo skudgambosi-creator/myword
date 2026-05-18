@@ -86,10 +86,6 @@ export default function DashboardPage() {
       <Nav />
       <main className="page-main">
 
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.15em', color: '#C85A5A', textTransform: 'uppercase', marginBottom: 16 }}>
-          SEASON 1
-        </div>
-
         <Link
           href={`/groups/${ALPHABET_PROJECT_ID}`}
           style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
@@ -99,8 +95,11 @@ export default function DashboardPage() {
             onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = '#000'; (e.currentTarget as HTMLDivElement).style.color = '#fff' }}
             onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = ''; (e.currentTarget as HTMLDivElement).style.color = '' }}
           >
-            <div style={{ fontSize: 18, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>
+            <div style={{ fontSize: 18, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 6 }}>
               THE ALPHABET PROJECT
+            </div>
+            <div style={{ fontSize: 11, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 8 }}>
+              SEASON 1
             </div>
             <div style={{ fontSize: 10, color: 'inherit', letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.5 }}>
               26 LETTERS · IN PROGRESS
