@@ -28,15 +28,22 @@ function stripHtml(html: string, maxChars = 200): string {
 }
 
 function extractImages(html: string): string[] {
-  const matches = [...html.matchAll(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi)]
-  return matches.map(m => m[1])
+  const results: string[] = []
+  const re = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi
+  let m: RegExpExecArray | null
+  while ((m = re.exec(html)) !== null) results.push(m[1])
+  return results
 }
 
 function extractAudio(html: string): string[] {
-  const matches = [...html.matchAll(/<source[^>]+src=["']([^"']+)["'][^>]*>/gi)]
-  if (matches.length) return matches.map(m => m[1])
-  const direct = [...html.matchAll(/<audio[^>]+src=["']([^"']+)["'][^>]*>/gi)]
-  return direct.map(m => m[1])
+  const results: string[] = []
+  const srcRe = /<source[^>]+src=["']([^"']+)["'][^>]*>/gi
+  let m: RegExpExecArray | null
+  while ((m = srcRe.exec(html)) !== null) results.push(m[1])
+  if (results.length) return results
+  const audioRe = /<audio[^>]+src=["']([^"']+)["'][^>]*>/gi
+  while ((m = audioRe.exec(html)) !== null) results.push(m[1])
+  return results
 }
 
 // ──────────────────────────────────────────────
