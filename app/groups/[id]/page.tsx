@@ -5,28 +5,6 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Nav from '@/components/layout/Nav'
 
-function Countdown({ targetAt, label }: { targetAt: string; label: string }) {
-  const [timeLeft, setTimeLeft] = useState('00:00:00')
-  useEffect(() => {
-    const tick = () => {
-      const diff = new Date(targetAt).getTime() - Date.now()
-      if (diff <= 0) { setTimeLeft('00:00:00'); return }
-      const h = Math.floor(diff / 3600000)
-      const m = Math.floor((diff % 3600000) / 60000)
-      const s = Math.floor((diff % 60000) / 1000)
-      setTimeLeft(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`)
-    }
-    tick()
-    const id = setInterval(tick, 1000)
-    return () => clearInterval(id)
-  }, [targetAt])
-  return (
-    <div style={{ textAlign: 'center' }}>
-      <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'monospace', letterSpacing: '0.05em' }}>{timeLeft}</div>
-      <div style={{ fontSize: 8, textTransform: 'uppercase', color: '#aaa', letterSpacing: '0.1em', marginTop: 2 }}>{label}</div>
-    </div>
-  )
-}
 
 function getBlurb(html: string): string {
   if (!html) return ''
@@ -84,6 +62,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   const [lastRevealedWeek, setLastRevealedWeek] = useState<any>(null)
   const [lastRevealedSubs, setLastRevealedSubs] = useState<any[]>([])
   const [communityFavourites, setCommunityFavourites] = useState<Record<string, string>>({})
+  const [timerString, setTimerString] = useState('--:--:--')
   const rulesInitialized = useRef(false)
 
   useEffect(() => {
@@ -96,6 +75,22 @@ export default function GroupPage({ params }: { params: { id: string } }) {
       }
     }
   }, [params.id])
+
+  useEffect(() => {
+    const target = currentWeek?.closes_at || nextWeek?.opens_at
+    if (!target) return
+    const tick = () => {
+      const diff = new Date(target).getTime() - Date.now()
+      if (diff <= 0) { setTimerString('00:00:00'); return }
+      const h = Math.floor(diff / 3600000)
+      const m = Math.floor((diff % 3600000) / 60000)
+      const s = Math.floor((diff % 60000) / 1000)
+      setTimerString(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`)
+    }
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [currentWeek?.closes_at, nextWeek?.opens_at])
 
   useEffect(() => {
     const init = async () => {
@@ -221,29 +216,34 @@ export default function GroupPage({ params }: { params: { id: string } }) {
 
         {/* Card 2 — Hero widget */}
         {!isCompleted && (
-          <div style={{ ...CARD, display: 'grid', gridTemplateColumns: 'auto 1fr auto' }}>
-            {/* Left: saturn + timer */}
-            <div style={{ borderRight: '1px solid #000', padding: '16px 18px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, minWidth: 84 }}>
-              <img src="/saturn.svg" alt="Saturn" style={{ width: 52, height: 'auto' }} />
-              {activeWeek && currentWeek && (
-                <Countdown targetAt={currentWeek.closes_at} label="closes in" />
-              )}
-              {activeWeek && !currentWeek && nextWeek && (
-                <Countdown targetAt={nextWeek.opens_at} label="opens in" />
-              )}
-            </div>
-
-            {/* Centre: current letter */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ ...CARD, display: 'grid', gridTemplateColumns: '1fr auto' }}>
+            {/* Left: black saturn panel */}
+            <div style={{ position: 'relative', background: '#111', minHeight: 160, overflow: 'hidden', borderRight: '1px solid #000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {/* Ghost saturn */}
+              <img src="/saturn.svg" alt="" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '60%', opacity: 0.25, filter: 'invert(1)', pointerEvents: 'none' }} />
+              {/* Week label */}
               {activeWeek && (
-                <div style={{ fontSize: 88, fontWeight: 900, color: '#C85A5A', fontFamily: 'monospace', lineHeight: 1 }}>
+                <span style={{ position: 'absolute', top: 14, left: 18, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)' }}>
+                  Week {activeWeek.week_num} of 26
+                </span>
+              )}
+              {/* Big letter */}
+              {activeWeek && (
+                <div style={{ fontSize: 110, fontWeight: 900, color: 'rgba(255,255,255,0.92)', fontFamily: 'monospace', lineHeight: 1, position: 'relative', zIndex: 1 }}>
                   {activeWeek.letter}
                 </div>
               )}
+              {/* Timer bottom-left */}
+              <div style={{ position: 'absolute', bottom: 14, left: 18 }}>
+                <div style={{ fontSize: 16, fontFamily: 'monospace', color: 'rgba(255,255,255,0.85)', letterSpacing: '0.05em' }}>{timerString}</div>
+                <div style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
+                  {currentWeek ? 'closes in' : 'opens in'}
+                </div>
+              </div>
             </div>
 
             {/* Right: action buttons */}
-            <div style={{ borderLeft: '1px solid #000', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center', justifyContent: 'center', minWidth: 110 }}>
+            <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center', justifyContent: 'center', minWidth: 110 }}>
               {activeWeek && currentWeek && (
                 mySubmission ? (
                   <Link
