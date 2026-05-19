@@ -11,10 +11,11 @@ export default function Nav() {
 
   return (
     <nav className="site-nav" style={{
-      display: 'flex', alignItems: 'center', position: 'relative', height: 48,
+      display: 'flex', alignItems: 'center', padding: '0 16px', height: 48,
+      borderBottom: '1px solid #000', gap: 8,
     }}>
       {/* Left */}
-      <div style={{ display: 'flex', alignItems: 'center' }}>
+      <div style={{ flexShrink: 0 }}>
         <Link href="/profile" className="pill-hover" style={{
           fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700,
           whiteSpace: 'nowrap',
@@ -23,23 +24,23 @@ export default function Nav() {
         </Link>
       </div>
 
-      {/* Centre brand — absolutely positioned for true centring */}
+      {/* Centre brand — flex-based, lines shrink on mobile */}
       <div style={{
-        position: 'absolute', left: '50%', transform: 'translateX(-50%)',
-        display: 'flex', alignItems: 'center', gap: 16, pointerEvents: 'none',
+        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        gap: 8, minWidth: 0,
       }}>
-        <div style={{ height: 1, width: 80, background: '#000', pointerEvents: 'none' }} />
+        <div style={{ flex: 1, height: 1, background: '#000', minWidth: 0 }} />
         <Link href="/dashboard" className="brand-hover" style={{
-          fontSize: 15, letterSpacing: '0.22em', fontWeight: 400,
-          whiteSpace: 'nowrap', pointerEvents: 'auto',
+          flexShrink: 0, fontSize: 15, letterSpacing: '0.22em', fontWeight: 400,
+          textDecoration: 'none', color: '#000', whiteSpace: 'nowrap',
         }}>
           MY WORD
         </Link>
-        <div style={{ height: 1, width: 80, background: '#000', pointerEvents: 'none' }} />
+        <div style={{ flex: 1, height: 1, background: '#000', minWidth: 0 }} />
       </div>
 
       {/* Right */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
+      <div style={{ flexShrink: 0, display: 'flex', gap: 0 }}>
         <Link href="/about" className="pill-hover" style={{
           fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700,
           whiteSpace: 'nowrap',

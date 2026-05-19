@@ -248,9 +248,9 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                 mySubmission ? (
                   <Link href={`/groups/${params.id}/submit?edit=1`} style={{ textDecoration: 'none', width: '100%' }}>
                     <button
-                      style={{ borderRadius: 20, overflow: 'hidden', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'none', border: '1px solid #000', color: '#000' }}
-                      onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = '#000'; el.style.color = '#fff' }}
-                      onMouseLeave={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = ''; el.style.color = '' }}
+                      style={{ borderRadius: 20, overflow: 'hidden', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'transparent', border: '1px solid #000', color: '#000', transition: 'background 0.1s, color 0.1s' }}
+                      onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000' }}
                     >
                       EDIT
                     </button>
@@ -258,9 +258,9 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                 ) : (
                   <Link href={`/groups/${params.id}/submit`} style={{ textDecoration: 'none', width: '100%' }}>
                     <button
-                      style={{ borderRadius: 20, overflow: 'hidden', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: '#C85A5A', border: '1px solid #C85A5A', color: '#fff' }}
-                      onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = '#000'; el.style.color = '#fff' }}
-                      onMouseLeave={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = '#C85A5A'; el.style.color = '#fff' }}
+                      style={{ borderRadius: 20, overflow: 'hidden', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: '#C85A5A', border: '1px solid #C85A5A', color: '#fff', transition: 'background 0.1s, color 0.1s' }}
+                      onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
+                      onMouseLeave={e => { e.currentTarget.style.background = '#C85A5A'; e.currentTarget.style.color = '#fff' }}
                     >
                       SUBMIT
                     </button>
@@ -269,18 +269,18 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               )}
               <Link href={`/groups/${params.id}/leaderboard`} style={{ textDecoration: 'none', width: '100%' }}>
                 <button
-                  style={{ borderRadius: 20, overflow: 'hidden', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'none', border: '1px solid #000', color: '#000' }}
-                  onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = '#000'; el.style.color = '#fff' }}
-                  onMouseLeave={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = ''; el.style.color = '' }}
+                  style={{ borderRadius: 20, overflow: 'hidden', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'transparent', border: '1px solid #000', color: '#000', transition: 'background 0.1s, color 0.1s' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000' }}
                 >
                   LEADERBOARD
                 </button>
               </Link>
               <Link href={`/groups/${params.id}/submissions`} style={{ textDecoration: 'none', width: '100%' }}>
                 <button
-                  style={{ borderRadius: 20, overflow: 'hidden', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'none', border: '1px solid #000', color: '#000' }}
-                  onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = '#000'; el.style.color = '#fff' }}
-                  onMouseLeave={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = ''; el.style.color = '' }}
+                  style={{ borderRadius: 20, overflow: 'hidden', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'transparent', border: '1px solid #000', color: '#000', transition: 'background 0.1s, color 0.1s' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000' }}
                 >
                   READ
                 </button>
