@@ -820,18 +820,21 @@ input:-webkit-autofill:active {
   text-decoration: none;
 }
 
-/* ── BRAND HOVER (outline ring, no fill) ── */
+/* ── BRAND HOVER ── */
 .brand-hover {
   display: inline-block;
   padding: 4px 12px;
-  border-radius: 20px;
+  border-radius: 999px;
   border: 1px solid transparent;
-  transition: border-color 0.1s;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
   text-decoration: none;
   color: #000;
+  white-space: nowrap;
 }
 .brand-hover:hover {
   border-color: #000;
+  background: #000;
+  color: #fff;
   text-decoration: none;
 }
 
