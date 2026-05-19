@@ -281,7 +281,8 @@ a:hover {
 }
 
 .site-nav {
-  padding: 20px 40px;
+  padding: 0 16px;
+  border-bottom: 1px solid #000;
 }
 
 @media (max-width: 640px) {
@@ -660,6 +661,14 @@ a:hover {
     margin-left: 0;
     flex-basis: 100%;
   }
+}
+
+/* ── BUTTON RESET ── */
+button {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 0;
+  background: transparent;
 }
 
 /* ── AUTOFILL OVERRIDE ── */

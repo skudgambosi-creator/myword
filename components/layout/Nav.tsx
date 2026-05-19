@@ -11,8 +11,7 @@ export default function Nav() {
 
   return (
     <nav className="site-nav" style={{
-      display: 'flex', alignItems: 'center', padding: '0 16px', height: 48,
-      borderBottom: '1px solid #000', gap: 8,
+      display: 'flex', alignItems: 'center', height: 48, gap: 8,
     }}>
       {/* Left */}
       <div style={{ flexShrink: 0 }}>

@@ -246,44 +246,40 @@ export default function GroupPage({ params }: { params: { id: string } }) {
             <div style={{ borderLeft: '1px solid #000', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center', justifyContent: 'center', minWidth: 110 }}>
               {activeWeek && currentWeek && (
                 mySubmission ? (
-                  <Link href={`/groups/${params.id}/submit?edit=1`} style={{ textDecoration: 'none', width: '100%' }}>
-                    <button
-                      style={{ borderRadius: 20, overflow: 'hidden', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'transparent', border: '1px solid #000', color: '#000', transition: 'background 0.1s, color 0.1s' }}
-                      onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
-                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000' }}
-                    >
-                      EDIT
-                    </button>
+                  <Link
+                    href={`/groups/${params.id}/submit?edit=1`}
+                    style={{ display: 'block', borderRadius: '999px', border: '1px solid #000', padding: '9px 10px', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', background: 'transparent', color: '#000', textAlign: 'center', textDecoration: 'none', transition: 'background 0.15s, color 0.15s', width: '100%', boxSizing: 'border-box' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000' }}
+                  >
+                    EDIT
                   </Link>
                 ) : (
-                  <Link href={`/groups/${params.id}/submit`} style={{ textDecoration: 'none', width: '100%' }}>
-                    <button
-                      style={{ borderRadius: 20, overflow: 'hidden', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: '#C85A5A', border: '1px solid #C85A5A', color: '#fff', transition: 'background 0.1s, color 0.1s' }}
-                      onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
-                      onMouseLeave={e => { e.currentTarget.style.background = '#C85A5A'; e.currentTarget.style.color = '#fff' }}
-                    >
-                      SUBMIT
-                    </button>
+                  <Link
+                    href={`/groups/${params.id}/submit`}
+                    style={{ display: 'block', borderRadius: '999px', border: '1px solid #C85A5A', padding: '9px 10px', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', background: '#C85A5A', color: '#fff', textAlign: 'center', textDecoration: 'none', transition: 'background 0.15s, color 0.15s, border-color 0.15s', width: '100%', boxSizing: 'border-box' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.borderColor = '#000' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#C85A5A'; e.currentTarget.style.borderColor = '#C85A5A' }}
+                  >
+                    SUBMIT
                   </Link>
                 )
               )}
-              <Link href={`/groups/${params.id}/leaderboard`} style={{ textDecoration: 'none', width: '100%' }}>
-                <button
-                  style={{ borderRadius: 20, overflow: 'hidden', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'transparent', border: '1px solid #000', color: '#000', transition: 'background 0.1s, color 0.1s' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000' }}
-                >
-                  LEADERBOARD
-                </button>
+              <Link
+                href={`/groups/${params.id}/leaderboard`}
+                style={{ display: 'block', borderRadius: '999px', border: '1px solid #000', padding: '9px 10px', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', background: 'transparent', color: '#000', textAlign: 'center', textDecoration: 'none', transition: 'background 0.15s, color 0.15s', width: '100%', boxSizing: 'border-box' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000' }}
+              >
+                LEADERBOARD
               </Link>
-              <Link href={`/groups/${params.id}/submissions`} style={{ textDecoration: 'none', width: '100%' }}>
-                <button
-                  style={{ borderRadius: 20, overflow: 'hidden', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'transparent', border: '1px solid #000', color: '#000', transition: 'background 0.1s, color 0.1s' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000' }}
-                >
-                  READ
-                </button>
+              <Link
+                href={`/groups/${params.id}/submissions`}
+                style={{ display: 'block', borderRadius: '999px', border: '1px solid #000', padding: '9px 10px', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', background: 'transparent', color: '#000', textAlign: 'center', textDecoration: 'none', transition: 'background 0.15s, color 0.15s', width: '100%', boxSizing: 'border-box' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000' }}
+              >
+                READ
               </Link>
             </div>
           </div>
