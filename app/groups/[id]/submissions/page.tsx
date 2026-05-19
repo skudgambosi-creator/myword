@@ -278,7 +278,7 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
 
   const handleEnvelope = async (sub: any) => {
     if (!userId || sub.user_id === userId) return
-    setEnvelopedByMe(prev => new Set([...prev, sub.id]))
+    setEnvelopedByMe(prev => { const s = new Set(prev); s.add(sub.id); return s })
     const res = await fetch('/api/envelope', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
