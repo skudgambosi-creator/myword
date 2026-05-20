@@ -25,7 +25,7 @@ export default function RevealPage() {
     setStatus('loading')
     setMessage('')
     try {
-      const res = await fetch('/admin/reveal', { method: 'POST' })
+      const res = await fetch('/api/admin/reveal', { method: 'POST' })
       const data = await res.json()
       if (res.ok) {
         setStatus('success')
