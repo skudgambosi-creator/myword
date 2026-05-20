@@ -12,18 +12,43 @@ export default function ProfilePage() {
   const router = useRouter()
   const supabase = createClient()
   const [profile, setProfile] = useState<any>(null)
+  const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [envelopeOpen, setEnvelopeOpen] = useState(false)
+  const [mutuals, setMutuals] = useState<any[]>([])
+  const [clueInputs, setClueInputs] = useState<Record<string, string>>({})
+  const [clueSaved, setClueSaved] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.push('/login'); return }
+      setUserId(session.user.id)
       const { data: prof } = await supabase.from('users').select('*').eq('id', session.user.id).single()
       setProfile(prof)
       setLoading(false)
     }
     init()
   }, [])
+
+  const fetchMutuals = async () => {
+    const res = await fetch(`/api/envelope/mutuals?group_id=${ALPHABET_PROJECT_ID}`)
+    const data = await res.json()
+    setMutuals(data)
+    const inputs: Record<string, string> = {}
+    for (const m of data) inputs[m.id] = m.my_clue || ''
+    setClueInputs(inputs)
+  }
+
+  const saveClue = async (mutual_id: string) => {
+    await fetch('/api/envelope/clue', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mutual_id, clue: clueInputs[mutual_id] }),
+    })
+    setClueSaved(prev => ({ ...prev, [mutual_id]: true }))
+    fetchMutuals()
+  }
 
   if (loading) return (
     <div style={{ minHeight: '100vh' }}>
@@ -44,7 +69,8 @@ export default function ProfilePage() {
         <div style={{ position: 'relative', textAlign: 'center', marginBottom: 20 }}>
           <Link
             href={`/groups/${ALPHABET_PROJECT_ID}`}
-            style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', fontSize: 11, color: '#999', letterSpacing: '0.1em', textTransform: 'uppercase', textDecoration: 'none' }}
+            className="pill-hover"
+            style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}
           >
             GO BACK
           </Link>
@@ -98,7 +124,89 @@ export default function ProfilePage() {
         <Link href="/forgot-password" className="btn-black" style={{ display: 'block', width: '100%', padding: '18px', fontSize: 15 }}>
           CHANGE PASSWORD
         </Link>
+
+        {/* ENVELOPES button */}
+        <button
+          onClick={() => { setEnvelopeOpen(true); fetchMutuals() }}
+          className="btn-black"
+          style={{ display: 'block', width: '100%', padding: '18px', fontSize: 15, marginTop: 0, borderTop: 'none', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.1em', textAlign: 'center' }}
+        >
+          ✉ ENVELOPES
+        </button>
       </main>
+
+      {/* Envelope modal */}
+      {envelopeOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ background: '#fff', border: '1px solid #000', width: '100%', maxWidth: 520, maxHeight: '80vh', overflow: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #000' }}>
+              <span style={{ fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700 }}>ENVELOPES</span>
+              <button onClick={() => setEnvelopeOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, fontFamily: 'inherit' }}>✕</button>
+            </div>
+
+            {mutuals.length === 0 ? (
+              <div style={{ padding: '40px 20px', textAlign: 'center', fontSize: 13, color: '#888' }}>
+                No mutual envelopes yet. Send ✉ on pieces you admire to start a match.
+              </div>
+            ) : (
+              <div>
+                {mutuals.map(m => {
+                  const bothResponded = m.my_clue && m.their_clue
+                  return (
+                    <div key={m.id} style={{ padding: '20px', borderBottom: '1px solid #eee' }}>
+                      <div style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#888', marginBottom: 12 }}>
+                        Member #{String(m.other_member_number ?? '?').padStart(2, '0')}
+                      </div>
+
+                      {/* Your clue */}
+                      <div style={{ marginBottom: 10 }}>
+                        <div style={{ fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#aaa', marginBottom: 6 }}>Your clue</div>
+                        {m.my_clue && !clueSaved[m.id] ? (
+                          <div style={{ fontSize: 13, color: '#555', borderBottom: '1px solid #ddd', paddingBottom: 4 }}>{m.my_clue}</div>
+                        ) : (
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                            <textarea
+                              value={clueInputs[m.id] || ''}
+                              onChange={e => setClueInputs(prev => ({ ...prev, [m.id]: e.target.value }))}
+                              placeholder="Leave a clue about who you are..."
+                              rows={2}
+                              style={{ flex: 1, border: '1px solid #ddd', padding: '8px', fontSize: 12, fontFamily: 'inherit', resize: 'vertical' }}
+                            />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                              <button
+                                onClick={() => saveClue(m.id)}
+                                style={{ border: '1px solid #000', background: '#000', color: '#fff', padding: '6px 12px', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit' }}
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={() => { setClueInputs(prev => ({ ...prev, [m.id]: 'silent' })); saveClue(m.id) }}
+                                style={{ border: '1px solid #ddd', background: 'transparent', color: '#aaa', padding: '6px 12px', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit' }}
+                              >
+                                Silent
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Their clue — only if both responded */}
+                      {bothResponded ? (
+                        <div>
+                          <div style={{ fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#aaa', marginBottom: 6 }}>Their clue</div>
+                          <div style={{ fontSize: 13, color: '#555' }}>{m.their_clue === 'silent' ? '(stayed silent)' : m.their_clue}</div>
+                        </div>
+                      ) : m.my_clue ? (
+                        <div style={{ fontSize: 11, color: '#bbb', fontStyle: 'italic' }}>Waiting for their clue...</div>
+                      ) : null}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
     </div>
   )

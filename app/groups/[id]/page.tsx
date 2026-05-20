@@ -5,32 +5,22 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Nav from '@/components/layout/Nav'
 
-function Countdown({ targetAt, label }: { targetAt: string; label: string }) {
-  const [timeLeft, setTimeLeft] = useState('00:00:00')
-  useEffect(() => {
-    const tick = () => {
-      const diff = new Date(targetAt).getTime() - Date.now()
-      if (diff <= 0) { setTimeLeft('00:00:00'); return }
-      const h = Math.floor(diff / 3600000)
-      const m = Math.floor((diff % 3600000) / 60000)
-      const s = Math.floor((diff % 60000) / 1000)
-      setTimeLeft(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`)
-    }
-    tick()
-    const id = setInterval(tick, 1000)
-    return () => clearInterval(id)
-  }, [targetAt])
-  return (
-    <div style={{ textAlign: 'center' }}>
-      <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'monospace', letterSpacing: '0.05em' }}>{timeLeft}</div>
-      <div style={{ fontSize: 8, textTransform: 'uppercase', color: '#aaa', letterSpacing: '0.1em', marginTop: 2 }}>{label}</div>
-    </div>
-  )
-}
 
-function stripHtml(html: string, maxChars = 180): string {
-  const text = html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
-  return text.length <= maxChars ? text : text.slice(0, maxChars).trim()
+function getBlurb(html: string): string {
+  if (!html) return ''
+  const withBreaks = html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<p[^>]*>/gi, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+  return withBreaks.slice(0, 300) + (withBreaks.length > 300 ? '…' : '')
 }
 
 function Footer() {
@@ -43,7 +33,7 @@ function Footer() {
 
 const CARD: React.CSSProperties = {
   border: '1px solid #000',
-  background: '#fafaf8',
+  background: '#fff',
   overflow: 'hidden',
 }
 
@@ -69,8 +59,10 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   const [rulesExpanded, setRulesExpanded] = useState(false)
   const [submittedWeekNums, setSubmittedWeekNums] = useState<Set<number>>(new Set())
   const [revealedWeekNums, setRevealedWeekNums] = useState<Set<number>>(new Set())
-  const [recentRevealedWeek, setRecentRevealedWeek] = useState<any>(null)
-  const [recentRevealedSubs, setRecentRevealedSubs] = useState<any[]>([])
+  const [lastRevealedWeek, setLastRevealedWeek] = useState<any>(null)
+  const [lastRevealedSubs, setLastRevealedSubs] = useState<any[]>([])
+  const [communityFavourites, setCommunityFavourites] = useState<Record<string, string>>({})
+  const [timerString, setTimerString] = useState('--:--:--')
   const rulesInitialized = useRef(false)
 
   useEffect(() => {
@@ -83,6 +75,22 @@ export default function GroupPage({ params }: { params: { id: string } }) {
       }
     }
   }, [params.id])
+
+  useEffect(() => {
+    const target = currentWeek?.closes_at || nextWeek?.opens_at
+    if (!target) return
+    const tick = () => {
+      const diff = new Date(target).getTime() - Date.now()
+      if (diff <= 0) { setTimerString('00:00:00'); return }
+      const h = Math.floor(diff / 3600000)
+      const m = Math.floor((diff % 3600000) / 60000)
+      const s = Math.floor((diff % 60000) / 1000)
+      setTimerString(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`)
+    }
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [currentWeek?.closes_at, nextWeek?.opens_at])
 
   useEffect(() => {
     const init = async () => {
@@ -138,37 +146,37 @@ export default function GroupPage({ params }: { params: { id: string } }) {
       ))
 
       // Card 4: most recently revealed week + its pieces
-      const revealedWeeks = wks.filter((w: any) => w.revealed_at).sort((a: any, b: any) => b.week_num - a.week_num)
-      if (revealedWeeks.length > 0) {
-        const latestWeekId = revealedWeeks[0].id
+      const { data: latestWeek } = await supabase
+        .from('weeks')
+        .select('*')
+        .eq('group_id', params.id)
+        .not('revealed_at', 'is', null)
+        .order('week_num', { ascending: false })
+        .limit(1)
+        .single()
 
-        const [{ data: fullWeek }, { data: subs }, { data: favs }] = await Promise.all([
-          supabase.from('weeks').select('*').eq('id', latestWeekId).single(),
-          supabase.from('submissions').select('*').eq('week_id', latestWeekId).eq('is_late_catchup', false).order('created_at', { ascending: true }),
-          supabase.from('favourites').select('submission_id').eq('group_id', params.id),
-        ])
+      if (latestWeek) {
+        const { data: latestSubs } = await supabase
+          .from('submissions')
+          .select('*, users(*)')
+          .eq('week_id', latestWeek.id)
+          .eq('is_late_catchup', false)
+        setLastRevealedWeek(latestWeek)
+        setLastRevealedSubs(latestSubs || [])
 
-        setRecentRevealedWeek(fullWeek)
-
-        if (subs && subs.length > 0) {
-          const favCounts: Record<string, number> = {}
-          for (const f of favs || []) {
-            favCounts[f.submission_id] = (favCounts[f.submission_id] || 0) + 1
-          }
-          const subsWithCounts = subs.map((s: any) => ({ ...s, favCount: favCounts[s.id] || 0 }))
-          const maxFav = Math.max(...subsWithCounts.map((s: any) => s.favCount))
-          const topSubs = subsWithCounts.filter((s: any) => s.favCount === maxFav)
-          const mostLoved = topSubs[Math.floor(Math.random() * topSubs.length)]
-          const rest = subsWithCounts.filter((s: any) => s.id !== mostLoved.id).sort(() => Math.random() - 0.5)
-
-          let picks: any[]
-          if (subsWithCounts.length <= 3) {
-            picks = subsWithCounts.map((s: any) => ({ ...s, isMostLoved: s.id === mostLoved.id }))
-          } else {
-            picks = [{ ...mostLoved, isMostLoved: true }, ...rest.slice(0, 2).map((s: any) => ({ ...s, isMostLoved: false }))]
-          }
-          setRecentRevealedSubs(picks)
+        const { data: favs } = await supabase
+          .from('favourites').select('submission_id, week_id').eq('group_id', params.id)
+        const weekCounts: Record<string, Record<string, number>> = {}
+        for (const f of favs || []) {
+          if (!weekCounts[f.week_id]) weekCounts[f.week_id] = {}
+          weekCounts[f.week_id][f.submission_id] = (weekCounts[f.week_id][f.submission_id] || 0) + 1
         }
+        const commFavMap: Record<string, string> = {}
+        for (const [weekId, counts] of Object.entries(weekCounts)) {
+          const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]
+          if (top) commFavMap[weekId] = top[0]
+        }
+        setCommunityFavourites(commFavMap)
       }
 
       setLoading(false)
@@ -196,7 +204,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
 
       <Nav />
 
-      <main style={{ flex: 1, padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: 800, width: '100%', margin: '0 auto', boxSizing: 'border-box', background: '#f0efeb' }}>
+      <main style={{ flex: 1, padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: 800, width: '100%', margin: '0 auto', boxSizing: 'border-box', background: '#fff' }}>
 
         {/* Card 1 — Header */}
         <div style={CARD}>
@@ -206,7 +214,136 @@ export default function GroupPage({ params }: { params: { id: string } }) {
           </div>
         </div>
 
-        {/* Card 2 — Progress strip */}
+        {/* Card 2 — Hero widget */}
+        {!isCompleted && (
+          <div style={{ ...CARD, display: 'grid', gridTemplateColumns: '1fr auto' }}>
+            {/* Left: black saturn panel */}
+            <div style={{ position: 'relative', background: '#111', minHeight: 160, overflow: 'hidden', borderRight: '1px solid #000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {/* Ghost saturn */}
+              <img src="/saturn.svg" alt="" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '60%', opacity: 0.25, filter: 'invert(1)', pointerEvents: 'none' }} />
+              {/* Week label */}
+              {activeWeek && (
+                <span style={{ position: 'absolute', top: 14, left: 18, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)' }}>
+                  Week {activeWeek.week_num} of 26
+                </span>
+              )}
+              {/* Big letter */}
+              {activeWeek && (
+                <div style={{ fontSize: 110, fontWeight: 900, color: 'rgba(255,255,255,0.92)', fontFamily: 'monospace', lineHeight: 1, position: 'relative', zIndex: 1 }}>
+                  {activeWeek.letter}
+                </div>
+              )}
+              {/* Timer bottom-left */}
+              <div style={{ position: 'absolute', bottom: 14, left: 18 }}>
+                <div style={{ fontSize: 16, fontFamily: 'monospace', color: 'rgba(255,255,255,0.85)', letterSpacing: '0.05em' }}>{timerString}</div>
+                <div style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
+                  {currentWeek ? 'closes in' : 'opens in'}
+                </div>
+              </div>
+            </div>
+
+            {/* Right: action buttons */}
+            <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center', justifyContent: 'center', minWidth: 110 }}>
+              {activeWeek && currentWeek && (
+                mySubmission ? (
+                  <Link
+                    href={`/groups/${params.id}/submit?edit=1`}
+                    style={{ display: 'block', borderRadius: '999px', border: '1px solid #000', padding: '9px 10px', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', background: 'transparent', color: '#000', textAlign: 'center', textDecoration: 'none', transition: 'background 0.15s, color 0.15s', width: '100%', boxSizing: 'border-box' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000' }}
+                  >
+                    EDIT
+                  </Link>
+                ) : (
+                  <Link
+                    href={`/groups/${params.id}/submit`}
+                    style={{ display: 'block', borderRadius: '999px', border: '1px solid #C85A5A', padding: '9px 10px', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', background: '#C85A5A', color: '#fff', textAlign: 'center', textDecoration: 'none', transition: 'background 0.15s, color 0.15s, border-color 0.15s', width: '100%', boxSizing: 'border-box' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.borderColor = '#000' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#C85A5A'; e.currentTarget.style.borderColor = '#C85A5A' }}
+                  >
+                    SUBMIT
+                  </Link>
+                )
+              )}
+              <Link
+                href={`/groups/${params.id}/leaderboard`}
+                style={{ display: 'block', borderRadius: '999px', border: '1px solid #000', padding: '9px 10px', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', background: 'transparent', color: '#000', textAlign: 'center', textDecoration: 'none', transition: 'background 0.15s, color 0.15s', width: '100%', boxSizing: 'border-box' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000' }}
+              >
+                LEADERBOARD
+              </Link>
+              <Link
+                href={`/groups/${params.id}/submissions`}
+                style={{ display: 'block', borderRadius: '999px', border: '1px solid #000', padding: '9px 10px', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', background: 'transparent', color: '#000', textAlign: 'center', textDecoration: 'none', transition: 'background 0.15s, color 0.15s', width: '100%', boxSizing: 'border-box' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000' }}
+              >
+                READ
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Card 3 — Most recently revealed */}
+        {lastRevealedWeek && lastRevealedSubs.length > 0 && (() => {
+          const mostLovedId = communityFavourites[lastRevealedWeek.id]
+          const mostLoved = lastRevealedSubs.find((s: any) => s.id === mostLovedId) || null
+          const remaining = lastRevealedSubs.filter((s: any) => s.id !== mostLovedId)
+          const shuffled = [...remaining].sort(() => Math.random() - 0.5)
+          const picks = shuffled.slice(0, 2)
+          const displayPieces = mostLoved ? [mostLoved, ...picks] : picks.slice(0, 3)
+          return (
+            <div style={CARD}>
+              <div style={{ fontSize: 9, textTransform: 'uppercase', color: '#999', letterSpacing: '0.12em', padding: '14px 20px 12px' }}>
+                Most recently revealed · {lastRevealedWeek.letter}
+              </div>
+              {displayPieces.map((sub: any) => {
+                const isMostLoved = sub.id === mostLovedId
+                const blurb = getBlurb(sub.body_html || '')
+                return (
+                  <div
+                    key={sub.id}
+                    onClick={() => router.push(`/groups/${params.id}/submissions?view=read&anchor=${sub.id}`)}
+                    style={{
+                      borderTop: '1px solid #eee',
+                      padding: '16px 20px',
+                      paddingLeft: isMostLoved ? 18 : 20,
+                      borderLeft: isMostLoved ? '2px solid #C85A5A' : undefined,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {sub.is_signed && sub.signed_name && (
+                      <div style={{ fontSize: 10, fontStyle: 'italic', color: '#888', marginBottom: 4 }}>
+                        {sub.signed_name}
+                      </div>
+                    )}
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#000', marginBottom: 5 }}>
+                      {sub.word_title}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#555', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                      {blurb}
+                    </div>
+                  </div>
+                )
+              })}
+              <div style={{ borderTop: '1px solid #000', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px' }}>
+                <span style={{ fontSize: 9, textTransform: 'uppercase', color: '#888', letterSpacing: '0.08em' }}>
+                  Week {lastRevealedWeek.week_num} of 26
+                </span>
+                <span
+                  onClick={() => router.push(`/groups/${params.id}/submissions?view=read&letter=${lastRevealedWeek.letter}`)}
+                  className="pill-hover"
+                  style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.08em' }}
+                >
+                  Read all of {lastRevealedWeek.letter} →
+                </span>
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* Card 4 — Progress strip */}
         <div style={{ ...CARD, padding: '16px 20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
             <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#999' }}>Your progress</span>
@@ -252,118 +389,13 @@ export default function GroupPage({ params }: { params: { id: string } }) {
           </div>
         </div>
 
-        {/* Card 3 — Hero widget */}
-        {!isCompleted && (
-          <div style={{ ...CARD, display: 'grid', gridTemplateColumns: 'auto 1fr auto' }}>
-            {/* Left: saturn + timer */}
-            <div style={{ borderRight: '1px solid #000', padding: '16px 18px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, minWidth: 84 }}>
-              <img src="/saturn.svg" alt="Saturn" style={{ width: 52, height: 'auto' }} />
-              {activeWeek && currentWeek && (
-                <Countdown targetAt={currentWeek.closes_at} label="closes in" />
-              )}
-              {activeWeek && !currentWeek && nextWeek && (
-                <Countdown targetAt={nextWeek.opens_at} label="opens in" />
-              )}
-            </div>
-
-            {/* Centre: current letter */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-              {activeWeek && (
-                <div style={{ fontSize: 88, fontWeight: 900, color: '#C85A5A', fontFamily: 'monospace', lineHeight: 1 }}>
-                  {activeWeek.letter}
-                </div>
-              )}
-            </div>
-
-            {/* Right: action buttons */}
-            <div style={{ borderLeft: '1px solid #000', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center', justifyContent: 'center', minWidth: 110 }}>
-              {activeWeek && currentWeek && (
-                mySubmission ? (
-                  <Link href={`/groups/${params.id}/submit?edit=1`} style={{ textDecoration: 'none', width: '100%' }}>
-                    <button style={{ borderRadius: 20, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'none', border: '1px solid #000', color: '#000' }}>
-                      EDIT
-                    </button>
-                  </Link>
-                ) : (
-                  <Link href={`/groups/${params.id}/submit`} style={{ textDecoration: 'none', width: '100%' }}>
-                    <button style={{ borderRadius: 20, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: '#C85A5A', border: '1px solid #C85A5A', color: '#fff' }}>
-                      SUBMIT
-                    </button>
-                  </Link>
-                )
-              )}
-              <Link href={`/groups/${params.id}/leaderboard`} style={{ textDecoration: 'none', width: '100%' }}>
-                <button style={{ borderRadius: 20, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'none', border: '1px solid #000', color: '#000' }}>
-                  LEADERBOARD
-                </button>
-              </Link>
-              <Link href={`/groups/${params.id}/submissions`} style={{ textDecoration: 'none', width: '100%' }}>
-                <button style={{ borderRadius: 20, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', padding: '9px 10px', width: '100%', cursor: 'pointer', background: 'none', border: '1px solid #000', color: '#000' }}>
-                  INDEX
-                </button>
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* Card 4 — Most recently revealed */}
-        {recentRevealedWeek && recentRevealedSubs.length > 0 && (
-          <div style={CARD}>
-            {/* Header */}
-            <div style={{ fontSize: 9, textTransform: 'uppercase', color: '#999', letterSpacing: '0.12em', padding: '14px 20px 12px' }}>
-              Most recently revealed · {recentRevealedWeek.letter}
-            </div>
-
-            {/* Pieces */}
-            {recentRevealedSubs.map((sub, idx) => (
-              <div
-                key={sub.id}
-                onClick={() => router.push(`/groups/${params.id}/submissions?view=read&anchor=${sub.id}`)}
-                style={{
-                  borderTop: '1px solid #eee',
-                  padding: '14px 20px',
-                  cursor: 'pointer',
-                  borderLeft: sub.isMostLoved ? '2px solid #C85A5A' : undefined,
-                  marginLeft: sub.isMostLoved ? -1 : undefined,
-                  paddingLeft: sub.isMostLoved ? 12 : undefined,
-                }}
-              >
-                {sub.is_signed && sub.signed_name && (
-                  <div style={{ fontSize: 10, fontStyle: 'italic', color: '#888', marginBottom: 4 }}>
-                    {sub.signed_name}
-                  </div>
-                )}
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#000', marginBottom: 5 }}>
-                  {sub.word_title}
-                </div>
-                <div style={{ fontSize: 11, color: '#555', lineHeight: 1.6 }}>
-                  {stripHtml(sub.body_html || '', 180)}{sub.body_html && stripHtml(sub.body_html, 180).length < (sub.body_html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()).length ? '…' : ''}
-                </div>
-              </div>
-            ))}
-
-            {/* Footer */}
-            <div style={{ borderTop: '1px solid #000', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px' }}>
-              <span style={{ fontSize: 9, textTransform: 'uppercase', color: '#888', letterSpacing: '0.08em' }}>
-                Week {recentRevealedWeek.week_num} of 26
-              </span>
-              <span
-                onClick={() => router.push(`/groups/${params.id}/submissions?view=read&letter=${recentRevealedWeek.letter}`)}
-                style={{ fontSize: 9, textTransform: 'uppercase', color: '#000', letterSpacing: '0.08em', borderBottom: '1px solid #000', cursor: 'pointer' }}
-              >
-                Read all of {recentRevealedWeek.letter} →
-              </span>
-            </div>
-          </div>
-        )}
-
         {/* Card 5 — Rules */}
         <div style={CARD}>
           <button
             onClick={() => setRulesExpanded(v => !v)}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', width: '100%', padding: '14px 20px', cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit', borderBottom: rulesExpanded ? '1px solid #000' : 'none' }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', width: '100%', padding: '10px 20px', cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit', borderBottom: rulesExpanded ? '1px solid #000' : 'none' }}
           >
-            <span style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700 }}>RULES</span>
+            <span className="pill-hover" style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700 }}>RULES</span>
             <span style={{ position: 'absolute', right: 20, fontSize: 10, color: '#999' }}>{rulesExpanded ? '▲' : '▼'}</span>
           </button>
           {rulesExpanded && (

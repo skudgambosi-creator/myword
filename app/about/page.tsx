@@ -3,7 +3,7 @@ import Nav from '@/components/layout/Nav'
 function Footer() {
   return (
     <footer style={{ textAlign: 'center', padding: '48px 0 28px' }}>
-      <span style={{ fontSize: 12, color: '#ccc', letterSpacing: '0.18em' }}>MOUNTFORD-GAMBOSI</span>
+      <span style={{ fontSize: 12, color: '#ccc', letterSpacing: '0.18em' }}>GAMBOSI</span>
     </footer>
   )
 }
@@ -47,19 +47,13 @@ export default function AboutPage() {
 
       <main className="page-main">
 
-        <h2 style={{ ...sectionTitle, marginTop: 0 }}>MY WORD</h2>
-
-        <p style={{ fontSize: 14, lineHeight: 1.9, color: '#333', marginBottom: 24, fontWeight: 400, background: 'none' }}>
-          Your words. No social media nonsense.
-        </p>
-
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+        <div style={{ textAlign: 'center', margin: '32px auto 40px' }}>
           <img src="/saturn.svg" alt="My Word" style={{ width: 80, height: 'auto', display: 'inline-block' }} />
         </div>
 
         <hr style={rule} />
 
-        <h2 style={sectionTitle}>SEASONS</h2>
+        <h2 style={{ ...sectionTitle, marginTop: 0 }}>SEASONS</h2>
 
         <p style={para}>The Alphabet Project is a creative writing and word game, running one letter at a time.</p>
 

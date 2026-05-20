@@ -22,9 +22,21 @@ function buildWeekGroups(subs: any[]) {
 function hasImage(html: string) { return /<img[\s>]/i.test(html) }
 function hasAudio(html: string) { return /<audio[\s>]/i.test(html) }
 
-function stripHtml(html: string, maxChars = 200): string {
-  const text = html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
-  return text.length <= maxChars ? text : text.slice(0, maxChars).trim()
+function getBlurb(html: string): string {
+  if (!html) return ''
+  const withBreaks = html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<p[^>]*>/gi, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+  return withBreaks.slice(0, 300) + (withBreaks.length > 300 ? '…' : '')
 }
 
 function extractImages(html: string): string[] {
@@ -120,12 +132,19 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
   const [mineFetched, setMineFetched] = useState(false)
   const [myFavourites, setMyFavourites] = useState<Record<string, string>>({})
   const [communityFavourites, setCommunityFavourites] = useState<Record<string, string>>({})
+  const [readFilter, setReadFilter] = useState<'all' | 'mine' | 'loved'>('all')
+  const [currentLetter, setCurrentLetter] = useState('')
+  const [navOpen, setNavOpen] = useState(false)
+  const [envelopedByMe, setEnvelopedByMe] = useState<Set<string>>(new Set())
+  const [envelopeToast, setEnvelopeToast] = useState('')
 
   const anchorParam = searchParams.get('anchor')
   const letterParam = searchParams.get('letter')
 
   // After read view renders, scroll to anchor or letter
   const readMounted = useRef(false)
+  const observerRef = useRef<IntersectionObserver | null>(null)
+
   useEffect(() => {
     if (!readView || loading) return
     if (readMounted.current) return
@@ -142,6 +161,26 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
       }, 100)
     }
   }, [readView, loading, anchorParam, letterParam])
+
+  // IntersectionObserver for current letter in read view
+  useEffect(() => {
+    if (!readView || readFilter !== 'all') {
+      observerRef.current?.disconnect()
+      return
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter(e => e.isIntersecting)
+        if (visible.length > 0) setCurrentLetter(visible[0].target.id.replace('letter-', ''))
+      },
+      { rootMargin: '-10% 0px -80% 0px', threshold: 0 }
+    )
+    observerRef.current = observer
+    setTimeout(() => {
+      document.querySelectorAll('[id^="letter-"]').forEach(el => observer.observe(el))
+    }, 150)
+    return () => observer.disconnect()
+  }, [readView, readFilter])
 
   useEffect(() => {
     const init = async () => {
@@ -191,6 +230,11 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
         setAZSubs(data || [])
       }
 
+      // Envelopes sent by current user
+      const { data: myEnvelopes } = await supabase
+        .from('envelopes').select('submission_id').eq('from_user_id', session.user.id)
+      setEnvelopedByMe(new Set((myEnvelopes || []).map((e: any) => e.submission_id)))
+
       // Check URL params
       const viewParam = searchParams.get('view')
       if (viewParam === 'read') setReadView(true)
@@ -232,6 +276,21 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
     }
   }
 
+  const handleEnvelope = async (sub: any) => {
+    if (!userId || sub.user_id === userId) return
+    setEnvelopedByMe(prev => { const s = new Set(prev); s.add(sub.id); return s })
+    const res = await fetch('/api/envelope', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ submission_id: sub.id, author_id: sub.user_id, group_id: params.id }),
+    })
+    const json = await res.json()
+    if (json.mutual) {
+      setEnvelopeToast('✉ It\'s a match!')
+      setTimeout(() => setEnvelopeToast(''), 3500)
+    }
+  }
+
   if (loading) return (
     <div style={{ minHeight: '100vh' }}>
       <Nav />
@@ -246,10 +305,10 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
   const favouriteSubs = azSubs.filter(s => communityFavourites[s.week_id] === s.id).sort((a: any, b: any) => a.weeks?.week_num - b.weeks?.week_num)
 
   const tabBtn = (active: boolean) => ({
-    padding: '6px 20px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em',
-    textTransform: 'uppercase' as const, cursor: 'pointer', fontFamily: 'inherit',
+    padding: '5px 16px', fontSize: 10, letterSpacing: '0.1em',
+    textTransform: 'uppercase' as const, cursor: 'pointer', fontFamily: 'monospace',
+    borderRadius: 20, border: '1px solid #000', marginLeft: -1,
     background: active ? '#000' : 'transparent', color: active ? '#fff' : '#000',
-    border: '1px solid #000', marginRight: -1,
   })
 
   const empty = (msg: string) => (
@@ -284,17 +343,24 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
   // READ VIEW
   // ────────────────────────────────
   if (readView) {
-    const letterSections = buildLetterSections(azSubs, true)
+    const readViewSubs = readFilter === 'mine'
+      ? azSubs.filter((s: any) => s.user_id === userId)
+      : readFilter === 'loved'
+      ? azSubs.filter((s: any) => myFavourites[s.week_id] === s.id)
+      : azSubs
+    const letterSections = buildLetterSections(readViewSubs, true)
+    const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
     return (
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <Nav />
         <main className="page-main">
           {/* Header */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', alignItems: 'center', marginBottom: 32 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', alignItems: 'center', marginBottom: readFilter !== 'all' ? 12 : 32 }}>
             <div>
               <button
                 onClick={() => { setReadView(false); readMounted.current = false }}
-                style={{ fontSize: 11, color: '#999', letterSpacing: '0.1em', textTransform: 'uppercase', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}
+                className="pill-hover"
+                style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'none', border: 'none', fontFamily: 'inherit' }}
               >
                 GO BACK
               </button>
@@ -305,8 +371,24 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
             <div />
           </div>
 
+          {/* Filter label */}
+          {readFilter !== 'all' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32, fontSize: 11, color: '#888', letterSpacing: '0.08em' }}>
+              <span>Showing: {readFilter === 'mine' ? 'Mine' : 'Loved ♥'}</span>
+              <button
+                onClick={() => setReadFilter('all')}
+                className="pill-hover"
+                style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'none', border: 'none', fontFamily: 'inherit' }}
+              >
+                Show all →
+              </button>
+            </div>
+          )}
+
           {revealedWeeks.length === 0
             ? empty('No revealed weeks yet.')
+            : letterSections.length === 0
+            ? empty(readFilter === 'mine' ? "You haven't submitted anything yet." : 'No loved pieces yet.')
             : letterSections.map(({ letter, weekId, subs: weekSubs }) => (
               <div key={weekId} style={{ marginBottom: 64 }}>
                 {/* Letter anchor + header */}
@@ -353,14 +435,23 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
                           {sub.signed_name}
                         </div>
                       )}
-                      {/* Heart */}
-                      <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                      {/* Heart + envelope */}
+                      <div style={{ textAlign: 'center', marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
                         <button
                           onClick={() => handleFavourite(sub.id, sub.week_id)}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: myFavourites[sub.week_id] === sub.id ? '#C85A5A' : '#ccc', padding: 0, fontFamily: 'inherit', lineHeight: 1 }}
                         >
                           {myFavourites[sub.week_id] === sub.id ? '♥' : '♡'}
                         </button>
+                        {sub.user_id !== userId && (
+                          <button
+                            onClick={() => handleEnvelope(sub)}
+                            title="Send envelope"
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: envelopedByMe.has(sub.id) ? '#000' : '#ccc', padding: 0, fontFamily: 'inherit', lineHeight: 1 }}
+                          >
+                            ✉
+                          </button>
+                        )}
                       </div>
                       {/* Divider between pieces within same letter */}
                       {idx < weekSubs.length - 1 && (
@@ -373,6 +464,64 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
             ))
           }
         </main>
+
+        {/* Toast */}
+        {envelopeToast && (
+          <div style={{ position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)', background: '#000', color: '#fff', padding: '10px 20px', fontSize: 12, letterSpacing: '0.1em', zIndex: 60 }}>
+            {envelopeToast}
+          </div>
+        )}
+
+        {/* Letter navigator — only when unfiltered */}
+        {readFilter === 'all' && (
+          <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 40 }}>
+            {navOpen ? (
+              <div style={{ background: '#fff', border: '1px solid #000', padding: '12px 8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, paddingLeft: 4, paddingRight: 4 }}>
+                  <span style={{ fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#888' }}>JUMP TO</span>
+                  <button onClick={() => setNavOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontFamily: 'inherit', lineHeight: 1, padding: 0 }}>✕</button>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3 }}>
+                  {allLetters.map(l => {
+                    const exists = letterSections.some(s => s.letter === l)
+                    return (
+                      <button
+                        key={l}
+                        disabled={!exists}
+                        onClick={() => {
+                          const el = document.getElementById(`letter-${l}`)
+                          if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); setNavOpen(false) }
+                        }}
+                        style={{
+                          fontSize: 11, fontWeight: 700, fontFamily: 'monospace',
+                          padding: '5px 0', border: '1px solid',
+                          borderColor: exists ? '#000' : '#eee',
+                          background: currentLetter === l ? '#000' : 'transparent',
+                          color: currentLetter === l ? '#fff' : exists ? '#000' : '#ddd',
+                          cursor: exists ? 'pointer' : 'default',
+                        }}
+                      >
+                        {l}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setNavOpen(true)}
+                style={{
+                  background: '#fff', border: '1px solid #000', padding: '7px 16px',
+                  fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
+                  fontFamily: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+                }}
+              >
+                <span style={{ fontWeight: 900, fontFamily: 'monospace', fontSize: 14 }}>{currentLetter || '?'}</span>
+                <span>JUMP</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
     )
   }
@@ -391,7 +540,7 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
         {/* Header row */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', alignItems: 'center', marginBottom: 24 }}>
           <div>
-            <Link href={`/groups/${params.id}`} style={{ fontSize: 11, color: '#999', letterSpacing: '0.1em', textTransform: 'uppercase', textDecoration: 'none' }}>
+            <Link href={`/groups/${params.id}`} className="pill-hover" style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               GO BACK
             </Link>
           </div>
@@ -418,9 +567,9 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24 }}>
           <div style={{ flex: 1, height: 1, background: '#000' }} />
           <div style={{ display: 'flex' }}>
-            <button onClick={() => { setTab('all'); setReadView(false) }} style={tabBtn(tab === 'all' && !readView)}>ALL</button>
-            <button onClick={switchToMine} style={tabBtn(tab === 'mine' && !readView)}>MINE</button>
-            <button onClick={() => { setTab('favourite'); setReadView(false) }} style={tabBtn(tab === 'favourite' && !readView)}>♥</button>
+            <button onClick={() => { setTab('all'); setReadView(false); setReadFilter('all') }} style={tabBtn(tab === 'all' && !readView)}>ALL</button>
+            <button onClick={() => { switchToMine(); setReadFilter('mine') }} style={tabBtn(tab === 'mine' && !readView)}>MINE</button>
+            <button onClick={() => { setTab('favourite'); setReadView(false); setReadFilter('loved') }} style={tabBtn(tab === 'favourite' && !readView)}>♥</button>
           </div>
           <div style={{ flex: 1, height: 1, background: '#000' }} />
         </div>
@@ -459,21 +608,33 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
                         key={sub.id}
                         style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '7px 0', borderTop: '1px solid #eee', cursor: 'pointer', gap: 12 }}
                       >
-                        <div
-                          onClick={() => { setReadView(true); readMounted.current = false; setTimeout(() => { const el = document.getElementById(`sub-${sub.id}`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }) }, 150) }}
-                          style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}
-                        >
-                          <span style={{ fontSize: 14, color: '#C85A5A', letterSpacing: '0.02em' }}>{sub.word_title}</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
+                          <span
+                            className="pill-hover"
+                            onClick={() => { setReadView(true); readMounted.current = false; setTimeout(() => { const el = document.getElementById(`sub-${sub.id}`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }) }, 150) }}
+                            style={{ fontSize: 14, letterSpacing: '0.02em', alignSelf: 'flex-start' }}
+                          >{sub.word_title}</span>
                           {sub.is_signed && sub.signed_name && (
                             <span style={{ fontSize: 11, color: '#aaa', fontStyle: 'italic' }}>{sub.signed_name}</span>
                           )}
                         </div>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleFavourite(sub.id, sub.week_id) }}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: isMyVote ? '#C85A5A' : '#ddd', padding: 0, fontFamily: 'inherit', flexShrink: 0, alignSelf: 'center' }}
-                        >
-                          ♥
-                        </button>
+                        <div style={{ display: 'flex', gap: 8, flexShrink: 0, alignSelf: 'center' }}>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleFavourite(sub.id, sub.week_id) }}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: isMyVote ? '#C85A5A' : '#ddd', padding: 0, fontFamily: 'inherit' }}
+                          >
+                            ♥
+                          </button>
+                          {sub.user_id !== userId && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleEnvelope(sub) }}
+                              title="Send envelope"
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: envelopedByMe.has(sub.id) ? '#000' : '#ddd', padding: 0, fontFamily: 'inherit' }}
+                            >
+                              ✉
+                            </button>
+                          )}
+                        </div>
                       </div>
                     )
                   })}
@@ -491,9 +652,7 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
                   </div>
                   {weekSubs.map(sub => {
                     const isMyVote = myFavourites[sub.week_id] === sub.id
-                    const blurb = stripHtml(sub.body_html || '', 200)
-                    const fullText = (sub.body_html || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
-                    const showEllipsis = fullText.length > 200
+                    const blurb = getBlurb(sub.body_html || '')
                     const imgs = hasImage(sub.body_html || '')
                     const auds = hasAudio(sub.body_html || '')
                     return (
@@ -510,8 +669,8 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
                             {sub.signed_name}
                           </div>
                         )}
-                        <div style={{ fontSize: 13, color: '#444', lineHeight: 1.8, marginBottom: 10 }}>
-                          {blurb}{showEllipsis ? '…' : ''}
+                        <div style={{ fontSize: 13, color: '#444', lineHeight: 1.8, marginBottom: 10, whiteSpace: 'pre-wrap' }}>
+                          {blurb}
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div style={{ display: 'flex', gap: 6 }}>
@@ -523,12 +682,23 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
                             )}
                             {!imgs && !auds && <div />}
                           </div>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleFavourite(sub.id, sub.week_id) }}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: isMyVote ? '#C85A5A' : '#ddd', padding: 0, fontFamily: 'inherit' }}
-                          >
-                            ♥
-                          </button>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleFavourite(sub.id, sub.week_id) }}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: isMyVote ? '#C85A5A' : '#ddd', padding: 0, fontFamily: 'inherit' }}
+                            >
+                              ♥
+                            </button>
+                            {sub.user_id !== userId && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleEnvelope(sub) }}
+                                title="Send envelope"
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: envelopedByMe.has(sub.id) ? '#000' : '#ddd', padding: 0, fontFamily: 'inherit' }}
+                              >
+                                ✉
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )

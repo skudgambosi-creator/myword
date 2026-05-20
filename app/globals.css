@@ -179,12 +179,8 @@ a:hover {
   align-items: center;
   white-space: nowrap;
 }
-.nav-brand:hover {
-  background: var(--black);
-  color: var(--white);
-}
 .nav-link {
-  padding: 10px 16px;
+  padding: 8px 12px;
   font-size: 12px;
   font-weight: bold;
   text-transform: uppercase;
@@ -285,7 +281,8 @@ a:hover {
 }
 
 .site-nav {
-  padding: 20px 40px;
+  padding: 0 16px;
+  border-bottom: 1px solid #000;
 }
 
 @media (max-width: 640px) {
@@ -666,6 +663,14 @@ a:hover {
   }
 }
 
+/* ── BUTTON RESET ── */
+button {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 0;
+  background: transparent;
+}
+
 /* ── AUTOFILL OVERRIDE ── */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
@@ -797,6 +802,40 @@ input:-webkit-autofill:active {
   .rules-section.is-expanded {
     padding: 16px;
   }
+}
+
+/* ── PILL HOVER ── */
+.pill-hover {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  transition: background 0.1s, color 0.1s;
+  cursor: pointer;
+  text-decoration: none;
+  color: #000;
+}
+.pill-hover:hover {
+  background: #000;
+  color: #fff;
+  text-decoration: none;
+}
+
+/* ── BRAND HOVER ── */
+.brand-hover {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  text-decoration: none;
+  color: #000;
+  white-space: nowrap;
+}
+.brand-hover:hover {
+  border-color: #000;
+  background: #000;
+  color: #fff;
+  text-decoration: none;
 }
 
 /* ── COMPLETED STATE ── */

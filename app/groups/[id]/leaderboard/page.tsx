@@ -71,7 +71,7 @@ export default function LeaderboardPage({ params }: { params: { id: string } }) 
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', alignItems: 'center', marginBottom: 24 }}>
           <div>
-            <Link href={`/groups/${params.id}`} style={{ fontSize: 11, color: '#999', letterSpacing: '0.1em', textTransform: 'uppercase', textDecoration: 'none' }}>
+            <Link href={`/groups/${params.id}`} className="pill-hover" style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               GO BACK
             </Link>
           </div>

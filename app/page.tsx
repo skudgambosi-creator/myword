@@ -17,7 +17,7 @@ function PreAuthHeader({ title }: { title: string }) {
 function Footer() {
   return (
     <footer style={{ textAlign: 'center', padding: '48px 0 28px' }}>
-      <span style={{ fontSize: 12, color: '#ccc', letterSpacing: '0.18em' }}>MOUNTFORD-GAMBOSI</span>
+      <span style={{ fontSize: 12, color: '#ccc', letterSpacing: '0.18em' }}>GAMBOSI</span>
     </footer>
   )
 }
@@ -46,7 +46,7 @@ export default async function LandingPage() {
         </Link>
 
         {/* About link */}
-        <Link href="/about" style={{ display: 'block', width: '100%', textAlign: 'center', fontSize: 11, color: '#999', letterSpacing: '0.1em', textDecoration: 'none', marginTop: 12 }}>
+        <Link href="/about" className="pill-hover" style={{ display: 'block', width: '100%', textAlign: 'center', fontSize: 11, letterSpacing: '0.1em', marginTop: 12 }}>
           ABOUT
         </Link>
       </main>
