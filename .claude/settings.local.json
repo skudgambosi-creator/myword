@@ -24,7 +24,9 @@
       "Bash(ls node_modules/world-atlas/)",
       "Bash(ls node_modules/topojson-client/)",
       "Read(//c/Users/Microsoft Surface/**)",
-      "Read(//c/Users/Microsoft Surface/Downloads/**)"
+      "Read(//c/Users/Microsoft Surface/Downloads/**)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Microsoft Surface\\\\Documents\\\\GitHub\\\\myword\\\\lib\" -Recurse -Filter \"*.ts\")",
+      "Bash(Select-Object -First 20)"
     ]
   }
 }
