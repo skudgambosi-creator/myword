@@ -62,6 +62,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   const [lastRevealedWeek, setLastRevealedWeek] = useState<any>(null)
   const [lastRevealedSubs, setLastRevealedSubs] = useState<any[]>([])
   const [communityFavourites, setCommunityFavourites] = useState<Record<string, string>>({})
+  const [displayPieces, setDisplayPieces] = useState<any[]>([])
   const [timerString, setTimerString] = useState('--:--:--')
   const rulesInitialized = useRef(false)
 
@@ -177,6 +178,13 @@ export default function GroupPage({ params }: { params: { id: string } }) {
           if (top) commFavMap[weekId] = top[0]
         }
         setCommunityFavourites(commFavMap)
+
+        const mostLovedId = commFavMap[latestWeek.id]
+        const mostLoved = (latestSubs || []).find((s: any) => s.id === mostLovedId) || null
+        const remaining = (latestSubs || []).filter((s: any) => s.id !== mostLovedId)
+        const shuffled = [...remaining].sort(() => Math.random() - 0.5)
+        const picks = shuffled.slice(0, 2)
+        setDisplayPieces(mostLoved ? [mostLoved, ...picks] : picks.slice(0, 3))
       }
 
       setLoading(false)
@@ -217,26 +225,34 @@ export default function GroupPage({ params }: { params: { id: string } }) {
         {/* Card 2 — Hero widget */}
         {!isCompleted && (
           <div style={{ ...CARD, display: 'grid', gridTemplateColumns: '1fr auto' }}>
-            {/* Left: black saturn panel */}
-            <div style={{ position: 'relative', background: '#111', minHeight: 160, overflow: 'hidden', borderRight: '1px solid #000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {/* Ghost saturn */}
-              <img src="/saturn.svg" alt="" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '60%', opacity: 0.25, filter: 'invert(1)', pointerEvents: 'none' }} />
-              {/* Week label */}
+            {/* Left: saturn photo panel */}
+            <div style={{
+              position: 'relative',
+              backgroundImage: 'url(/saturn-bg.jpg)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center right',
+              minHeight: 160,
+              overflow: 'hidden',
+              borderRight: '1px solid #000',
+            }}>
+              {/* Dark overlay for legibility */}
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)' }} />
+              {/* Week label top-left */}
               {activeWeek && (
-                <span style={{ position: 'absolute', top: 14, left: 18, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)' }}>
+                <div style={{ position: 'absolute', top: 14, left: 18, fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', zIndex: 1 }}>
                   Week {activeWeek.week_num} of 26
-                </span>
+                </div>
               )}
-              {/* Big letter */}
+              {/* Big letter centred */}
               {activeWeek && (
-                <div style={{ fontSize: 110, fontWeight: 900, color: 'rgba(255,255,255,0.92)', fontFamily: 'monospace', lineHeight: 1, position: 'relative', zIndex: 1 }}>
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: 110, fontWeight: 900, lineHeight: 1, color: 'rgba(255,255,255,0.92)', fontFamily: 'monospace', zIndex: 1, pointerEvents: 'none' }}>
                   {activeWeek.letter}
                 </div>
               )}
               {/* Timer bottom-left */}
-              <div style={{ position: 'absolute', bottom: 14, left: 18 }}>
-                <div style={{ fontSize: 16, fontFamily: 'monospace', color: 'rgba(255,255,255,0.85)', letterSpacing: '0.05em' }}>{timerString}</div>
-                <div style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
+              <div style={{ position: 'absolute', bottom: 14, left: 18, zIndex: 1 }}>
+                <div style={{ fontSize: 13, fontFamily: 'monospace', letterSpacing: '0.06em', color: 'rgba(255,255,255,0.8)' }}>{timerString}</div>
+                <div style={{ fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>
                   {currentWeek ? 'closes in' : 'opens in'}
                 </div>
               </div>
@@ -286,13 +302,8 @@ export default function GroupPage({ params }: { params: { id: string } }) {
         )}
 
         {/* Card 3 — Most recently revealed */}
-        {lastRevealedWeek && lastRevealedSubs.length > 0 && (() => {
+        {lastRevealedWeek && displayPieces.length > 0 && (() => {
           const mostLovedId = communityFavourites[lastRevealedWeek.id]
-          const mostLoved = lastRevealedSubs.find((s: any) => s.id === mostLovedId) || null
-          const remaining = lastRevealedSubs.filter((s: any) => s.id !== mostLovedId)
-          const shuffled = [...remaining].sort(() => Math.random() - 0.5)
-          const picks = shuffled.slice(0, 2)
-          const displayPieces = mostLoved ? [mostLoved, ...picks] : picks.slice(0, 3)
           return (
             <div style={CARD}>
               <div style={{ fontSize: 9, textTransform: 'uppercase', color: '#999', letterSpacing: '0.12em', padding: '14px 20px 12px' }}>
