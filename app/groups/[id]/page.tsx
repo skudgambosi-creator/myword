@@ -231,6 +231,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               backgroundImage: 'url(/saturn-bg.jpg)',
               backgroundSize: 'cover',
               backgroundPosition: 'center right',
+              backgroundColor: '#111',
               minHeight: 160,
               overflow: 'hidden',
               borderRight: '1px solid #000',

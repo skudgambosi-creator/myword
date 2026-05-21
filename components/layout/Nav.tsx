@@ -26,7 +26,7 @@ export default function Nav() {
 
   return (
     <nav className="site-nav" style={{
-      display: 'flex', alignItems: 'center', height: 48, gap: 8,
+      position: 'relative', display: 'flex', alignItems: 'center', height: 48,
     }}>
       {/* Left */}
       <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -41,22 +41,22 @@ export default function Nav() {
         )}
       </div>
 
-      {/* Centre brand — flex-based, lines shrink on mobile */}
+      {/* Centre brand — absolutely pinned to the nav midpoint */}
       <div style={{
-        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        gap: 8, minWidth: 0,
+        position: 'absolute', left: '50%', transform: 'translateX(-50%)',
+        display: 'flex', alignItems: 'center', gap: 8, pointerEvents: 'none',
       }}>
-        <div style={{ flex: 1, height: 1, background: '#000', minWidth: 0 }} />
+        <div style={{ width: 32, height: 1, background: '#000' }} />
         <Link href="/dashboard" className="brand-hover" style={{
-          flexShrink: 0, fontSize: 15, letterSpacing: '0.22em', fontWeight: 400,
+          pointerEvents: 'auto', flexShrink: 0, fontSize: 15, letterSpacing: '0.22em', fontWeight: 400,
         }}>
           MY WORD
         </Link>
-        <div style={{ flex: 1, height: 1, background: '#000', minWidth: 0 }} />
+        <div style={{ width: 32, height: 1, background: '#000' }} />
       </div>
 
       {/* Right */}
-      <div style={{ flexShrink: 0, display: 'flex', gap: 0 }}>
+      <div style={{ marginLeft: 'auto', flexShrink: 0, display: 'flex', gap: 0 }}>
         <Link href="/about" className="pill-hover" style={{
           fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700,
           whiteSpace: 'nowrap',
