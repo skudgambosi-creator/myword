@@ -2,10 +2,10 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Nav from '@/components/layout/Nav'
-import TeReoFlashcards from '@/components/tongues/TeReoFlashcards'
+import MagyarFlashcards from '@/components/tongues/MagyarFlashcards'
 import { createClient } from '@/lib/supabase/client'
 
-export default function TeReoPage() {
+export default function MagyarPage() {
   const router = useRouter()
   const supabase = createClient()
   const [ready, setReady] = useState(false)
@@ -30,7 +30,7 @@ export default function TeReoPage() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Nav />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', maxWidth: 600, width: '100%', margin: '0 auto' }}>
-        <TeReoFlashcards />
+        <MagyarFlashcards />
       </div>
     </div>
   )

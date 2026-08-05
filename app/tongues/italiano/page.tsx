@@ -14,15 +14,6 @@ export default function ItalianoPage() {
     async function check() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.push('/login'); return }
-
-      const { data } = await supabase
-        .from('tongues_unlocks')
-        .select('language_id')
-        .eq('user_id', session.user.id)
-        .eq('language_id', 'italiano')
-        .maybeSingle()
-
-      if (!data) { router.push('/tongues'); return }
       setReady(true)
     }
     check()

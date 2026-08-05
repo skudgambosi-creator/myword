@@ -73,6 +73,14 @@ export default function TonguesPage() {
             description="Italian for everyday use. 250+ flashcards covering greetings, pronouns, verbs, nouns, numbers, colours, days, months, body parts, and full sentence templates — with Google Translate audio on every card."
             href="/tongues/italiano"
           />
+
+          <LanguageCard
+            languageId="magyar"
+            displayName="Magyar"
+            nativeName="Magyar nyelv"
+            description="Hungarian — a language unrelated to English or Italian, with no grammatical gender but an extensive case system. 270+ flashcards covering greetings, pronouns, verbs, nouns, numbers, colours, days, months, body parts, and full sentence templates — plus a reference guide covering vowel harmony, cases, and sentence structure."
+            href="/tongues/magyar"
+          />
         </div>
 
       </main>
