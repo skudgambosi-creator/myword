@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { buildAlphabetDocument, type ExportPiece } from '@/lib/export/buildPdf'
+import { buildFlatDocument, type ExportPiece, type CompletionGrid } from '@/lib/export/buildPdf'
 
 export const maxDuration = 60
 
@@ -42,23 +42,34 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
   let pieces: ExportPiece[] = []
   let coverSubtitle = ''
+  let completionGrid: CompletionGrid | undefined
 
   if (type === 'mine') {
     coverSubtitle = 'Your Collection'
     const { data: subs } = await service
       .from('submissions')
-      .select('word_title, body_html, week_id, weeks(week_num, letter)')
+      .select('word_title, body_html, week_id, is_late_catchup, weeks(week_num, letter)')
       .eq('group_id', params.id)
       .eq('user_id', user.id)
 
-    pieces = (subs || [])
+    const sorted = (subs || [])
       .slice()
       .sort((a: any, b: any) => (a.weeks?.week_num ?? 0) - (b.weeks?.week_num ?? 0))
-      .map((s: any) => ({
-        weekLabel: s.weeks?.letter || 'Epilogue',
-        title: s.word_title,
-        bodyHtml: s.body_html || '',
-      }))
+
+    pieces = sorted.map((s: any) => ({
+      weekLabel: s.weeks?.letter || 'Epilogue',
+      title: s.word_title,
+      bodyHtml: s.body_html || '',
+    }))
+
+    // The site's own A–Z progress grid — submitted ON TIME vs. missed
+    // (catch-up pieces don't count as "submitted" here either, matching
+    // app/groups/[id]/page.tsx's own submittedWeekNums logic exactly),
+    // weeks 1–26 only, reproduced as the export's opening page.
+    const submittedLetters = new Set(
+      sorted.filter((s: any) => !s.is_late_catchup && s.weeks?.letter).map((s: any) => s.weeks.letter as string)
+    )
+    completionGrid = { submittedLetters }
   }
 
   if (type === 'favourites') {
@@ -98,11 +109,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     }
   }
 
-  const doc = buildAlphabetDocument({
+  const doc = await buildFlatDocument({
     docTitle: `${group.name} — ${coverSubtitle}`,
     coverTitle: group.name,
     coverSubtitle,
     pieces,
+    completionGrid,
   })
 
   const buffer = await renderToBuffer(doc)

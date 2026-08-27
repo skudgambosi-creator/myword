@@ -3,7 +3,7 @@ import { renderToBuffer } from '@react-pdf/renderer'
 import { waitUntil } from '@vercel/functions'
 import { createServiceClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email'
-import { buildAlphabetDocument, type ExportPiece } from '@/lib/export/buildPdf'
+import { buildAllBatchDocument, type ExportPiece } from '@/lib/export/buildPdf'
 import { mergePdfBuffers } from '@/lib/export/mergePdf'
 import { EXPORT_BATCH_SIZE, EXPORT_BUCKET } from '@/lib/export/constants'
 
@@ -56,12 +56,13 @@ export async function POST(req: NextRequest) {
     const { data: group } = await service.from('groups').select('name').eq('id', job.group_id).maybeSingle()
     const groupName = group?.name || 'The Alphabet Project'
 
-    const doc = buildAlphabetDocument({
+    const { document: doc, lastLetter } = await buildAllBatchDocument({
       docTitle: `${groupName} — The Full Archive`,
       coverTitle: groupName,
       coverSubtitle: 'The Full Archive',
       pieces,
       withCover: job.next_index === 0,
+      leadingLetterCarry: job.last_letter,
     })
     const batchBuffer = await renderToBuffer(doc)
 
@@ -87,6 +88,7 @@ export async function POST(req: NextRequest) {
       next_index: nextIndex,
       status: isDone ? 'done' : 'processing',
       storage_path: isDone ? storagePath : null,
+      last_letter: lastLetter,
       updated_at: new Date().toISOString(),
     }).eq('id', jobId)
 
