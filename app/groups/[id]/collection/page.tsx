@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Nav from '@/components/layout/Nav'
+import SeasonFeedback from '@/components/groups/SeasonFeedback'
 
 const CARD: React.CSSProperties = {
   border: '1px solid #000',
@@ -164,6 +165,8 @@ export default function CollectionPage({ params }: { params: { id: string } }) {
             })}
           </div>
         )}
+
+        <SeasonFeedback groupId={params.id} />
 
       </main>
     </div>
