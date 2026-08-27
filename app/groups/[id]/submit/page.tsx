@@ -69,7 +69,19 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
       const now = new Date().toISOString()
       if (isCatchup && catchupWeekId) {
         const { data: week } = await supabase.from('weeks').select('*').eq('id', catchupWeekId).single()
-        if (week) { setLetter(week.letter); setWeekId(week.id) }
+        if (week) {
+          setLetter(week.letter)
+          setWeekId(week.id)
+          const { data: sub } = await supabase
+            .from('submissions').select('*')
+            .eq('user_id', user.id).eq('week_id', week.id).eq('is_late_catchup', true).single()
+          if (sub) {
+            setWordTitle(sub.word_title)
+            setContent(sub.body_html)
+            setExistingSubmissionId(sub.id)
+            setSignedName(sub.signed_name || '')
+          }
+        }
       } else {
         const { data: week } = await supabase
           .from('weeks').select('*').eq('group_id', params.id)
@@ -100,7 +112,7 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
   const handleContinue = () => {
     setError('')
     if (!wordTitle.trim()) return setError('Please enter a title.')
-    if (wordTitle.trim()[0].toUpperCase() !== letter.toUpperCase()) return setError(`Your title must begin with the letter ${letter}.`)
+    if (letter && wordTitle.trim()[0].toUpperCase() !== letter.toUpperCase()) return setError(`Your title must begin with the letter ${letter}.`)
     if (wordCount < 5) return setError('Minimum 5 words required.')
     if (wordCount > 2000) return setError('Maximum 2,000 words.')
     setShowSignScreen(true)
@@ -111,7 +123,23 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     try {
-      if (existingSubmissionId) {
+      if (isCatchup) {
+        // Backfilled pieces always go through the service-role route — the
+        // normal RLS update policy checks the row's own (long-past) week,
+        // not week 27's cutoff, so a direct client write would silently
+        // fail on the second save. The route upserts, so this covers both
+        // the first save and any re-edit before week 27 closes.
+        const res = await fetch(`/api/groups/${params.id}/catchup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            weekId, wordTitle: wordTitle.trim(), content, wordCount,
+            isSigned: !!name, signedName: name || null,
+          }),
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Failed to save.')
+      } else if (existingSubmissionId) {
         const { error } = await supabase.from('submissions').update({
           word_title: wordTitle.trim(), body_html: content, word_count: wordCount,
           is_signed: !!name, signed_name: name || null, updated_at: new Date().toISOString(),
@@ -121,7 +149,7 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
         const { error } = await supabase.from('submissions').insert({
           group_id: params.id, user_id: user.id, week_id: weekId,
           word_title: wordTitle.trim(), body_html: content, word_count: wordCount,
-          is_late_catchup: isCatchup, is_signed: !!name, signed_name: name || null,
+          is_late_catchup: false, is_signed: !!name, signed_name: name || null,
         })
         if (error) throw error
       }
@@ -146,9 +174,9 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
 
         <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 40px 0', maxWidth: 800, width: '100%', margin: '0 auto' }}>
 
-          {/* Big letter */}
-          <div style={{ fontSize: 120, fontWeight: 900, color: '#C85A5A', lineHeight: 1, marginBottom: 8, textAlign: 'center' }}>
-            {letter}
+          {/* Big letter (or EPILOGUE for the letter-less collection week) */}
+          <div style={{ fontSize: letter ? 120 : 48, fontWeight: 900, color: '#C85A5A', lineHeight: 1, marginBottom: 8, textAlign: 'center', letterSpacing: letter ? undefined : '0.1em' }}>
+            {letter || 'EPILOGUE'}
           </div>
 
           {/* Title */}
@@ -222,9 +250,9 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
 
       <main className="page-main">
 
-        {/* Big letter */}
+        {/* Big letter (or EPILOGUE for the letter-less collection week) */}
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <span style={{ fontSize: 100, fontWeight: 900, color: '#C85A5A', lineHeight: 1 }}>{letter}</span>
+          <span style={{ fontSize: letter ? 100 : 40, fontWeight: 900, color: '#C85A5A', lineHeight: 1, letterSpacing: letter ? undefined : '0.1em' }}>{letter || 'EPILOGUE'}</span>
         </div>
 
         {isCatchup && (

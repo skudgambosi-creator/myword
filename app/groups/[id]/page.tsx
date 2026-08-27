@@ -260,13 +260,13 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               {/* Week label top-left */}
               {activeWeek && (
                 <div style={{ position: 'absolute', top: 14, left: 18, fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', zIndex: 1 }}>
-                  Week {activeWeek.week_num} of 26
+                  {activeWeek.letter ? `Week ${activeWeek.week_num} of 26` : 'The Collection Week'}
                 </div>
               )}
-              {/* Big letter centred */}
+              {/* Big letter centred (or EPILOGUE for the letter-less week) */}
               {activeWeek && (
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: 110, fontWeight: 900, lineHeight: 1, color: 'rgba(255,255,255,0.92)', fontFamily: 'monospace', zIndex: 1, pointerEvents: 'none' }}>
-                  {activeWeek.letter}
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: activeWeek.letter ? 110 : 42, fontWeight: 900, lineHeight: 1, color: 'rgba(255,255,255,0.92)', fontFamily: 'monospace', zIndex: 1, pointerEvents: 'none', letterSpacing: activeWeek.letter ? undefined : '0.1em' }}>
+                  {activeWeek.letter || 'EPILOGUE'}
                 </div>
               )}
               {/* Timer bottom-left */}
@@ -283,7 +283,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               {activeWeek && currentWeek && (
                 mySubmission ? (
                   <Link
-                    href={`/groups/${params.id}/submit?edit=1`}
+                    href={activeWeek.letter ? `/groups/${params.id}/submit?edit=1` : `/groups/${params.id}/collection`}
                     style={{ display: 'block', borderRadius: '999px', border: '1px solid #000', padding: '9px 10px', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', background: 'transparent', color: '#000', textAlign: 'center', textDecoration: 'none', transition: 'background 0.15s, color 0.15s', width: '100%', boxSizing: 'border-box' }}
                     onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000' }}
@@ -292,7 +292,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                   </Link>
                 ) : (
                   <Link
-                    href={`/groups/${params.id}/submit`}
+                    href={activeWeek.letter ? `/groups/${params.id}/submit` : `/groups/${params.id}/collection`}
                     style={{ display: 'block', borderRadius: '999px', border: '1px solid #C85A5A', padding: '9px 10px', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', background: '#C85A5A', color: '#fff', textAlign: 'center', textDecoration: 'none', transition: 'background 0.15s, color 0.15s, border-color 0.15s', width: '100%', boxSizing: 'border-box' }}
                     onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.borderColor = '#000' }}
                     onMouseLeave={e => { e.currentTarget.style.background = '#C85A5A'; e.currentTarget.style.borderColor = '#C85A5A' }}
@@ -327,7 +327,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
           return (
             <div style={CARD}>
               <div style={{ fontSize: 9, textTransform: 'uppercase', color: '#999', letterSpacing: '0.12em', padding: '14px 20px 12px' }}>
-                Most recently revealed · {lastRevealedWeek.letter}
+                Most recently revealed · {lastRevealedWeek.letter || 'Epilogue'}
               </div>
               {displayPieces.map((sub: any) => {
                 const isMostLoved = sub.id === mostLovedId
@@ -360,14 +360,14 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               })}
               <div style={{ borderTop: '1px solid #000', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px' }}>
                 <span style={{ fontSize: 9, textTransform: 'uppercase', color: '#888', letterSpacing: '0.08em' }}>
-                  Week {lastRevealedWeek.week_num} of 26
+                  {lastRevealedWeek.letter ? `Week ${lastRevealedWeek.week_num} of 26` : 'The Collection Week'}
                 </span>
                 <span
-                  onClick={() => router.push(`/groups/${params.id}/submissions?view=read&letter=${lastRevealedWeek.letter}`)}
+                  onClick={() => router.push(`/groups/${params.id}/submissions?view=read&letter=${lastRevealedWeek.letter || 'Epilogue'}`)}
                   className="pill-hover"
                   style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.08em' }}
                 >
-                  Read all of {lastRevealedWeek.letter} →
+                  Read all of {lastRevealedWeek.letter || 'the epilogue'} →
                 </span>
               </div>
             </div>

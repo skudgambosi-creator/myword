@@ -318,11 +318,12 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
   // Get subs for current tab
   const currentTabSubs = tab === 'all' ? azSubs : tab === 'mine' ? mySubs : favouriteSubs
 
-  // Group subs by letter, return sorted sections
+  // Group subs by letter, return sorted sections.
+  // A letter-less week (the epilogue) groups under 'Epilogue' rather than
+  // being dropped — sorts last for free since its week_num is the highest.
   const buildLetterSections = (subs: any[], ascending = false) => {
     const grouped = subs.reduce((acc: Record<string, any[]>, sub: any) => {
-      const letter = sub.weeks?.letter
-      if (!letter) return acc
+      const letter = sub.weeks?.letter || 'Epilogue'
       if (!acc[letter]) acc[letter] = []
       acc[letter].push(sub)
       return acc
@@ -392,7 +393,7 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
             : letterSections.map(({ letter, weekId, subs: weekSubs }) => (
               <div key={weekId} style={{ marginBottom: 64 }}>
                 {/* Letter anchor + header */}
-                <div id={`letter-${letter}`} style={{ textAlign: 'center', fontSize: 80, fontWeight: 900, color: '#C85A5A', lineHeight: 1, marginBottom: 8 }}>
+                <div id={`letter-${letter}`} style={{ textAlign: 'center', fontSize: letter === 'Epilogue' ? 40 : 80, fontWeight: 900, color: '#C85A5A', lineHeight: 1, marginBottom: 8, letterSpacing: letter === 'Epilogue' ? '0.1em' : undefined, textTransform: letter === 'Epilogue' ? 'uppercase' : undefined }}>
                   {letter}
                 </div>
                 <hr style={{ border: 'none', borderTop: '1px solid #000', margin: '0 0 32px' }} />
@@ -598,7 +599,7 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
               // ── TITLES MODE ──
               indexSections.map(({ letter, weekId, subs: weekSubs }, gi) => (
                 <div key={weekId}>
-                  <div style={{ textAlign: 'center', fontSize: 48, fontWeight: 900, fontFamily: 'monospace', color: '#000', marginBottom: 8, marginTop: gi > 0 ? 32 : 0 }}>
+                  <div style={{ textAlign: 'center', fontSize: letter === 'Epilogue' ? 24 : 48, fontWeight: 900, fontFamily: 'monospace', color: '#000', marginBottom: 8, marginTop: gi > 0 ? 32 : 0, letterSpacing: letter === 'Epilogue' ? '0.1em' : undefined, textTransform: letter === 'Epilogue' ? 'uppercase' : undefined }}>
                     {letter}
                   </div>
                   {weekSubs.map(sub => {
@@ -647,7 +648,7 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
               // ── BLURBS MODE ──
               indexSections.map(({ letter, weekId, subs: weekSubs }, gi) => (
                 <div key={weekId}>
-                  <div style={{ textAlign: 'center', fontSize: 48, fontWeight: 900, fontFamily: 'monospace', color: '#000', marginBottom: 8, marginTop: gi > 0 ? 32 : 0 }}>
+                  <div style={{ textAlign: 'center', fontSize: letter === 'Epilogue' ? 24 : 48, fontWeight: 900, fontFamily: 'monospace', color: '#000', marginBottom: 8, marginTop: gi > 0 ? 32 : 0, letterSpacing: letter === 'Epilogue' ? '0.1em' : undefined, textTransform: letter === 'Epilogue' ? 'uppercase' : undefined }}>
                     {letter}
                   </div>
                   {weekSubs.map(sub => {
