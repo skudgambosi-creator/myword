@@ -22,26 +22,33 @@ const styles = StyleSheet.create({
 
 // One page per piece — simplest way to get correct, automatic pagination
 // for pieces of very different lengths without hand-computing page breaks.
+// withCover: false is for batch 2+ of a chunked "all" export, where the
+// cover page was already produced by batch 1 and the batches get merged
+// afterward — without this, every batch would carry its own cover page.
 export function buildAlphabetDocument({
   docTitle,
   coverTitle,
   coverSubtitle,
   pieces,
+  withCover = true,
 }: {
   docTitle: string
   coverTitle: string
   coverSubtitle: string
   pieces: ExportPiece[]
+  withCover?: boolean
 }) {
   return (
     <Document title={docTitle}>
-      <Page size="A4" style={styles.page}>
-        <View style={{ flex: 1, justifyContent: 'center' }}>
-          <Text style={styles.coverTitle}>{coverTitle}</Text>
-          <Text style={styles.coverSubtitle}>{coverSubtitle}</Text>
-        </View>
-        <Text style={styles.coverNote}>my-word.co.uk</Text>
-      </Page>
+      {withCover && (
+        <Page size="A4" style={styles.page}>
+          <View style={{ flex: 1, justifyContent: 'center' }}>
+            <Text style={styles.coverTitle}>{coverTitle}</Text>
+            <Text style={styles.coverSubtitle}>{coverSubtitle}</Text>
+          </View>
+          <Text style={styles.coverNote}>my-word.co.uk</Text>
+        </Page>
+      )}
 
       {pieces.map((p, i) => (
         <Page key={i} size="A4" style={styles.page} wrap>

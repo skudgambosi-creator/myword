@@ -5,26 +5,24 @@ import { buildAlphabetDocument, type ExportPiece } from '@/lib/export/buildPdf'
 
 export const maxDuration = 60
 
-type ExportType = 'mine' | 'favourites' | 'all'
+type ExportType = 'mine' | 'favourites'
 
+// Direct synchronous downloads — both benchmark at ~11s for a season's
+// worth of pieces, comfortably inside Vercel's limits. The much bigger
+// "all" export is a POST to ./all instead: it returns immediately and
+// emails a download link once a chunked background job finishes, since a
+// single request can't render the whole archive in time (see that route).
+//
 // Every query in this route deliberately never selects is_signed or
 // signed_name — a downloaded file never carries a real name, regardless of
 // whether the piece was originally signed on-site. "Mine" includes the
 // requester's own catch-up pieces (their own work, no reason to hide it from
-// themselves); "favourites" and "all" never include anyone's catch-up
-// pieces — those stay author-only, on-site or off.
+// themselves); "favourites" never includes anyone's catch-up pieces — those
+// stay author-only, on-site or off.
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const type = (req.nextUrl.searchParams.get('type') || 'mine') as ExportType
-  if (!['mine', 'favourites', 'all'].includes(type)) {
+  if (!['mine', 'favourites'].includes(type)) {
     return NextResponse.json({ error: 'Invalid export type' }, { status: 400 })
-  }
-  // 'all' is disabled for now — benchmarked at real production scale
-  // (~258 pieces) at 121s+ for render alone, before network image-fetch
-  // time, well past any viable synchronous serverless request. Needs an
-  // async generate-and-email approach before it can ship; not built yet.
-  // See the Patch 05 handover for the decision this is waiting on.
-  if (type === 'all') {
-    return NextResponse.json({ error: 'This export is not available yet' }, { status: 501 })
   }
 
   const supabase = createClient()

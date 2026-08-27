@@ -64,6 +64,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   const [communityFavourites, setCommunityFavourites] = useState<Record<string, string>>({})
   const [displayPieces, setDisplayPieces] = useState<any[]>([])
   const [timerString, setTimerString] = useState('--:--:--')
+  const [allExportStatus, setAllExportStatus] = useState<'idle' | 'starting' | 'started' | 'error'>('idle')
   const rulesInitialized = useRef(false)
 
   useEffect(() => {
@@ -192,6 +193,18 @@ export default function GroupPage({ params }: { params: { id: string } }) {
     init()
   }, [])
 
+  const handleDownloadAll = async () => {
+    setAllExportStatus('starting')
+    try {
+      const res = await fetch(`/api/groups/${params.id}/export/all`, { method: 'POST' })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) throw new Error(data?.error || 'Failed to start')
+      setAllExportStatus('started')
+    } catch {
+      setAllExportStatus('error')
+    }
+  }
+
   if (loading) return (
     <div style={{ minHeight: '100vh' }}>
       <Nav />
@@ -259,6 +272,21 @@ export default function GroupPage({ params }: { params: { id: string } }) {
               >
                 DOWNLOAD FAVOURITES
               </a>
+            </div>
+            <div>
+              {allExportStatus === 'started' ? (
+                <div style={{ textAlign: 'center', fontSize: 10, letterSpacing: '0.08em', color: '#888', padding: '8px 0' }}>
+                  On its way — check your email in a few minutes.
+                </div>
+              ) : (
+                <button
+                  onClick={handleDownloadAll}
+                  disabled={allExportStatus === 'starting'}
+                  style={{ width: '100%', display: 'block', borderRadius: '999px', border: '1px solid #000', padding: '11px 10px', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', background: 'transparent', color: '#000', textAlign: 'center', cursor: allExportStatus === 'starting' ? 'default' : 'pointer' }}
+                >
+                  {allExportStatus === 'starting' ? '...' : allExportStatus === 'error' ? 'Something went wrong — try again' : 'Download the full archive (emailed to you)'}
+                </button>
+              )}
             </div>
           </div>
         )}
