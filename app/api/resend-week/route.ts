@@ -1,29 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email'
+import { getCurrentGroup } from '@/lib/groups/current'
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-// POST body: { weekNum: 1, emails: ["a@b.com", "c@d.com"] }
+// POST body: { weekNum: 1, emails: ["a@b.com", "c@d.com"], groupId? }
 // Resends the reveal email for a given week to specific addresses only.
+// groupId defaults to the current group — pass it explicitly to resend
+// a week from a past (e.g. completed) group instead.
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { weekNum, emails, customBody } = await req.json()
+  const { weekNum, emails, customBody, groupId } = await req.json()
   if (!weekNum || !emails?.length) {
     return NextResponse.json({ error: 'weekNum and emails required' }, { status: 400 })
   }
 
   const supabase = createServiceClient()
 
+  const targetGroupId = groupId || (await getCurrentGroup(supabase))?.id
+  if (!targetGroupId) return NextResponse.json({ error: 'No current group and no groupId given' }, { status: 400 })
+
   const { data: week } = await supabase
     .from('weeks')
     .select('*, groups(*)')
     .eq('week_num', weekNum)
-    .eq('group_id', '00000000-0000-0000-0000-000000000001')
+    .eq('group_id', targetGroupId)
     .single()
 
   if (!week) return NextResponse.json({ error: 'Week not found' }, { status: 404 })

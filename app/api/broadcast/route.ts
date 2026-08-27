@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email'
-
-const ALPHABET_PROJECT_ID = '00000000-0000-0000-0000-000000000001'
+import { getCurrentGroup } from '@/lib/groups/current'
 
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get('authorization')
@@ -12,14 +11,17 @@ export async function POST(req: NextRequest) {
 
   const supabase = createServiceClient()
 
+  const group = await getCurrentGroup(supabase)
+  if (!group) return NextResponse.json({ error: 'No current group' }, { status: 400 })
+
   const { data: members } = await supabase
     .from('group_members')
     .select('user_id, users(*)')
-    .eq('group_id', ALPHABET_PROJECT_ID)
+    .eq('group_id', group.id)
 
   if (!members?.length) return NextResponse.json({ error: 'No members' }, { status: 400 })
 
-  const groupUrl = `${process.env.NEXT_PUBLIC_APP_URL}/groups/${ALPHABET_PROJECT_ID}`
+  const groupUrl = `${process.env.NEXT_PUBLIC_APP_URL}/groups/${group.id}`
   let sent = 0
 
   for (const member of members) {

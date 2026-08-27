@@ -217,12 +217,31 @@ export default function GroupPage({ params }: { params: { id: string } }) {
         {/* Card 1 — Header */}
         <div style={CARD}>
           <div className="group-title-box" style={{ border: 'none', marginBottom: 0 }}>
-            <div style={{ fontSize: 22, letterSpacing: '0.2em', textTransform: 'uppercase' }}>THE ALPHABET PROJECT</div>
-            <div style={{ fontSize: 11, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: 6 }}>SEASON 1</div>
+            <div style={{ fontSize: 22, letterSpacing: '0.2em', textTransform: 'uppercase' }}>{group?.name}</div>
           </div>
         </div>
 
-        {/* Card 2 — Hero widget */}
+        {/* Card 2 — Hero widget (active season) / simplified links (completed season) */}
+        {isCompleted && (
+          <div style={{ ...CARD, padding: '14px 16px', display: 'flex', gap: 8 }}>
+            <Link
+              href={`/groups/${params.id}/leaderboard`}
+              style={{ flex: 1, display: 'block', borderRadius: '999px', border: '1px solid #000', padding: '11px 10px', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', background: 'transparent', color: '#000', textAlign: 'center', textDecoration: 'none', transition: 'background 0.15s, color 0.15s' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000' }}
+            >
+              LEADERBOARD
+            </Link>
+            <Link
+              href={`/groups/${params.id}/submissions`}
+              style={{ flex: 1, display: 'block', borderRadius: '999px', border: '1px solid #000', padding: '11px 10px', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', background: 'transparent', color: '#000', textAlign: 'center', textDecoration: 'none', transition: 'background 0.15s, color 0.15s' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000' }}
+            >
+              READ
+            </Link>
+          </div>
+        )}
         {!isCompleted && (
           <div style={{ ...CARD, display: 'grid', gridTemplateColumns: '1fr auto' }}>
             {/* Left: saturn photo panel */}

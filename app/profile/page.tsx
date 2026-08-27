@@ -4,15 +4,15 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Nav from '@/components/layout/Nav'
-
-const ALPHABET_PROJECT_ID = '00000000-0000-0000-0000-000000000001'
-
+import { getCurrentGroup } from '@/lib/groups/current'
 
 export default function ProfilePage() {
   const router = useRouter()
   const supabase = createClient()
   const [profile, setProfile] = useState<any>(null)
   const [userId, setUserId] = useState<string | null>(null)
+  const [currentGroup, setCurrentGroup] = useState<any>(null)
+  const [completedSeasons, setCompletedSeasons] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [envelopeOpen, setEnvelopeOpen] = useState(false)
   const [mutuals, setMutuals] = useState<any[]>([])
@@ -26,13 +26,25 @@ export default function ProfilePage() {
       setUserId(session.user.id)
       const { data: prof } = await supabase.from('users').select('*').eq('id', session.user.id).single()
       setProfile(prof)
+
+      const group = await getCurrentGroup(supabase)
+      setCurrentGroup(group)
+
+      const { data: memberships } = await supabase
+        .from('group_members').select('groups(*)').eq('user_id', session.user.id)
+      const completed = (memberships || [])
+        .map((m: any) => m.groups)
+        .filter((g: any) => g && g.completed_at)
+      setCompletedSeasons(completed)
+
       setLoading(false)
     }
     init()
   }, [])
 
   const fetchMutuals = async () => {
-    const res = await fetch(`/api/envelope/mutuals?group_id=${ALPHABET_PROJECT_ID}`)
+    if (!currentGroup) return
+    const res = await fetch(`/api/envelope/mutuals?group_id=${currentGroup.id}`)
     const data = await res.json()
     setMutuals(data)
     const inputs: Record<string, string> = {}
@@ -68,7 +80,7 @@ export default function ProfilePage() {
         {/* PROFILE heading — centred, GO BACK absolute left */}
         <div style={{ position: 'relative', textAlign: 'center', marginBottom: 20 }}>
           <Link
-            href={`/groups/${ALPHABET_PROJECT_ID}`}
+            href={currentGroup ? `/groups/${currentGroup.id}` : '/dashboard'}
             className="pill-hover"
             style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}
           >
@@ -119,6 +131,25 @@ export default function ProfilePage() {
             <img src="/saturn.svg" alt="Saturn symbol" style={{ width: '55%', height: 'auto', display: 'block' }} />
           </div>
         </div>
+
+        {/* Completed seasons — only reachable from here once a group drops off the dashboard */}
+        {completedSeasons.length > 0 && (
+          <div style={{ border: '1px solid #000', borderTop: 'none', marginBottom: 0 }}>
+            <div style={{ fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#888', padding: '14px 20px 10px' }}>
+              Completed seasons
+            </div>
+            {completedSeasons.map((g: any) => (
+              <Link
+                key={g.id}
+                href={`/groups/${g.id}`}
+                className="pill-hover"
+                style={{ display: 'block', textDecoration: 'none', color: 'inherit', padding: '14px 20px', borderTop: '1px solid #eee', fontSize: 13 }}
+              >
+                {g.name}
+              </Link>
+            ))}
+          </div>
+        )}
 
         {/* CHANGE PASSWORD button */}
         <Link href="/forgot-password" className="btn-black" style={{ display: 'block', width: '100%', padding: '18px', fontSize: 15 }}>

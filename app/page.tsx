@@ -2,8 +2,6 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
-const ALPHABET_PROJECT_ID = '00000000-0000-0000-0000-000000000001'
-
 function PreAuthHeader({ title }: { title: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', padding: '28px 40px 0', gap: 16 }}>
