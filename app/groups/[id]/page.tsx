@@ -223,23 +223,43 @@ export default function GroupPage({ params }: { params: { id: string } }) {
 
         {/* Card 2 — Hero widget (active season) / simplified links (completed season) */}
         {isCompleted && (
-          <div style={{ ...CARD, padding: '14px 16px', display: 'flex', gap: 8 }}>
-            <Link
-              href={`/groups/${params.id}/leaderboard`}
-              style={{ flex: 1, display: 'block', borderRadius: '999px', border: '1px solid #000', padding: '11px 10px', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', background: 'transparent', color: '#000', textAlign: 'center', textDecoration: 'none', transition: 'background 0.15s, color 0.15s' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000' }}
-            >
-              LEADERBOARD
-            </Link>
-            <Link
-              href={`/groups/${params.id}/submissions`}
-              style={{ flex: 1, display: 'block', borderRadius: '999px', border: '1px solid #000', padding: '11px 10px', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', background: 'transparent', color: '#000', textAlign: 'center', textDecoration: 'none', transition: 'background 0.15s, color 0.15s' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000' }}
-            >
-              READ
-            </Link>
+          <div style={{ ...CARD, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Link
+                href={`/groups/${params.id}/leaderboard`}
+                style={{ flex: 1, display: 'block', borderRadius: '999px', border: '1px solid #000', padding: '11px 10px', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', background: 'transparent', color: '#000', textAlign: 'center', textDecoration: 'none', transition: 'background 0.15s, color 0.15s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000' }}
+              >
+                LEADERBOARD
+              </Link>
+              <Link
+                href={`/groups/${params.id}/submissions`}
+                style={{ flex: 1, display: 'block', borderRadius: '999px', border: '1px solid #000', padding: '11px 10px', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', background: 'transparent', color: '#000', textAlign: 'center', textDecoration: 'none', transition: 'background 0.15s, color 0.15s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000' }}
+              >
+                READ
+              </Link>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <a
+                href={`/api/groups/${params.id}/export?type=mine`}
+                style={{ flex: 1, display: 'block', borderRadius: '999px', border: '1px solid #C85A5A', padding: '11px 10px', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', background: 'transparent', color: '#C85A5A', textAlign: 'center', textDecoration: 'none', transition: 'background 0.15s, color 0.15s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#C85A5A'; e.currentTarget.style.color = '#fff' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#C85A5A' }}
+              >
+                DOWNLOAD YOUR ALPHABET
+              </a>
+              <a
+                href={`/api/groups/${params.id}/export?type=favourites`}
+                style={{ flex: 1, display: 'block', borderRadius: '999px', border: '1px solid #C85A5A', padding: '11px 10px', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', background: 'transparent', color: '#C85A5A', textAlign: 'center', textDecoration: 'none', transition: 'background 0.15s, color 0.15s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#C85A5A'; e.currentTarget.style.color = '#fff' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#C85A5A' }}
+              >
+                DOWNLOAD FAVOURITES
+              </a>
+            </div>
           </div>
         )}
         {!isCompleted && (
