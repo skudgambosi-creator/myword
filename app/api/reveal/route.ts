@@ -67,24 +67,30 @@ async function revealWeek(supabase: any, week: any, group: any) {
     }, { onConflict: 'group_id,user_id,week_id' })
   }
 
-  if (week.week_num === 26) {
-    await supabase
-      .from('groups')
-      .update({ completed_at: new Date().toISOString() })
-      .eq('id', group.id)
-    await sendFinalEmail(supabase, week, group, members)
-    return
-  }
-
-  // Auto-open next week immediately if it hasn't started yet
+  // A group's last week is whichever one has no successor — not a hardcoded
+  // week number, so this keeps working regardless of how many weeks a given
+  // group (Season 1, the interim project, Season 2, ...) actually runs.
   const { data: nextWeek } = await supabase
     .from('weeks')
     .select('id, opens_at')
     .eq('group_id', group.id)
     .eq('week_num', week.week_num + 1)
-    .single()
+    .maybeSingle()
 
-  if (nextWeek && new Date(nextWeek.opens_at) > new Date()) {
+  if (!nextWeek) {
+    await supabase
+      .from('groups')
+      .update({ completed_at: new Date().toISOString() })
+      .eq('id', group.id)
+    // The group's last week still gets a normal reveal email — same rules
+    // as every other week — followed by the separate season wrap-up email.
+    await sendRevealEmail(week, group, submissions || [], members || [])
+    await sendFinalEmail(supabase, week, group, members)
+    return
+  }
+
+  // Auto-open next week immediately if it hasn't started yet
+  if (new Date(nextWeek.opens_at) > new Date()) {
     await supabase
       .from('weeks')
       .update({ opens_at: new Date().toISOString() })
@@ -171,7 +177,7 @@ async function sendRevealEmail(week: any, group: any, submissions: any[], member
     await sleep(600)
     await sendEmail({
       to: email,
-      subject: `The Alphabet Project — ${week.letter}`,
+      subject: `The Alphabet Project — ${week.letter || 'Epilogue'}`,
       html: `
         <style>@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');</style>
         <div style="font-family: 'Inconsolata', 'Courier New', Courier, monospace; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #000;">
@@ -179,7 +185,7 @@ async function sendRevealEmail(week: any, group: any, submissions: any[], member
             <img src="https://www.my-word.co.uk/saturn.svg" alt="My Word" width="80" height="auto" style="display: inline-block;" />
           </div>
           <p style="font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 32px;">
-            Week ${week.week_num} of 26 · Letter ${week.letter}
+            ${week.letter ? `Week ${week.week_num} of 26 · Letter ${week.letter}` : `Week ${week.week_num} · The Collection Week`}
           </p>
 
           <p style="font-size: 15px; line-height: 1.8; margin-bottom: 32px;">${body}</p>
