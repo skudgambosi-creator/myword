@@ -1,5 +1,6 @@
 import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer'
 import React from 'react'
+import path from 'path'
 import { renderBodyHtml, extractImageUrls, resolveImages, type ResolvedImage } from './richText'
 
 export interface ExportPiece {
@@ -19,11 +20,19 @@ export interface CompletionGrid {
 // Inconsolata as the base font-family everywhere). Only regular and bold are
 // registered — Inconsolata has no italic face on Google Fonts, so
 // fontStyle: 'italic' degrades to normal rather than a fake slant.
+//
+// Bundled locally rather than fetched from Google Fonts at render time — a
+// live "all" export job failed in production with "Could not resolve font
+// for Inconsolata" (react-pdf's own remote font fetch, not the image-fetch
+// path), almost certainly a transient network hiccup, but a real-world
+// failure mode we don't get a second chance at on the actual season close.
+// Shipping the font as part of the deployment removes that dependency
+// entirely.
 Font.register({
   family: 'Inconsolata',
   fonts: [
-    { src: 'https://fonts.gstatic.com/s/inconsolata/v37/QldgNThLqRwH-OJ1UHjlKENVzkWGVkL3GZQmAwLYxYWI2qfdm7Lpp4U8aRo.ttf', fontWeight: 400 },
-    { src: 'https://fonts.gstatic.com/s/inconsolata/v37/QldgNThLqRwH-OJ1UHjlKENVzkWGVkL3GZQmAwLYxYWI2qfdm7Lpp2I7aRo.ttf', fontWeight: 700 },
+    { src: path.join(process.cwd(), 'lib/export/fonts/Inconsolata-Regular.ttf'), fontWeight: 400 },
+    { src: path.join(process.cwd(), 'lib/export/fonts/Inconsolata-Bold.ttf'), fontWeight: 700 },
   ],
 })
 
