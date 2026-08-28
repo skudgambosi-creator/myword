@@ -1,7 +1,7 @@
 import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer'
 import React from 'react'
-import path from 'path'
 import { renderBodyHtml, extractImageUrls, resolveImages, type ResolvedImage } from './richText'
+import { INCONSOLATA_REGULAR_BASE64, INCONSOLATA_BOLD_BASE64 } from './fontData'
 
 export interface ExportPiece {
   weekLabel: string // e.g. 'A', or 'Epilogue' for the letter-less week
@@ -21,20 +21,31 @@ export interface CompletionGrid {
 // registered — Inconsolata has no italic face on Google Fonts, so
 // fontStyle: 'italic' degrades to normal rather than a fake slant.
 //
-// Bundled locally rather than fetched from Google Fonts at render time — a
-// live "all" export job failed in production with "Could not resolve font
-// for Inconsolata" (react-pdf's own remote font fetch, not the image-fetch
-// path), almost certainly a transient network hiccup, but a real-world
-// failure mode we don't get a second chance at on the actual season close.
-// Shipping the font as part of the deployment removes that dependency
-// entirely.
-Font.register({
-  family: 'Inconsolata',
-  fonts: [
-    { src: path.join(process.cwd(), 'lib/export/fonts/Inconsolata-Regular.ttf'), fontWeight: 400 },
-    { src: path.join(process.cwd(), 'lib/export/fonts/Inconsolata-Bold.ttf'), fontWeight: 700 },
-  ],
-})
+// Embedded as base64 data URIs rather than a remote URL or a bundled file
+// path — two production failures in a row on the "all" export ("Could not
+// resolve font for Inconsolata"), the second one *after* bundling the .ttf
+// files locally and confirming via the actual build trace that they were
+// included. That error comes from react-pdf's FontStore.resolve() finding
+// zero registered sources for the family/weight at render time, which
+// means register() hadn't taken effect yet in that invocation — a
+// module-load timing issue, not a missing-file one. A data: URI needs
+// neither a network fetch nor a filesystem read (react-pdf decodes it
+// in-memory), and registerFonts() is called defensively at the start of
+// every document build rather than trusted to have run once at import
+// time, so there's no remaining window where a render could see an empty
+// FontStore.
+let fontsRegistered = false
+function registerFonts() {
+  if (fontsRegistered) return
+  Font.register({
+    family: 'Inconsolata',
+    fonts: [
+      { src: `data:font/ttf;base64,${INCONSOLATA_REGULAR_BASE64}`, fontWeight: 400 },
+      { src: `data:font/ttf;base64,${INCONSOLATA_BOLD_BASE64}`, fontWeight: 700 },
+    ],
+  })
+  fontsRegistered = true
+}
 
 const ACCENT = '#C85A5A'
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
@@ -142,6 +153,7 @@ export async function buildFlatDocument({
   pieces: ExportPiece[]
   completionGrid?: CompletionGrid
 }) {
+  registerFonts()
   const images = await resolveImagesForPieces(pieces)
   return (
     <Document title={docTitle}>
@@ -174,6 +186,7 @@ export async function buildAllBatchDocument({
   withCover: boolean
   leadingLetterCarry: string | null
 }): Promise<{ document: React.ReactElement; lastLetter: string | null }> {
+  registerFonts()
   const images = await resolveImagesForPieces(pieces)
 
   const groups: { letter: string; items: ExportPiece[] }[] = []
