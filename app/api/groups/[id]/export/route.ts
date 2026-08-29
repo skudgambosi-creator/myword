@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { renderToBuffer } from '@react-pdf/renderer'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { buildFlatDocument, type ExportPiece, type CompletionGrid } from '@/lib/export/buildPdf'
 
@@ -109,7 +108,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     }
   }
 
-  const doc = await buildFlatDocument({
+  const buffer = await buildFlatDocument({
     docTitle: `${group.name} — ${coverSubtitle}`,
     coverTitle: group.name,
     coverSubtitle,
@@ -117,7 +116,6 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     completionGrid,
   })
 
-  const buffer = await renderToBuffer(doc)
   const filename = `${group.name.replace(/[^a-zA-Z0-9]+/g, '-')}-${type}.pdf`
 
   return new NextResponse(new Uint8Array(buffer), {

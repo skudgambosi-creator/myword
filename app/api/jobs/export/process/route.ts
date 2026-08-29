@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { renderToBuffer } from '@react-pdf/renderer'
 import { waitUntil } from '@vercel/functions'
 import { createServiceClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email'
@@ -56,7 +55,7 @@ export async function POST(req: NextRequest) {
     const { data: group } = await service.from('groups').select('name').eq('id', job.group_id).maybeSingle()
     const groupName = group?.name || 'The Alphabet Project'
 
-    const { document: doc, lastLetter } = await buildAllBatchDocument({
+    const { buffer: batchBuffer, lastLetter } = await buildAllBatchDocument({
       docTitle: `${groupName} — The Full Archive`,
       coverTitle: groupName,
       coverSubtitle: 'The Full Archive',
@@ -64,7 +63,6 @@ export async function POST(req: NextRequest) {
       withCover: job.next_index === 0,
       leadingLetterCarry: job.last_letter,
     })
-    const batchBuffer = await renderToBuffer(doc)
 
     const storagePath = `${jobId}.pdf`
     let mergedBuffer: Buffer
