@@ -24,17 +24,29 @@ export async function POST(req: NextRequest) {
     .select('*, groups(*)')
     .lt('closes_at', now.toISOString())
     .is('revealed_at', null)
+    .order('closes_at', { ascending: true }) // oldest overdue first
 
   if (!weeksToReveal?.length) {
     return NextResponse.json({ message: 'No weeks to reveal' })
   }
 
+  // Only reveal the single oldest overdue week per group, per run.
+  // If multiple weeks are somehow overdue+unrevealed at once, this
+  // processes one per cron tick rather than blasting emails for all of them.
+  const seenGroups = new Set<string>()
+  const toProcess = []
   for (const week of weeksToReveal) {
+    if (seenGroups.has(week.group_id)) continue
+    seenGroups.add(week.group_id)
+    toProcess.push(week)
+  }
+
+  for (const week of toProcess) {
     const group = week.groups as any
     await revealWeek(supabase, week, group)
   }
 
-  return NextResponse.json({ revealed: weeksToReveal.length })
+  return NextResponse.json({ revealed: toProcess.length })
 }
 
 async function revealWeek(supabase: any, week: any, group: any) {
