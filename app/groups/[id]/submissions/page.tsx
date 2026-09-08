@@ -305,8 +305,8 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
   const favouriteSubs = azSubs.filter(s => communityFavourites[s.week_id] === s.id).sort((a: any, b: any) => a.weeks?.week_num - b.weeks?.week_num)
 
   const tabBtn = (active: boolean) => ({
-    padding: '5px 16px', fontSize: 10, letterSpacing: '0.1em',
-    textTransform: 'uppercase' as const, cursor: 'pointer', fontFamily: 'monospace',
+    width: 64, padding: '5px 0', fontSize: 10, letterSpacing: '0.1em',
+    textTransform: 'uppercase' as const, textAlign: 'center' as const, cursor: 'pointer', fontFamily: 'monospace',
     borderRadius: 20, border: '1px solid #000', marginLeft: -1,
     background: active ? '#000' : 'transparent', color: active ? '#fff' : '#000',
   })
@@ -355,44 +355,46 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <Nav />
         <main className="page-main">
-          {/* Header */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', alignItems: 'center', marginBottom: 24 }}>
-            <div>
-              <button
-                onClick={() => { setReadView(false); readMounted.current = false }}
-                className="pill-hover"
-                style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'none', border: 'none', fontFamily: 'inherit' }}
-              >
-                GO BACK
-              </button>
+          {/* Header + filter tabs — sticky so the filter stays reachable while scrolling a long read */}
+          <div style={{ position: 'sticky', top: 0, background: '#fff', zIndex: 30, paddingTop: 4, marginBottom: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', alignItems: 'center', marginBottom: 20 }}>
+              <div>
+                <button
+                  onClick={() => { setReadView(false); readMounted.current = false }}
+                  className="pill-hover"
+                  style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'none', border: '1px solid #000', fontFamily: 'inherit' }}
+                >
+                  GO BACK
+                </button>
+              </div>
+              <h1 style={{ fontSize: 22, fontWeight: 400, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', margin: 0, textAlign: 'center', fontFamily: 'inherit' }}>
+                READ
+              </h1>
+              <div />
             </div>
-            <h1 style={{ fontSize: 22, fontWeight: 400, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', margin: 0, textAlign: 'center', fontFamily: 'inherit' }}>
-              READ
-            </h1>
-            <div />
-          </div>
 
-          {/* Filter tabs — same ALL / MINE / ♥ control as the index view */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 32 }}>
-            <div style={{ display: 'flex' }}>
-              <button
-                onClick={() => { setReadFilter('all'); setTab('all') }}
-                style={tabBtn(readFilter === 'all')}
-              >
-                ALL
-              </button>
-              <button
-                onClick={() => { setReadFilter('mine'); setTab('mine') }}
-                style={tabBtn(readFilter === 'mine')}
-              >
-                MINE
-              </button>
-              <button
-                onClick={() => { setReadFilter('loved'); setTab('favourite') }}
-                style={tabBtn(readFilter === 'loved')}
-              >
-                ♥
-              </button>
+            {/* Filter tabs — same MINE / ♥ / ALL control as the index view */}
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div style={{ display: 'flex' }}>
+                <button
+                  onClick={() => { setReadFilter('mine'); setTab('mine') }}
+                  style={tabBtn(readFilter === 'mine')}
+                >
+                  MINE
+                </button>
+                <button
+                  onClick={() => { setReadFilter('loved'); setTab('favourite') }}
+                  style={tabBtn(readFilter === 'loved')}
+                >
+                  ♥
+                </button>
+                <button
+                  onClick={() => { setReadFilter('all'); setTab('all') }}
+                  style={tabBtn(readFilter === 'all')}
+                >
+                  ALL
+                </button>
+              </div>
             </div>
           </div>
 
@@ -551,7 +553,7 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
         {/* Header row */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', alignItems: 'center', marginBottom: 24 }}>
           <div>
-            <Link href={`/groups/${params.id}`} className="pill-hover" style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <Link href={`/groups/${params.id}`} className="pill-hover" style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', border: '1px solid #000' }}>
               GO BACK
             </Link>
           </div>
@@ -578,9 +580,9 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24 }}>
           <div style={{ flex: 1, height: 1, background: '#000' }} />
           <div style={{ display: 'flex' }}>
-            <button onClick={() => { setTab('all'); setReadView(false); setReadFilter('all') }} style={tabBtn(tab === 'all' && !readView)}>ALL</button>
             <button onClick={() => { switchToMine(); setReadFilter('mine') }} style={tabBtn(tab === 'mine' && !readView)}>MINE</button>
             <button onClick={() => { setTab('favourite'); setReadView(false); setReadFilter('loved') }} style={tabBtn(tab === 'favourite' && !readView)}>♥</button>
+            <button onClick={() => { setTab('all'); setReadView(false); setReadFilter('all') }} style={tabBtn(tab === 'all' && !readView)}>ALL</button>
           </div>
           <div style={{ flex: 1, height: 1, background: '#000' }} />
         </div>

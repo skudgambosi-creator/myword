@@ -37,16 +37,16 @@ export default function FeedbackWidget() {
           textTransform: 'uppercase',
           color: '#bbb',
           background: 'transparent',
-          border: 'none',
+          border: '1px solid #bbb',
           cursor: 'pointer',
           fontFamily: 'inherit',
-          padding: '3px 8px',
+          padding: '5px 12px',
           borderRadius: 20,
           zIndex: 50,
-          transition: 'color 0.15s',
+          transition: 'color 0.15s, border-color 0.15s',
         }}
-        onMouseEnter={e => (e.currentTarget.style.color = '#000')}
-        onMouseLeave={e => (e.currentTarget.style.color = '#bbb')}
+        onMouseEnter={e => { e.currentTarget.style.color = '#000'; e.currentTarget.style.borderColor = '#000' }}
+        onMouseLeave={e => { e.currentTarget.style.color = '#bbb'; e.currentTarget.style.borderColor = '#bbb' }}
       >
         Feedback
       </button>
