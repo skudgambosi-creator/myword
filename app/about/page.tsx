@@ -1,5 +1,13 @@
 import Nav from '@/components/layout/Nav'
 
+function Footer() {
+  return (
+    <footer style={{ textAlign: 'center', padding: '48px 0 28px' }}>
+      <span style={{ fontSize: 12, color: '#ccc', letterSpacing: '0.18em' }}>GAMBOSI</span>
+    </footer>
+  )
+}
+
 const sectionTitle = {
   textAlign: 'center' as const,
   fontSize: 22,
@@ -86,6 +94,8 @@ export default function AboutPage() {
         <p style={para}>The principle is simple: if you can understand and commit the most commonly used words, sentences, and patterns of a language, you have got the weaponry you need to become fluent. Currently these are flashcard games built on that principle, with more on the way. Conversation games, lessons, and whatever comes next.</p>
 
       </main>
+
+      <Footer />
     </div>
   )
 }
