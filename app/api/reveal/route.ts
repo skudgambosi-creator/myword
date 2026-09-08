@@ -67,16 +67,22 @@ async function revealWeek(supabase: any, week: any, group: any) {
     .select('*, users(*)')
     .eq('week_id', week.id)
 
-  // Write scores
-  for (const memberId of memberIds) {
-    const sub = submissions?.find((s: any) => s.user_id === memberId && !s.is_late_catchup)
-    await supabase.from('scores').upsert({
-      group_id: group.id,
-      user_id: memberId,
-      week_id: week.id,
-      score: sub ? 1 : 0,
-      is_late: false,
-    }, { onConflict: 'group_id,user_id,week_id' })
+  // Write scores — the epilogue (letter-less week) is a reflection week, not
+  // a scored one. "You get points for keeping your word. Miss a week, miss
+  // a point" and the site's "26 weeks... half a year of yourself" framing
+  // are both about the 26 lettered weeks, so it gets no scores row at all
+  // rather than an automatic point for everyone.
+  if (week.letter) {
+    for (const memberId of memberIds) {
+      const sub = submissions?.find((s: any) => s.user_id === memberId && !s.is_late_catchup)
+      await supabase.from('scores').upsert({
+        group_id: group.id,
+        user_id: memberId,
+        week_id: week.id,
+        score: sub ? 1 : 0,
+        is_late: false,
+      }, { onConflict: 'group_id,user_id,week_id' })
+    }
   }
 
   // A group's last week is whichever one has no successor — not a hardcoded
@@ -189,7 +195,7 @@ async function sendRevealEmail(week: any, group: any, submissions: any[], member
     await sleep(600)
     await sendEmail({
       to: email,
-      subject: `The Alphabet Project — ${week.letter || 'Epilogue'}`,
+      subject: `The Alphabet Project · ${week.letter || 'Epilogue'}`,
       html: `
         <style>@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');</style>
         <div style="font-family: 'Inconsolata', 'Courier New', Courier, monospace; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #000;">
@@ -213,7 +219,7 @@ async function sendRevealEmail(week: any, group: any, submissions: any[], member
           </div>
 
           <hr style="border: none; border-top: 1px solid #eee; margin: 40px 0 24px;" />
-          <p style="font-size: 11px; color: #999;">— My Word · <a href="https://www.my-word.co.uk" style="color: #999;">my-word.co.uk</a></p>
+          <p style="font-size: 11px; color: #999;">My Word · <a href="https://www.my-word.co.uk" style="color: #999;">my-word.co.uk</a></p>
         </div>
       `
     })
@@ -247,7 +253,7 @@ async function sendFinalEmail(supabase: any, week: any, group: any, members: any
     await sleep(600)
     await sendEmail({
       to: email,
-      subject: `MY WORD — A to Z. We made it.`,
+      subject: `MY WORD · A to Z. We made it.`,
       html: `
         <style>@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');</style>
         <div style="font-family: 'Inconsolata', 'Courier New', Courier, monospace; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #000;">
@@ -275,7 +281,7 @@ async function sendFinalEmail(supabase: any, week: any, group: any, members: any
 
           <p style="font-size: 13px; color: #555; margin-top: 32px;">See you next season x</p>
           <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
-          <p style="font-size: 11px; color: #999;">— My Word</p>
+          <p style="font-size: 11px; color: #999;">My Word</p>
         </div>
       `
     })

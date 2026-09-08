@@ -32,7 +32,9 @@ export default function LeaderboardPage({ params }: { params: { id: string } }) 
         .from('weeks').select('*').eq('group_id', params.id)
 
       const now = new Date()
-      const revealedWeeks = (weeks || []).filter((w: any) => w.revealed_at && new Date(w.revealed_at) < now)
+      // The epilogue (letter-less week) isn't scored, so it doesn't count
+      // toward "weeks elapsed" or the streak either.
+      const revealedWeeks = (weeks || []).filter((w: any) => w.letter && w.revealed_at && new Date(w.revealed_at) < now)
       setWeeksElapsed(revealedWeeks.length)
 
       const sortedWeeks = [...revealedWeeks].sort((a: any, b: any) => b.week_num - a.week_num)

@@ -80,7 +80,8 @@ function makeStyles(fontFamily: string) {
     title: { fontSize: 18, fontWeight: 700, marginBottom: 4 },
     attribution: { fontSize: 9, color: '#999', marginBottom: 16 },
     titleSpacer: { marginBottom: 16 },
-    dividerLetter: { fontSize: 140, fontWeight: 700, color: '#000' },
+    dividerLetter: { fontSize: 140, fontWeight: 700, color: '#000', textAlign: 'center' },
+    dividerLetterLong: { fontSize: 54, fontWeight: 700, color: '#000', textAlign: 'center' },
     gridTitle: { fontSize: 11, textTransform: 'uppercase', letterSpacing: 2, color: '#666', marginBottom: 20 },
     gridCount: { fontSize: 13, fontWeight: 700, marginBottom: 28 },
     gridRow: { flexDirection: 'row', marginBottom: 10 },
@@ -107,10 +108,14 @@ function CoverPage({ coverTitle, coverSubtitle, styles }: { coverTitle: string; 
 }
 
 function LetterDividerPage({ letter, styles }: { letter: string; styles: Styles }) {
+  // Single letters (A-Z) get the full-size treatment; the letter-less
+  // week's "Epilogue" divider is multiple characters wide and would
+  // overflow/wrap ugly at fontSize 140, so it gets a smaller size instead.
+  const isLong = letter.length > 1
   return (
     <Page size="A4" style={styles.page}>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={styles.dividerLetter}>{letter}</Text>
+        <Text style={isLong ? styles.dividerLetterLong : styles.dividerLetter}>{letter}</Text>
       </View>
     </Page>
   )
