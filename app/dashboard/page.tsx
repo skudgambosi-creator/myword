@@ -141,11 +141,11 @@ export default function DashboardPage() {
             onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = '#000'; el.style.color = '#fff' }}
             onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = ''; el.style.color = '' }}
           >
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 6 }}>
-              SEASON {seasonNum}
-            </div>
-            <div style={{ fontSize: 18, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8, color: 'inherit' }}>
+            <div style={{ fontSize: 18, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 6, color: 'inherit' }}>
               {group.name}
+            </div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 8 }}>
+              SEASON {seasonNum}
             </div>
             <div style={{ fontSize: 10, color: 'inherit', letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.5 }}>
               IN PROGRESS
@@ -202,10 +202,10 @@ export default function DashboardPage() {
       <main className="page-main">
 
         <div style={{ border: '1px solid #000', padding: '24px 32px', marginBottom: 24, textAlign: 'center' }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 8 }}>
+          <div style={{ fontSize: 22, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>{group.name}</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
             SEASON {seasonNum}
           </div>
-          <span style={{ fontSize: 22, letterSpacing: '0.2em', textTransform: 'uppercase' }}>{group.name}</span>
         </div>
 
         <div style={{ border: '1px solid #000', padding: '28px 32px', marginBottom: 24 }}>
