@@ -171,7 +171,7 @@ function renderAudioPlaceholder(key: string): React.ReactNode {
   return (
     <View key={key} style={{ marginBottom: 8, padding: 8, border: '1pt solid #ccc' }}>
       <Text style={{ fontSize: 9, color: '#888' }}>
-        [audio attached to this piece — still on the site]
+        [audio attached to this piece, still on the site]
       </Text>
     </View>
   )

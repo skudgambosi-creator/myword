@@ -53,7 +53,7 @@ export default function TonguesPage() {
             Languages
           </div>
           <div style={{ fontSize: 13, lineHeight: 1.7, color: '#555' }}>
-            Each language is a standalone flashcard deck — spaced repetition, audio pronunciation, and a full reference guide.
+            Each language is a standalone flashcard deck: spaced repetition, audio pronunciation, and a full reference guide.
           </div>
         </div>
 
@@ -62,7 +62,7 @@ export default function TonguesPage() {
             languageId="te-reo"
             displayName="Te Reo Māori"
             nativeName="Te reo o Aotearoa"
-            description="The indigenous language of Aotearoa New Zealand. ~200 flashcards covering greetings, pronouns, verbs, nouns, numbers, colours, and full sentence patterns — plus a reference guide with the pronoun system and sentence structure."
+            description="The indigenous language of Aotearoa New Zealand. ~200 flashcards covering greetings, pronouns, verbs, nouns, numbers, colours, and full sentence patterns, plus a reference guide with the pronoun system and sentence structure."
             href="/tongues/te-reo"
           />
 
@@ -70,7 +70,7 @@ export default function TonguesPage() {
             languageId="italiano"
             displayName="Italiano"
             nativeName="Lingua italiana"
-            description="Italian for everyday use. 250+ flashcards covering greetings, pronouns, verbs, nouns, numbers, colours, days, months, body parts, and full sentence templates — with Google Translate audio on every card."
+            description="Italian for everyday use. 250+ flashcards covering greetings, pronouns, verbs, nouns, numbers, colours, days, months, body parts, and full sentence templates, with Google Translate audio on every card."
             href="/tongues/italiano"
           />
 
@@ -78,7 +78,7 @@ export default function TonguesPage() {
             languageId="magyar"
             displayName="Magyar"
             nativeName="Magyar nyelv"
-            description="Hungarian — a language unrelated to English or Italian, with no grammatical gender but an extensive case system. 270+ flashcards covering greetings, pronouns, verbs, nouns, numbers, colours, days, months, body parts, and full sentence templates — plus a reference guide covering vowel harmony, cases, and sentence structure."
+            description="Hungarian, a language unrelated to English or Italian, with no grammatical gender but an extensive case system. 270+ flashcards covering greetings, pronouns, verbs, nouns, numbers, colours, days, months, body parts, and full sentence templates, plus a reference guide covering vowel harmony, cases, and sentence structure."
             href="/tongues/magyar"
           />
         </div>

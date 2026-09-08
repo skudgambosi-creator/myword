@@ -307,7 +307,7 @@ export default function YarnPage() {
         {sameEventYarns.length > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
             <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', flex: 1 }}>
-              OTHER YARNS — {(yarn.lore_events as any)?.title}
+              OTHER YARNS · {(yarn.lore_events as any)?.title}
             </span>
             <Link href={`/lore/index?event=${yarn.event_id}`} style={{ border: '1px solid #000', padding: '4px 12px', fontSize: 11, color: '#000', textDecoration: 'none', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
               READ →

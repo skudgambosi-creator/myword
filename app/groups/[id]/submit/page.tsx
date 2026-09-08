@@ -257,7 +257,7 @@ export default function SubmitPage({ params }: { params: { id: string } }) {
 
         {isCatchup && (
           <div style={{ border: '1px solid #ccc', padding: '12px 16px', marginBottom: 20, fontSize: 12, color: '#666' }}>
-            Late catch-up submission — appears in archive but scores 0 points.
+            Late catch-up submission: appears in archive but scores 0 points.
           </div>
         )}
 

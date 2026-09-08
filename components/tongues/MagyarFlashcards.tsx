@@ -104,7 +104,7 @@ const s = {
 const doneMessages: [number, string][] = [
   [80, 'Kiváló munka! Outstanding.'],
   [60, 'Nagyon jó! Keep going.'],
-  [40, 'Folytasd — progress!'],
+  [40, 'Folytasd! Progress.'],
   [0, 'Gyakorolj! Practice makes perfect.'],
 ]
 
@@ -314,7 +314,7 @@ export default function MagyarFlashcards() {
                     First attempt misses
                   </div>
                   {firstMisses.length === 0 ? (
-                    <div style={{ fontStyle: 'italic', color: '#444', fontSize: 14 }}>Kiváló — egy hiba sem!</div>
+                    <div style={{ fontStyle: 'italic', color: '#444', fontSize: 14 }}>Kiváló! Egy hiba sem!</div>
                   ) : (
                     firstMisses.map((c, i) => (
                       <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '9px 0', borderBottom: '1px solid #ccc' }}>
@@ -325,7 +325,7 @@ export default function MagyarFlashcards() {
                   )}
                 </div>
                 <button style={s.restartBtn} onClick={() => startDeck(activeCat)}>
-                  Újra — drill again
+                  Újra · drill again
                 </button>
               </div>
             </div>
@@ -337,7 +337,7 @@ export default function MagyarFlashcards() {
       {tab === 'ref' && (
         <div style={s.refView}>
 
-          <RefSection title="Greetings & basics" note="Szia is informal — use it with friends and peers, not strangers or elders. Ön (capitalised) is the formal 'you', paired with 3rd-person verb forms — used with strangers, professionals, and people clearly older than you.">
+          <RefSection title="Greetings & basics" note="Szia is informal: use it with friends and peers, not strangers or elders. Ön (capitalised) is the formal 'you', paired with 3rd-person verb forms, used with strangers, professionals, and people clearly older than you.">
             <RefTable cols={['Magyar', 'English', 'Note']} rows={[
               ['szia', 'hello / bye', 'informal only'],
               ['jó reggelt', 'good morning', 'until ~10am'],
@@ -363,7 +363,7 @@ export default function MagyarFlashcards() {
             ]} />
           </RefSection>
 
-          <RefSection title="Pronouns" note="Hungarian has no grammatical gender at all — ő means both 'he' and 'she' (there is no separate word). Verb endings, not pronouns, carry most of the person information, so pronouns are often dropped. Ön (capital O) is the formal 'you', conjugated like a 3rd-person verb, same pattern as Italian Lei or German Sie.">
+          <RefSection title="Pronouns" note="Hungarian has no grammatical gender at all: ő means both 'he' and 'she' (there is no separate word). Verb endings, not pronouns, carry most of the person information, so pronouns are often dropped. Ön (capital O) is the formal 'you', conjugated like a 3rd-person verb, same pattern as Italian Lei or German Sie.">
             <RefTable cols={['Pronoun', 'English', 'Note']} rows={[
               ['én', 'I', ''],
               ['te', 'you (singular, informal)', ''],
@@ -377,32 +377,32 @@ export default function MagyarFlashcards() {
             ]} />
           </RefSection>
 
-          <RefSection title="Sentence structure" note="Hungarian word order is flexible — it's organised around topic and emphasis rather than a fixed Subject-Verb-Object rule, though SVO is a safe neutral default for beginners. Negation: put nem before the word being negated (usually the verb). A striking feature: in the present tense, 3rd person 'to be' is dropped entirely with a noun or adjective — 'Ő tanár' means 'He/she is a teacher', no verb needed. Van ('is/exists') is still used for location and existence: 'A könyv az asztalon van' — 'The book is on the table.'">
+          <RefSection title="Sentence structure" note="Hungarian word order is flexible: it's organised around topic and emphasis rather than a fixed Subject-Verb-Object rule, though SVO is a safe neutral default for beginners. Negation: put nem before the word being negated (usually the verb). A striking feature: in the present tense, 3rd person 'to be' is dropped entirely with a noun or adjective: 'Ő tanár' means 'He/she is a teacher', no verb needed. Van ('is/exists') is still used for location and existence: 'A könyv az asztalon van' means 'The book is on the table.'">
             <div style={{ fontSize: 14, fontWeight: 'bold', margin: '12px 0 8px' }}>Negation</div>
             <RefTable cols={['Positive', 'Negative']} rows={[
               ['Beszélek magyarul.', 'Nem beszélek magyarul.'],
               ['Éhes vagyok.', 'Nem vagyok éhes.'],
               ['Értem.', 'Nem értem.'],
             ]} />
-            <div style={{ fontSize: 14, fontWeight: 'bold', margin: '16px 0 8px' }}>Verb conjugation — lenni (to be)</div>
+            <div style={{ fontSize: 14, fontWeight: 'bold', margin: '16px 0 8px' }}>Verb conjugation · lenni (to be)</div>
             <RefTable cols={['Person', 'Present']} rows={[
               ['én', 'vagyok'], ['te', 'vagy'], ['ő / Ön', 'van (often dropped before noun/adj.)'],
               ['mi', 'vagyunk'], ['ti', 'vagytok'], ['ők / Önök', 'vannak'],
             ]} />
-            <div style={{ fontSize: 14, fontWeight: 'bold', margin: '16px 0 8px' }}>Having things — the "van" construction</div>
+            <div style={{ fontSize: 14, fontWeight: 'bold', margin: '16px 0 8px' }}>Having things · the "van" construction</div>
             <div style={{ fontSize: 13, color: '#444', marginBottom: 8, lineHeight: 1.6 }}>Hungarian has no single verb "to have" in everyday speech. Instead: [person, dative-marked] + van + [noun, possessive-marked]. Literally "to me is my-book".</div>
             <RefTable cols={['Hungarian', 'English']} rows={[
               ['Nekem van egy könyvem.', 'I have a book.'],
               ['Neked van egy autód?', 'Do you have a car?'],
               ['Nincs pénzem.', "I don't have money."],
             ]} />
-            <div style={{ fontSize: 14, fontWeight: 'bold', margin: '16px 0 8px' }}>Regular verb conjugation — beszélni (to speak)</div>
+            <div style={{ fontSize: 14, fontWeight: 'bold', margin: '16px 0 8px' }}>Regular verb conjugation · beszélni (to speak)</div>
             <RefTable cols={['Person', 'Present']} rows={[
               ['én', 'beszélek'], ['te', 'beszélsz'], ['ő', 'beszél'],
               ['mi', 'beszélünk'], ['ti', 'beszéltek'], ['ők', 'beszélnek'],
             ]} />
             <div style={{ fontSize: 13, color: '#444', marginTop: 8, lineHeight: 1.6 }}>
-              Two extra things that make Hungarian verbs distinctive: (1) vowel harmony — endings shift between back-vowel, front-vowel, and front-rounded-vowel forms to match the vowels in the stem (e.g. -ok/-ek/-ök for "I ___"); (2) definite vs. indefinite conjugation — verbs take a different ending depending on whether the object is a specific, definite thing ("látom a könyvet" — I see the book) or not ("látok egy könyvet" — I see a book). The tables above show the indefinite form, which covers most everyday sentences.
+              Two extra things that make Hungarian verbs distinctive: (1) vowel harmony: endings shift between back-vowel, front-vowel, and front-rounded-vowel forms to match the vowels in the stem (e.g. -ok/-ek/-ök for "I ___"); (2) definite vs. indefinite conjugation: verbs take a different ending depending on whether the object is a specific, definite thing ("látom a könyvet" means I see the book) or not ("látok egy könyvet" means I see a book). The tables above show the indefinite form, which covers most everyday sentences.
             </div>
           </RefSection>
 
@@ -420,7 +420,7 @@ export default function MagyarFlashcards() {
             ]} />
           </RefSection>
 
-          <RefSection title="Verbs" note="All infinitive forms end in -ni. Tudni is a genuinely double-duty verb: it means both 'to know (a fact)' and 'to be able to / can' — the same word covers both meanings.">
+          <RefSection title="Verbs" note="All infinitive forms end in -ni. Tudni is a genuinely double-duty verb: it means both 'to know (a fact)' and 'to be able to / can'. The same word covers both meanings.">
             <RefTable cols={['Magyar', 'English', 'Note']} rows={[
               ['lenni', 'to be', 'irreg; see conjugation above'],
               ['maradni', 'to stay / remain', ''],
@@ -432,7 +432,7 @@ export default function MagyarFlashcards() {
               ['tudni', 'to know (a fact) / can, be able to', 'double meaning'],
               ['ismerni', 'to know (a person)', 'vs tudni (a fact)'],
               ['akarni', 'to want', ''],
-              ['kell', 'to have to / must', 'impersonal; "Mennem kell" — I must go'],
+              ['kell', 'to have to / must', 'impersonal; "Mennem kell" means I must go'],
               ['adni', 'to give', ''],
               ['látni', 'to see', ''],
               ['hallani', 'to hear', ''],
@@ -451,7 +451,7 @@ export default function MagyarFlashcards() {
             ]} />
           </RefSection>
 
-          <RefSection title="Nouns" note="No grammatical gender, and no articles change for gender or case — nouns themselves take suffixes instead (see Particles & cases below). A és An have one word: a / az (az before a vowel sound).">
+          <RefSection title="Nouns" note="No grammatical gender, and no articles change for gender or case: nouns themselves take suffixes instead (see Particles & cases below). A és An have one word: a / az (az before a vowel sound).">
             <RefTable cols={['Magyar', 'English']} rows={[
               ['ház', 'house / home'],
               ['idő', 'time / weather'],
@@ -492,7 +492,7 @@ export default function MagyarFlashcards() {
             ]} />
           </RefSection>
 
-          <RefSection title="Descriptors" note="Adjectives never change for gender and don't agree with the noun in case when used before it — genuinely simpler than Italian or German here. Comparatives add -bb/-abb/-ebb (e.g. nagy → nagyobb, 'bigger').">
+          <RefSection title="Descriptors" note="Adjectives never change for gender and don't agree with the noun in case when used before it. Genuinely simpler than Italian or German here. Comparatives add -bb/-abb/-ebb (e.g. nagy → nagyobb, 'bigger').">
             <RefTable cols={['Magyar', 'English']} rows={[
               ['nagy', 'big / great'], ['kicsi', 'small'], ['szép', 'beautiful / nice'],
               ['csúnya', 'ugly / bad'], ['jó', 'good'], ['rossz', 'bad / naughty'],
@@ -516,14 +516,14 @@ export default function MagyarFlashcards() {
             ]} />
           </RefSection>
 
-          <RefSection title="Days of the week" note="Days aren't capitalised. The week starts on Monday (hétfő). Use -n as a suffix to say 'on ___': hétfőn — 'on Monday'.">
+          <RefSection title="Days of the week" note="Days aren't capitalised. The week starts on Monday (hétfő). Use -n as a suffix to say 'on ___': hétfőn means 'on Monday'.">
             <RefTable cols={['Magyar', 'English']} rows={[
               ['hétfő','Monday'],['kedd','Tuesday'],['szerda','Wednesday'],
               ['csütörtök','Thursday'],['péntek','Friday'],['szombat','Saturday'],['vasárnap','Sunday'],
             ]} />
           </RefSection>
 
-          <RefSection title="Months" note="Months aren't capitalised. Use -ban/-ben to say 'in ___': januárban — 'in January'.">
+          <RefSection title="Months" note="Months aren't capitalised. Use -ban/-ben to say 'in ___': januárban means 'in January'.">
             <RefTable cols={['Magyar', 'English']} rows={[
               ['január','January'],['február','February'],['március','March'],
               ['április','April'],['május','May'],['június','June'],
@@ -544,7 +544,7 @@ export default function MagyarFlashcards() {
             ]} />
           </RefSection>
 
-          <RefSection title="Particles & cases" note="Hungarian doesn't really use prepositions — instead it attaches suffixes to the end of the noun, and the suffix's vowel shifts to match the noun's vowels (vowel harmony). There are around 18 cases in total; a few of the most common are shown below using ház (house) as the example noun.">
+          <RefSection title="Particles & cases" note="Hungarian doesn't really use prepositions: instead it attaches suffixes to the end of the noun, and the suffix's vowel shifts to match the noun's vowels (vowel harmony). There are around 18 cases in total; a few of the most common are shown below using ház (house) as the example noun.">
             <RefTable cols={['Magyar', 'English / usage']} rows={[
               ['és','and'],['de','but'],['is','also / too'],['nem','not'],
               ['nagyon','very / much'],['több','more'],['kevesebb','less'],
@@ -552,7 +552,7 @@ export default function MagyarFlashcards() {
               ['aki','who (relative, people)'],['ami','what / which (relative, things)'],
               ['hogy','that (conjunction)'],['mert','because'],
             ]} />
-            <div style={{ fontSize: 14, fontWeight: 'bold', margin: '16px 0 8px' }}>Common case suffixes (example: ház — house)</div>
+            <div style={{ fontSize: 14, fontWeight: 'bold', margin: '16px 0 8px' }}>Common case suffixes (example: ház = house)</div>
             <RefTable cols={['Form', 'Meaning']} rows={[
               ['ház', 'house'],
               ['házban', 'in the house'],
@@ -634,7 +634,7 @@ export default function MagyarFlashcards() {
             ]} />
           </RefSection>
 
-          <RefSection title="Recognisable words" note="Hungarian isn't related to English at all — it's a Uralic language, not Indo-European — so there aren't 'false friends' the way there are in Italian. But modern Hungarian has borrowed plenty of international words that are instantly recognisable, which makes the language feel less alien than it looks.">
+          <RefSection title="Recognisable words" note="Hungarian isn't related to English at all: it's a Uralic language, not Indo-European, so there aren't 'false friends' the way there are in Italian. But modern Hungarian has borrowed plenty of international words that are instantly recognisable, which makes the language feel less alien than it looks.">
             <RefTable cols={['Magyar', 'English']} rows={[
               ['taxi', 'taxi'],
               ['busz', 'bus'],

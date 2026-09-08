@@ -228,7 +228,7 @@ export default function LoreDashboard() {
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#C85A5A', flexShrink: 0, display: 'inline-block' }} />
                   <span style={{ fontSize: 12, flex: 1 }}>
                     <strong>{(yarn.lore_characters as any)?.character_name || 'Unknown'}</strong>
-                    {' '}made an entry —{' '}
+                    {' '}made an entry:{' '}
                     <em>{yarn.title}</em>
                   </span>
                   <span style={{ fontSize: 10, color: '#bbb', whiteSpace: 'nowrap' }}>{timeAgo(yarn.created_at)}</span>

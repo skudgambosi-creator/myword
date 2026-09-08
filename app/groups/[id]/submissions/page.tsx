@@ -356,7 +356,7 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
         <Nav />
         <main className="page-main">
           {/* Header */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', alignItems: 'center', marginBottom: readFilter !== 'all' ? 12 : 32 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', alignItems: 'center', marginBottom: 24 }}>
             <div>
               <button
                 onClick={() => { setReadView(false); readMounted.current = false }}
@@ -372,19 +372,29 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
             <div />
           </div>
 
-          {/* Filter label */}
-          {readFilter !== 'all' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32, fontSize: 11, color: '#888', letterSpacing: '0.08em' }}>
-              <span>Showing: {readFilter === 'mine' ? 'Mine' : 'Loved ♥'}</span>
+          {/* Filter tabs — same ALL / MINE / ♥ control as the index view */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 32 }}>
+            <div style={{ display: 'flex' }}>
               <button
-                onClick={() => setReadFilter('all')}
-                className="pill-hover"
-                style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'none', border: 'none', fontFamily: 'inherit' }}
+                onClick={() => { setReadFilter('all'); setTab('all') }}
+                style={tabBtn(readFilter === 'all')}
               >
-                Show all →
+                ALL
+              </button>
+              <button
+                onClick={() => { setReadFilter('mine'); setTab('mine') }}
+                style={tabBtn(readFilter === 'mine')}
+              >
+                MINE
+              </button>
+              <button
+                onClick={() => { setReadFilter('loved'); setTab('favourite') }}
+                style={tabBtn(readFilter === 'loved')}
+              >
+                ♥
               </button>
             </div>
-          )}
+          </div>
 
           {revealedWeeks.length === 0
             ? empty('No revealed weeks yet.')

@@ -100,7 +100,7 @@ export default function SubmissionsTabs({ groupId, userId, weeks, submissions, m
                         <div style={{ fontSize: 13, color: '#555' }}>
                           <strong>{sub.word_title}</strong>
                           <AttachmentTags html={sub.body_html} />
-                          <span style={{ color: '#999', marginLeft: 8 }}>— hidden until Wednesday reveal</span>
+                          <span style={{ color: '#999', marginLeft: 8 }}>(hidden until Wednesday reveal)</span>
                           <div style={{ marginTop: 6 }}>
                             <Link href={`/groups/${groupId}/submit?edit=1`} style={{ fontSize: 12 }}>
                               Edit →

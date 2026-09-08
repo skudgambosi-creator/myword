@@ -473,9 +473,9 @@ export default function LoreAddTagPage() {
 
         {/* Step indicator */}
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24, gap: 8 }}>
-          <span style={stepStyle(false)}>1 — WRITE</span>
+          <span style={stepStyle(false)}>1 · WRITE</span>
           <div style={{ flex: 1, height: 1, background: '#000' }} />
-          <span style={stepStyle(true)}>2 — TAG & FILE</span>
+          <span style={stepStyle(true)}>2 · TAG & FILE</span>
         </div>
 
         {/* ── CHARACTERS ─────────────────────────────── */}

@@ -104,7 +104,7 @@ const s = {
 const doneMessages: [number, string][] = [
   [80, 'Ottimo lavoro! Outstanding.'],
   [60, 'Molto bene! Keep going.'],
-  [40, 'Continua — progress!'],
+  [40, 'Continua! Progress.'],
   [0, 'Prattica! Practice makes perfect.'],
 ]
 
@@ -314,7 +314,7 @@ export default function ItalianoFlashcards() {
                     First attempt misses
                   </div>
                   {firstMisses.length === 0 ? (
-                    <div style={{ fontStyle: 'italic', color: '#444', fontSize: 14 }}>Ottimo — nessun errore!</div>
+                    <div style={{ fontStyle: 'italic', color: '#444', fontSize: 14 }}>Ottimo! Nessun errore!</div>
                   ) : (
                     firstMisses.map((c, i) => (
                       <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '9px 0', borderBottom: '1px solid #ccc' }}>
@@ -325,7 +325,7 @@ export default function ItalianoFlashcards() {
                   )}
                 </div>
                 <button style={s.restartBtn} onClick={() => startDeck(activeCat)}>
-                  Ancora — drill again
+                  Ancora · drill again
                 </button>
               </div>
             </div>
@@ -337,7 +337,7 @@ export default function ItalianoFlashcards() {
       {tab === 'ref' && (
         <div style={s.refView}>
 
-          <RefSection title="Greetings & basics" note="Use buongiorno until around 5pm; buonasera after. Ciao is informal — don't use with strangers or elders. Lei (capital L) is the formal 'you' — used with strangers, professionals, people older than you.">
+          <RefSection title="Greetings & basics" note="Use buongiorno until around 5pm; buonasera after. Ciao is informal, don't use it with strangers or elders. Lei (capital L) is the formal 'you', used with strangers, professionals, people older than you.">
             <RefTable cols={['Italiano', 'English', 'Note']} rows={[
               ['ciao', 'hello / bye', 'informal only'],
               ['buongiorno', 'good morning / good day', 'formal; til ~5pm'],
@@ -361,7 +361,7 @@ export default function ItalianoFlashcards() {
             ]} />
           </RefSection>
 
-          <RefSection title="Pronouns" note="Italian verbs conjugate per person, so subject pronouns are often dropped — the verb ending makes the subject clear. Lei (capital L) = formal singular 'you'; same conjugation as third person she/he. Voi is both 'you all' and used as formal plural.">
+          <RefSection title="Pronouns" note="Italian verbs conjugate per person, so subject pronouns are often dropped: the verb ending makes the subject clear. Lei (capital L) = formal singular 'you'; same conjugation as third person she/he. Voi is both 'you all' and used as formal plural.">
             <RefTable cols={['Pronoun', 'English', 'Note']} rows={[
               ['io', 'I', ''],
               ['tu', 'you (singular, informal)', ''],
@@ -381,12 +381,12 @@ export default function ItalianoFlashcards() {
               ['Ho fame.', 'Non ho fame.'],
               ['Capisco.', 'Non capisco.'],
             ]} />
-            <div style={{ fontSize: 14, fontWeight: 'bold', margin: '16px 0 8px' }}>Verb conjugation — essere (to be)</div>
+            <div style={{ fontSize: 14, fontWeight: 'bold', margin: '16px 0 8px' }}>Verb conjugation · essere (to be)</div>
             <RefTable cols={['Person', 'Present']} rows={[
               ['io', 'sono'], ['tu', 'sei'], ['lui/lei/Lei', 'è'],
               ['noi', 'siamo'], ['voi', 'siete'], ['loro', 'sono'],
             ]} />
-            <div style={{ fontSize: 14, fontWeight: 'bold', margin: '16px 0 8px' }}>Verb conjugation — avere (to have)</div>
+            <div style={{ fontSize: 14, fontWeight: 'bold', margin: '16px 0 8px' }}>Verb conjugation · avere (to have)</div>
             <RefTable cols={['Person', 'Present']} rows={[
               ['io', 'ho'], ['tu', 'hai'], ['lui/lei/Lei', 'ha'],
               ['noi', 'abbiamo'], ['voi', 'avete'], ['loro', 'hanno'],
@@ -412,7 +412,7 @@ export default function ItalianoFlashcards() {
             ]} />
           </RefSection>
 
-          <RefSection title="Verbs" note="All infinitive forms. Italian verbs end in -are, -ere, or -ire. Essere and avere are irregular and essential — see conjugations in Sentence Structure above.">
+          <RefSection title="Verbs" note="All infinitive forms. Italian verbs end in -are, -ere, or -ire. Essere and avere are irregular and essential. See conjugations in Sentence Structure above.">
             <RefTable cols={['Italiano', 'English', 'Note']} rows={[
               ['essere', 'to be', 'irreg; permanent state'],
               ['stare', 'to be / to stay', 'irreg; temp state/health'],
@@ -442,7 +442,7 @@ export default function ItalianoFlashcards() {
             ]} />
           </RefSection>
 
-          <RefSection title="Nouns" note="Gender matters in Italian — it affects articles, adjectives, and agreement. Nouns ending in -o are usually masculine; -a usually feminine; -e can be either. Always learn a noun with its article.">
+          <RefSection title="Nouns" note="Gender matters in Italian: it affects articles, adjectives, and agreement. Nouns ending in -o are usually masculine; -a usually feminine; -e can be either. Always learn a noun with its article.">
             <RefTable cols={['Italiano', 'English', 'Gender']} rows={[
               ['la casa', 'house / home', 'f'],
               ['il tempo', 'time / weather', 'm'],
@@ -536,7 +536,7 @@ export default function ItalianoFlashcards() {
             ]} />
           </RefSection>
 
-          <RefSection title="Months" note="Months are masculine and not capitalised. Use in + month for 'in January' etc. — no article needed: in gennaio.">
+          <RefSection title="Months" note="Months are masculine and not capitalised. Use in + month for 'in January' etc. No article needed: in gennaio.">
             <RefTable cols={['Italiano', 'English']} rows={[
               ['gennaio','January'],['febbraio','February'],['marzo','March'],
               ['aprile','April'],['maggio','May'],['giugno','June'],
@@ -661,7 +661,7 @@ export default function ItalianoFlashcards() {
               ['educato','educated','polite / well-mannered'],
               ['argomento','argument','topic / subject'],
               ['la libreria','library','bookshop'],
-              ['la biblioteca','—','library (the actual one)'],
+              ['la biblioteca','','library (the actual one)'],
               ['annoiato','annoyed','bored'],
               ['confuso','confused','mixed up / blended'],
               ['conveniente','convenient','affordable / cheap'],

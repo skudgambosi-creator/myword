@@ -36,7 +36,7 @@ export default function LoginPage() {
     setError('')
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) { setError(error.message); setLoading(false); return }
-    if (!data.session) { setError('Login succeeded but no session was created — contact support.'); setLoading(false); return }
+    if (!data.session) { setError('Login succeeded but no session was created. Contact support.'); setLoading(false); return }
     window.location.href = '/dashboard'
   }
 

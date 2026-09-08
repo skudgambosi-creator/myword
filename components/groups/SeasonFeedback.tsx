@@ -36,13 +36,13 @@ export default function SeasonFeedback({ groupId }: { groupId: string }) {
 
       <div style={{ fontSize: 13, lineHeight: 1.8, color: '#333', marginBottom: 20 }}>
         <p style={{ margin: '0 0 12px' }}>
-          We've loved every week of this, and we're not done — Season 2 starts next year. Tell us what worked, what didn't, what you'd want to see more of.
+          We've loved every week of this, and we're not done. Season 2 starts next year. Tell us what worked, what didn't, what you'd want to see more of.
         </p>
         <p style={{ margin: '0 0 12px' }}>
-          We've also been kicking around the idea of individual prints — just yours, the season's favourites, or the whole lot. Nothing decided yet, but once this season closes, your own alphabet is yours to download, free, forever. Tell us what you'd actually use.
+          We've also been kicking around the idea of individual prints: just yours, the season's favourites, or the whole lot. Nothing decided yet, but once this season closes, your own alphabet is yours to download, free, forever. Tell us what you'd actually use.
         </p>
         <p style={{ margin: 0 }}>
-          Got a language you want in Tongues? Would you rather this lived as an app? Say that too — nothing's off the table.
+          Got a language you want in Tongues? Would you rather this lived as an app? Say that too, nothing's off the table.
         </p>
       </div>
 

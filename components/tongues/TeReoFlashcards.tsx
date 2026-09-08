@@ -125,7 +125,7 @@ const s = {
 const doneMessages: [number, string][] = [
   [80, 'Ka pai rawa atu! Outstanding.'],
   [60, 'Ka pai! Keep going.'],
-  [40, 'Kia kaha — progress!'],
+  [40, 'Kia kaha! Progress.'],
   [0, 'Ka mutu. Practice makes perfect!'],
 ]
 
@@ -341,7 +341,7 @@ export default function TeReoFlashcards() {
                     First attempt misses
                   </div>
                   {firstMisses.length === 0 ? (
-                    <div style={{ fontStyle: 'italic', color: '#444', fontSize: 14 }}>Ka pai — no misses on first attempt!</div>
+                    <div style={{ fontStyle: 'italic', color: '#444', fontSize: 14 }}>Ka pai! No misses on first attempt!</div>
                   ) : (
                     firstMisses.map((c, i) => (
                       <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '9px 0', borderBottom: '1px solid #ccc' }}>
@@ -352,7 +352,7 @@ export default function TeReoFlashcards() {
                   )}
                 </div>
                 <button style={s.restartBtn} onClick={() => startDeck(activeDeck)}>
-                  Ka haere anō — go again
+                  Ka haere anō · go again
                 </button>
               </div>
             </div>
@@ -378,15 +378,15 @@ export default function TeReoFlashcards() {
             ]} />
           </RefSection>
 
-          <RefSection title="Pronouns" note="Te reo has singular, dual (two people), and plural (three+) — plus inclusive vs exclusive 'we'. Green = speaker, blue = listener, gray = others.">
+          <RefSection title="Pronouns" note="Te reo has singular, dual (two people), and plural (three+), plus inclusive vs exclusive 'we'. Green = speaker, blue = listener, gray = others.">
             <PronounSVG />
             <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 8 }}>
               <thead><tr><th style={thStyle}>Te Reo</th><th style={thStyle}>English</th><th style={thStyle}>Type</th></tr></thead>
               <tbody>
                 {[['au','I / me','singular'],['koe','you (one)','singular'],['ia','he/she/they (one)','singular'],
-                  ['tāua','we two — incl you','dual'],['māua','we two — excl you','dual'],
+                  ['tāua','we two, incl you','dual'],['māua','we two, excl you','dual'],
                   ['kōrua','you two','dual'],['rāua','they two','dual'],
-                  ['tātou','we all — incl you','plural'],['mātou','we (3+) — excl you','plural'],
+                  ['tātou','we all, incl you','plural'],['mātou','we (3+), excl you','plural'],
                   ['koutou','you all (3+)','plural'],['rātou','they (3+)','plural'],
                 ].map(([tr,en,type],i) => (
                   <tr key={i}><td style={i%2===0?tdStyle:tdAltStyle}>{tr}</td><td style={i%2===0?tdStyle:tdAltStyle}>{en}</td><td style={{...(i%2===0?tdStyle:tdAltStyle),fontSize:13,color:'#555'}}>{type}</td></tr>
@@ -399,23 +399,23 @@ export default function TeReoFlashcards() {
             <RefTable rows={[['aha','what'],['wai','who'],['hea','where'],['āhea','when (future)'],['nōnahea','when (past)'],['pēhea','how / what like'],['hia','how many']]} />
           </RefSection>
 
-          <RefSection title="Verbs" note="Verbs don't change form in te reo — tense is carried by the particle before them (kei te, i, ka). The verb always comes first in a sentence.">
+          <RefSection title="Verbs" note="Verbs don't change form in te reo: tense is carried by the particle before them (kei te, i, ka). The verb always comes first in a sentence.">
             <RefTable rows={[['kai','eat (also: food)'],['moe','sleep'],['haere','go / travel'],['hoki','return / also'],['noho','sit / stay / live'],['kōrero','speak / talk'],['whakarongo','listen'],['titiro','look'],['mahi','work / do'],['ako','learn / teach'],['aroha','love / care'],['tū','stand'],['oma','run'],['huri','turn'],['homai','give (to me)'],['mōhio','know / understand']]} />
           </RefSection>
 
-          <RefSection title="Nouns" note="Some words carry layered meanings — marama means moon, month, and understanding. Whenua means both land and placenta. These double meanings are culturally significant, not coincidental.">
+          <RefSection title="Nouns" note="Some words carry layered meanings: marama means moon, month, and understanding. Whenua means both land and placenta. These double meanings are culturally significant, not coincidental.">
             <RefTable rows={[['whare','house / building'],['kāinga','home / village'],['wāhi','place'],['whenua','land / placenta'],['moana','sea / ocean'],['awa','river'],['maunga','mountain'],['ngahere','forest'],['rangi','sky / day'],['rā','sun / day / sail'],['marama','moon / month / understanding'],['wai','water'],['ahi','fire'],['tangata','person'],['tāne','man'],['wahine','woman'],['tamariki','children'],['tamaiti','child'],['whānau','family'],['iwi','tribe / people / bones'],['hapū','subtribe / pregnant'],['ingoa','name'],['reo','language / voice'],['waka','canoe / vehicle'],['pō','night'],['atarau','moonlit / reflected moonlight'],['katoa','all / everyone / everything']]} />
           </RefSection>
 
-          <RefSection title="Body parts" note="Manawa (breath/heart/lungs) is a rich word — it carries the sense of vitality and life force. Kanohi technically means face but is also used for eye. Ringa covers both hand and arm.">
+          <RefSection title="Body parts" note="Manawa (breath/heart/lungs) is a rich word: it carries the sense of vitality and life force. Kanohi technically means face but is also used for eye. Ringa covers both hand and arm.">
             <RefTable rows={[['tinana','body'],['upoko','head'],['kanohi','face / eye'],['taringa','ear'],['ihu','nose'],['waha','mouth'],['ringa','hand / arm'],['waewae','foot / leg'],['manawa','breath / heart / lungs'],['ngākau','heart / innermost feelings']]} />
           </RefSection>
 
-          <RefSection title="Descriptors" note="Descriptors follow the noun they describe — he tangata pai ia (he is a good person). Pai is probably the most useful single word in the language.">
+          <RefSection title="Descriptors" note="Descriptors follow the noun they describe: he tangata pai ia (he is a good person). Pai is probably the most useful single word in the language.">
             <RefTable rows={[['pai','good'],['kino','bad'],['nui','big / many'],['iti','small'],['roa','long / tall'],['poto','short'],['hou','new'],['tawhito','old'],['ataahua','beautiful'],['kaha','strong'],['ngenge','tired'],['hiakai','hungry'],['hiainu','thirsty'],['hari','happy'],['pōuri','sad'],['tika','correct / right'],['hē','wrong'],['whakatoi','cheeky / playfully mischievous'],['rawe','awesome / excellent / fantastic'],['pōkarekare','rippling / agitated (as water)']]} />
           </RefSection>
 
-          <RefSection title="Numbers" note="Beyond 10 the system is logical: tekau mā tahi = 11, rua tekau = 20. Kore (zero) also means void and nothingness — it appears in the Māori creation narrative as the primordial state before existence.">
+          <RefSection title="Numbers" note="Beyond 10 the system is logical: tekau mā tahi = 11, rua tekau = 20. Kore (zero) also means void and nothingness. It appears in the Māori creation narrative as the primordial state before existence.">
             <RefTable rows={[['kore','zero / void / nothingness'],['tahi','one'],['rua','two'],['toru','three'],['whā','four'],['rima','five'],['ono','six'],['whitu','seven'],['waru','eight'],['iwa','nine'],['tekau','ten'],['tekau mā tahi','eleven'],['rua tekau','twenty'],['kotahi rau','one hundred'],['kotahi mano','one thousand']]} />
           </RefSection>
 
@@ -427,11 +427,11 @@ export default function TeReoFlashcards() {
             <RefTable rows={[['mai','towards the speaker'],['atu','away from the speaker'],['ake','upward'],['iho','downward']]} />
           </RefSection>
 
-          <RefSection title="Core particles" note="Te reo is VSO (verb-subject-object) — the particle always opens the sentence and signals what kind of sentence it is.">
+          <RefSection title="Core particles" note="Te reo is VSO (verb-subject-object): the particle always opens the sentence and signals what kind of sentence it is.">
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead><tr><th style={thStyle}>Particle</th><th style={thStyle}>Function</th></tr></thead>
               <tbody>
-                {[['kei te','present action — kei te kai au (I am eating)'],['i','past action — i haere au (I went)'],['ka','narrative / sequence — ka haere ia (she went)'],['e...ana','emphatic present — e kai ana au (I am eating right now)'],['me','should — me haere tāua (we should go)'],['ko','identity — ko Mere tōku ingoa (my name is Mere)'],['he','a / an — he tangata pai ia (he is a good person)'],['kei','present location — kei te kāinga au (I am at home)'],['te','the (singular)'],['ngā','the (plural)'],['ki','to / towards'],['nō','from / origin'],['nā','by / belonging to (recent)'],['kāore','no / not'],['ehara','is not'],
+                {[['kei te','present action: kei te kai au (I am eating)'],['i','past action: i haere au (I went)'],['ka','narrative / sequence: ka haere ia (she went)'],['e...ana','emphatic present: e kai ana au (I am eating right now)'],['me','should: me haere tāua (we should go)'],['ko','identity: ko Mere tōku ingoa (my name is Mere)'],['he','a / an: he tangata pai ia (he is a good person)'],['kei','present location: kei te kāinga au (I am at home)'],['te','the (singular)'],['ngā','the (plural)'],['ki','to / towards'],['nō','from / origin'],['nā','by / belonging to (recent)'],['kāore','no / not'],['ehara','is not'],
                 ].map(([tr,fn],i) => (
                   <tr key={i}><td style={{...(i%2===0?tdStyle:tdAltStyle),fontWeight:'bold',width:'35%'}}>{tr}</td><td style={i%2===0?tdStyle:tdAltStyle}>{fn}</td></tr>
                 ))}
@@ -443,7 +443,7 @@ export default function TeReoFlashcards() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead><tr><th style={thStyle}>Te Reo</th><th style={thStyle}>English</th><th style={thStyle}>Class</th></tr></thead>
               <tbody>
-                {[['tōku','my','ō — people, places, feelings'],['tōu','your (one person)','ō'],['tāku','my','ā — actions, objects'],['tāu','your (one person)','ā'],
+                {[['tōku','my','ō: people, places, feelings'],['tōu','your (one person)','ō'],['tāku','my','ā: actions, objects'],['tāu','your (one person)','ā'],
                 ].map(([tr,en,cls],i) => (
                   <tr key={i}><td style={i%2===0?tdStyle:tdAltStyle}>{tr}</td><td style={i%2===0?tdStyle:tdAltStyle}>{en}</td><td style={{...(i%2===0?tdStyle:tdAltStyle),fontSize:13,color:'#555'}}>{cls}</td></tr>
                 ))}
@@ -455,11 +455,11 @@ export default function TeReoFlashcards() {
             <RefTable rows={[['tapatoru','triangle'],['tapawhā','square / rectangle'],['porohīta','circle'],['whetu','star'],['porotītaha','oval / ellipse']]} />
           </RefSection>
 
-          <RefSection title="Colours" note="Colours in te reo often have natural world origins — kākāriki is both green and a native parakeet, kōwhai is both yellow and the native flowering tree.">
+          <RefSection title="Colours" note="Colours in te reo often have natural world origins: kākāriki is both green and a native parakeet, kōwhai is both yellow and the native flowering tree.">
             <RefTable rows={[['whero','red'],['kōwhai','yellow'],['kākāriki','green'],['kikorangi','blue'],['mā','white'],['mangu','black'],['karaka','orange'],['kākaka','brown'],['māwhero','pink'],['pāpura','purple']]} />
           </RefSection>
 
-          <RefSection title="Sentence templates" note="The core pattern: [particle] + [verb] + [subject] + [location/object]. Kei te is your most useful particle — put it before almost any verb for a present tense sentence.">
+          <RefSection title="Sentence templates" note="The core pattern: [particle] + [verb] + [subject] + [location/object]. Kei te is your most useful particle. Put it before almost any verb for a present tense sentence.">
             <RefTable rows={[['kei te kai au','I am eating'],['kei te pai','it\'s good / that\'s fine'],['kei te ngenge au','I\'m tired'],['kei te hiakai au','I\'m hungry'],['i haere au','I went'],['ka haere ia','she / he went'],['me haere tāua','we two should go'],['ko ___ tōku ingoa','my name is ___'],['ko wai tōu ingoa?','what is your name?'],['nō hea koe?','where are you from?'],['he aha tāu mahi?','what are you doing?'],['kāore au e mōhio ana','I don\'t know'],['whakarongo mai!','listen here!'],['kia kaha','be strong / keep going'],['ka kite anō','see you again'],['ka nui te hari o tōku ngākau','my heart is very happy']]} />
           </RefSection>
 

@@ -89,7 +89,7 @@ export default function CollectionPage({ params }: { params: { id: string } }) {
               The Collection Week
             </div>
             <div style={{ fontSize: 12, color: '#666', lineHeight: 1.7, marginTop: 12 }}>
-              {completed.length} / 26 done on time. Add anything you missed below, no cap — and write your epilogue whenever you're ready.
+              {completed.length} / 26 done on time. Add anything you missed below, no cap, and write your epilogue whenever you're ready.
             </div>
           </div>
         </div>
@@ -114,7 +114,7 @@ export default function CollectionPage({ params }: { params: { id: string } }) {
         {missed.length > 0 && (
           <div style={CARD}>
             <div style={{ padding: '14px 24px', borderBottom: '1px solid #000', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#888' }}>
-              Missed — add what you would've written
+              Missed: add what you would've written
             </div>
             {missed.map(w => {
               const draft = catchupByWeek[w.id]

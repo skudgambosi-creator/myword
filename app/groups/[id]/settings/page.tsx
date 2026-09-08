@@ -43,7 +43,7 @@ export default async function GroupSettingsPage({ params }: { params: { id: stri
 
         {group.locked && (
           <div style={{ border: '2px solid #CC0000', padding: '10px 16px', marginBottom: 24, fontSize: 13, color: '#CC0000' }}>
-            This group's cycle has started. Membership is now locked — no members can be added or removed.
+            This group's cycle has started. Membership is now locked. No members can be added or removed.
           </div>
         )}
 

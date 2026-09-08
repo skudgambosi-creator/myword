@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Nav from '@/components/layout/Nav'
+import { getSeasonNumber } from '@/lib/groups/current'
 
 
 function getBlurb(html: string): string {
@@ -65,6 +66,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   const [displayPieces, setDisplayPieces] = useState<any[]>([])
   const [timerString, setTimerString] = useState('--:--:--')
   const [allExportStatus, setAllExportStatus] = useState<'idle' | 'starting' | 'started' | 'error'>('idle')
+  const [seasonNum, setSeasonNum] = useState(1)
   const rulesInitialized = useRef(false)
 
   useEffect(() => {
@@ -108,6 +110,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
       const { data: grp } = await supabase.from('groups').select('*').eq('id', params.id).single()
       setGroup(grp)
       setIsCompleted(!!grp?.completed_at)
+      setSeasonNum(await getSeasonNumber(supabase, grp))
 
       const now = new Date().toISOString()
       const { data: week } = await supabase
@@ -219,7 +222,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#fff' }}>
       {isCompleted && (
         <div style={{ background: '#000', color: '#fff', textAlign: 'center', padding: 8, fontSize: 11, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-          ★ THE ALPHABET PROJECT IS COMPLETE — A TO Z ★
+          ★ THE ALPHABET PROJECT IS COMPLETE · A TO Z ★
         </div>
       )}
 
@@ -231,6 +234,9 @@ export default function GroupPage({ params }: { params: { id: string } }) {
         <div style={CARD}>
           <div className="group-title-box" style={{ border: 'none', marginBottom: 0 }}>
             <div style={{ fontSize: 22, letterSpacing: '0.2em', textTransform: 'uppercase' }}>{group?.name}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: 6 }}>
+              SEASON {seasonNum}
+            </div>
           </div>
         </div>
 
@@ -276,7 +282,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
             <div>
               {allExportStatus === 'started' ? (
                 <div style={{ textAlign: 'center', fontSize: 10, letterSpacing: '0.08em', color: '#888', padding: '8px 0' }}>
-                  On its way — check your email in a few minutes.
+                  On its way. Check your email in a few minutes.
                 </div>
               ) : (
                 <button
@@ -284,7 +290,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
                   disabled={allExportStatus === 'starting'}
                   style={{ width: '100%', display: 'block', borderRadius: '999px', border: '1px solid #000', padding: '11px 10px', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'monospace', background: 'transparent', color: '#000', textAlign: 'center', cursor: allExportStatus === 'starting' ? 'default' : 'pointer' }}
                 >
-                  {allExportStatus === 'starting' ? '...' : allExportStatus === 'error' ? 'Something went wrong — try again' : 'Download the full archive (emailed to you)'}
+                  {allExportStatus === 'starting' ? '...' : allExportStatus === 'error' ? 'Something went wrong, try again' : 'Download the full archive (emailed to you)'}
                 </button>
               )}
             </div>

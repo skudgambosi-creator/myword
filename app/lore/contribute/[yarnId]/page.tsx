@@ -269,9 +269,9 @@ export default function ContributePage() {
 
         {/* Step indicator */}
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24, gap: 8 }}>
-          <span style={stepStyle(step === 1)}>1 — WRITE</span>
+          <span style={stepStyle(step === 1)}>1 · WRITE</span>
           <div style={{ flex: 1, height: 1, background: step === 2 ? '#000' : '#ccc' }} />
-          <span style={stepStyle(step === 2)}>2 — TAG & FILE</span>
+          <span style={stepStyle(step === 2)}>2 · TAG & FILE</span>
         </div>
 
         {step === 1 && (
@@ -280,7 +280,7 @@ export default function ContributePage() {
               {[['DAY', day, setDay, 1, 31], ['MONTH', month, setMonth, 1, 12]].map(([label, val, setter, min, max]: any) => (
                 <div key={label as string} style={{ flex: 1 }}>
                   <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{label}</div>
-                  <input type="number" min={min} max={max} value={val} onChange={e => setter(e.target.value)} placeholder="—"
+                  <input type="number" min={min} max={max} value={val} onChange={e => setter(e.target.value)} placeholder=""
                     style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid #000', padding: '8px 0', fontSize: 14, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' as const }} />
                 </div>
               ))}

@@ -115,7 +115,7 @@ export default function NewGroupPage() {
             </div>
 
             <div className="box-shaded" style={{ marginBottom: 20, fontSize: 12 }}>
-              <strong>Timezone:</strong> Europe/London (GMT/BST) — all deadlines use this clock.
+              <strong>Timezone:</strong> Europe/London (GMT/BST). All deadlines use this clock.
             </div>
           </div>
         </div>

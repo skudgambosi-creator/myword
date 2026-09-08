@@ -114,21 +114,21 @@ export default function LoreAddPage() {
 
         {/* Step indicator */}
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24, gap: 8 }}>
-          <span style={stepStyle(true)}>1 — WRITE</span>
+          <span style={stepStyle(true)}>1 · WRITE</span>
           <div style={{ flex: 1, height: 1, background: '#ccc' }} />
-          <span style={stepStyle(false)}>2 — TAG & FILE</span>
+          <span style={stepStyle(false)}>2 · TAG & FILE</span>
         </div>
 
         {/* Date */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>DAY</div>
-            <input type="number" min={1} max={31} value={day} onChange={e => setDay(e.target.value)} placeholder="—"
+            <input type="number" min={1} max={31} value={day} onChange={e => setDay(e.target.value)} placeholder=""
               style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid #000', padding: '8px 0', fontSize: 14, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }} />
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>MONTH</div>
-            <input type="number" min={1} max={12} value={month} onChange={e => setMonth(e.target.value)} placeholder="—"
+            <input type="number" min={1} max={12} value={month} onChange={e => setMonth(e.target.value)} placeholder=""
               style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid #000', padding: '8px 0', fontSize: 14, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }} />
           </div>
           <div style={{ flex: 1 }}>

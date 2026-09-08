@@ -92,7 +92,7 @@ export default async function JoinPage({ params }: { params: { token: string } }
         ) : (
           <div className="box-shaded" style={{ fontSize: 14 }}>
             <p style={{ marginBottom: 16 }}>
-              You need an account to join. Create one or log in — your invitation will be waiting.
+              You need an account to join. Create one or log in, your invitation will be waiting.
             </p>
             <div style={{ display: 'flex', gap: 12 }}>
               <Link href={`/register?invite=${params.token}`} className="btn btn-accent">

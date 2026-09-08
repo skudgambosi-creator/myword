@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Nav from '@/components/layout/Nav'
-import { getCurrentGroup } from '@/lib/groups/current'
+import { getCurrentGroup, getSeasonNumber } from '@/lib/groups/current'
 
 function Footer() {
   return (
@@ -17,7 +17,7 @@ function Footer() {
 const RULES_BY_TYPE: Record<string, [string, string][]> = {
   alphabet: [
     ['One submission per letter', 'You get one entry per week. Everyone is anonymous by default, but you can choose to sign a submission if you like. You can add pictures and music as well.'],
-    ['Your word must start with the letter', 'Your title can be any word or phrase — it just has to begin with that week\'s letter. You can write whatever you like, however you like.'],
+    ['Your word must start with the letter', 'Your title can be any word or phrase, it just has to begin with that week\'s letter. You can write whatever you like, however you like.'],
     ['Edit until Wednesday 23:59', 'You can change your submission at any time before the window closes. After that, it\'s locked.'],
     ['Hidden until midnight Wednesday', 'Nobody can see anyone else\'s submission until the reveal. Not the title, not the content. You will get an email every Wednesday with the week\'s submissions, as well as having them unlocked on here.'],
     ['Scoring', 'You score points by keeping your word. Miss a week, miss a point.'],
@@ -32,6 +32,7 @@ export default function DashboardPage() {
   const [isMember, setIsMember] = useState(false)
   const [registrationOpen, setRegistrationOpen] = useState(true)
   const [joining, setJoining] = useState(false)
+  const [seasonNum, setSeasonNum] = useState(1)
 
   useEffect(() => {
     async function load() {
@@ -42,6 +43,8 @@ export default function DashboardPage() {
       setGroup(currentGroup)
 
       if (!currentGroup) { setLoading(false); return }
+
+      setSeasonNum(await getSeasonNumber(supabase, currentGroup))
 
       const { data: membership } = await supabase
         .from('group_members').select('*')
@@ -138,6 +141,9 @@ export default function DashboardPage() {
             onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = '#000'; el.style.color = '#fff' }}
             onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = ''; el.style.color = '' }}
           >
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 6 }}>
+              SEASON {seasonNum}
+            </div>
             <div style={{ fontSize: 18, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8, color: 'inherit' }}>
               {group.name}
             </div>
@@ -196,6 +202,9 @@ export default function DashboardPage() {
       <main className="page-main">
 
         <div style={{ border: '1px solid #000', padding: '24px 32px', marginBottom: 24, textAlign: 'center' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 8 }}>
+            SEASON {seasonNum}
+          </div>
           <span style={{ fontSize: 22, letterSpacing: '0.2em', textTransform: 'uppercase' }}>{group.name}</span>
         </div>
 
