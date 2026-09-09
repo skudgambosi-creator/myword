@@ -820,6 +820,29 @@ input:-webkit-autofill:active {
   text-decoration: none;
 }
 
+/* Accent-coloured pill (ABOUT / FEEDBACK in the masthead) — resting text is
+   red instead of black; hover still inverts to the standard black fill via
+   .pill-hover:hover above, since it's not overridden inline. */
+.pill-hover-accent {
+  color: var(--accent);
+}
+
+/* Stark pill (submissions INDEX, titles mode) — hover fills a bold baby
+   blue instead of the usual black, to read as its own distinct control. */
+.pill-hover-stark:hover {
+  background: #89CFF0;
+  color: #000;
+}
+
+/* Stark row (submissions INDEX, blurbs mode) — same baby-blue fill, applied
+   to the whole clickable row since blurbs mode has no separate title pill. */
+.blurb-row-stark {
+  transition: background 0.12s;
+}
+.blurb-row-stark:hover {
+  background: #89CFF0;
+}
+
 /* ── BRAND HOVER ── */
 .brand-hover {
   display: inline-block;
@@ -836,6 +859,41 @@ input:-webkit-autofill:active {
   background: #000;
   color: #fff;
   text-decoration: none;
+}
+
+/* ── DARK MODE ──
+   The codebase colours everything with inline hex per component rather
+   than CSS variables, so a literal per-file recolour would mean touching
+   hundreds of individual style props with a real chance of missing spots.
+   Instead this flips the whole rendered page with a filter (the same
+   invert+hue-rotate trick dark-mode browser extensions use) -- one toggle,
+   genuinely covers every page in one place. Real photos (img/video/iframe,
+   or anything explicitly marked .no-invert) get counter-inverted back to
+   normal so they don't render as photo negatives.
+
+   #theme-root only gets position:fixed+overflow when dark mode is ON. A
+   `filter` on an ancestor makes IT the containing block for any
+   position:fixed descendant instead of the real viewport -- which would
+   otherwise break every fixed element that's meant to stay pinned on
+   screen while scrolling (the READ view's JUMP box, the feedback modal,
+   the envelope toast). Pinning #theme-root itself to the viewport and
+   letting it scroll internally keeps those descendants' fixed offsets
+   resolving against the true viewport, so they still look right. Scoping
+   this to dark mode only (rather than always-on) means light mode's
+   scroll behaviour is completely untouched from how it's always been. */
+html[data-theme="dark"] #theme-root {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  filter: invert(1) hue-rotate(180deg);
+  background: #fff;
+}
+html[data-theme="dark"] img,
+html[data-theme="dark"] video,
+html[data-theme="dark"] iframe,
+html[data-theme="dark"] .no-invert {
+  filter: invert(1) hue-rotate(180deg);
 }
 
 /* ── COMPLETED STATE ── */

@@ -2,10 +2,12 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import FeedbackWidget from '@/components/FeedbackWidget'
 
 export default function Nav() {
   const supabase = createClient()
   const [hasUnresponded, setHasUnresponded] = useState(false)
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
 
   useEffect(() => {
     const check = async () => {
@@ -19,6 +21,20 @@ export default function Nav() {
     check()
   }, [])
 
+  // Reflect whatever the blocking init script (in app/layout.tsx) already
+  // set on <html>, so the icon matches on first paint.
+  useEffect(() => {
+    const current = document.documentElement.getAttribute('data-theme')
+    if (current === 'dark' || current === 'light') setTheme(current)
+  }, [])
+
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark'
+    setTheme(next)
+    document.documentElement.setAttribute('data-theme', next)
+    try { localStorage.setItem('myword-theme', next) } catch {}
+  }
+
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     window.location.href = '/'
@@ -28,16 +44,17 @@ export default function Nav() {
     <nav className="site-nav" style={{
       position: 'relative', display: 'flex', alignItems: 'center', height: 48,
     }}>
-      {/* Left */}
-      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+      {/* Left — mirrors the right cluster: two pills, plus the unread-envelope dot */}
+      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 0 }}>
         <Link href="/profile" className="pill-hover" style={{
           fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700,
           whiteSpace: 'nowrap',
         }}>
           PROFILE
         </Link>
+        <FeedbackWidget />
         {hasUnresponded && (
-          <span style={{ fontSize: 12, color: '#C85A5A', lineHeight: 1 }} title="You have unread envelopes">✉</span>
+          <span style={{ fontSize: 12, color: '#C85A5A', lineHeight: 1, marginLeft: 4 }} title="You have unread envelopes">✉</span>
         )}
       </div>
 
@@ -57,7 +74,7 @@ export default function Nav() {
 
       {/* Right */}
       <div style={{ marginLeft: 'auto', flexShrink: 0, display: 'flex', gap: 0 }}>
-        <Link href="/about" className="pill-hover" style={{
+        <Link href="/about" className="pill-hover pill-hover-accent" style={{
           fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700,
           whiteSpace: 'nowrap',
         }}>
@@ -72,6 +89,16 @@ export default function Nav() {
           }}
         >
           SIGN OUT
+        </button>
+        <button
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          style={{
+            fontSize: 12, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+            lineHeight: 1, padding: '0 0 0 12px', color: '#000',
+          }}
+        >
+          {theme === 'dark' ? '☀' : '☾'}
         </button>
       </div>
     </nav>

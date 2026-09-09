@@ -28,27 +28,20 @@ export default function FeedbackWidget() {
     <>
       <button
         onClick={() => setFeedbackOpen(true)}
+        className="pill-hover pill-hover-accent"
         style={{
-          position: 'fixed',
-          bottom: 20,
-          left: 20,
-          fontSize: 10,
-          letterSpacing: '0.12em',
+          fontSize: 11,
+          letterSpacing: '0.08em',
           textTransform: 'uppercase',
-          color: '#bbb',
+          fontWeight: 700,
           background: 'transparent',
-          border: '1px solid #bbb',
+          border: 'none',
           cursor: 'pointer',
           fontFamily: 'inherit',
-          padding: '5px 12px',
-          borderRadius: 20,
-          zIndex: 50,
-          transition: 'color 0.15s, border-color 0.15s',
+          whiteSpace: 'nowrap',
         }}
-        onMouseEnter={e => { e.currentTarget.style.color = '#000'; e.currentTarget.style.borderColor = '#000' }}
-        onMouseLeave={e => { e.currentTarget.style.color = '#bbb'; e.currentTarget.style.borderColor = '#bbb' }}
       >
-        Feedback
+        FEEDBACK
       </button>
 
       {feedbackOpen && (

@@ -362,7 +362,7 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
                 <button
                   onClick={() => { setReadView(false); readMounted.current = false }}
                   className="pill-hover"
-                  style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'none', border: '1px solid #000', fontFamily: 'inherit' }}
+                  style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', border: '1px solid #000', fontFamily: 'inherit' }}
                 >
                   GO BACK
                 </button>
@@ -487,16 +487,36 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
 
         {/* Letter navigator — only when unfiltered */}
         {readFilter === 'all' && (
-          <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 40 }}>
+          <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 40, display: 'flex', alignItems: 'flex-end', gap: 8 }}>
+            {/* Index — same circular-punch-card treatment as the rest of the site's nav */}
+            <button
+              onClick={() => { setReadView(false); readMounted.current = false }}
+              title="Back to index"
+              style={{
+                width: 40, height: 40, borderRadius: '50%', border: '1px solid #000', background: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0, flexShrink: 0,
+              }}
+            >
+              <img src="/saturn.svg" alt="Index" style={{ width: 20, height: 20 }} />
+            </button>
+
             {navOpen ? (
               <div style={{ background: '#fff', border: '1px solid #000', padding: '12px 8px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, paddingLeft: 4, paddingRight: 4 }}>
                   <span style={{ fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#888' }}>JUMP TO</span>
                   <button onClick={() => setNavOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontFamily: 'inherit', lineHeight: 1, padding: 0 }}>✕</button>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3 }}>
+                {/* Letters in circles — the same train-punch-card treatment as the
+                    group dashboard's progress strip: filled red = where you are,
+                    black outline = jumpable, light grey = no entries that letter. */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, width: 189 }}>
                   {allLetters.map(l => {
                     const exists = letterSections.some(s => s.letter === l)
+                    const isCurrent = currentLetter === l
+                    let bg: string, border: string, color: string
+                    if (isCurrent) { bg = '#C85A5A'; border = '#C85A5A'; color = '#fff' }
+                    else if (exists) { bg = 'transparent'; border = '#000'; color = '#000' }
+                    else { bg = 'transparent'; border = '#ddd'; color = '#ddd' }
                     return (
                       <button
                         key={l}
@@ -506,11 +526,9 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
                           if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); setNavOpen(false) }
                         }}
                         style={{
-                          fontSize: 11, fontWeight: 700, fontFamily: 'monospace',
-                          padding: '5px 0', border: '1px solid',
-                          borderColor: exists ? '#000' : '#eee',
-                          background: currentLetter === l ? '#000' : 'transparent',
-                          color: currentLetter === l ? '#fff' : exists ? '#000' : '#ddd',
+                          aspectRatio: '1', borderRadius: '50%', border: `1px solid ${border}`, background: bg, color,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 11, fontWeight: 700, fontFamily: 'monospace', lineHeight: 1, padding: 0,
                           cursor: exists ? 'pointer' : 'default',
                         }}
                       >
@@ -527,9 +545,14 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
                   background: '#fff', border: '1px solid #000', padding: '7px 16px',
                   fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
                   fontFamily: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+                  borderRadius: 20, height: 40, boxSizing: 'border-box',
                 }}
               >
-                <span style={{ fontWeight: 900, fontFamily: 'monospace', fontSize: 14 }}>{currentLetter || '?'}</span>
+                <span style={{
+                  width: 20, height: 20, borderRadius: '50%', background: '#C85A5A', color: '#fff',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontWeight: 700, fontFamily: 'monospace', fontSize: 11, flexShrink: 0,
+                }}>{currentLetter || '?'}</span>
                 <span>JUMP</span>
               </button>
             )}
@@ -574,6 +597,11 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
               {displayMode === 'titles' ? 'Blurbs' : 'Titles'}
             </button>
           </div>
+        </div>
+
+        {/* Hearts / envelopes legend */}
+        <div style={{ textAlign: 'center', fontSize: 10, color: '#999', letterSpacing: '0.02em', marginBottom: 16, lineHeight: 1.6 }}>
+          ♥ picks your favourite of the week · ✉ sends the author an anonymous envelope — send one back and you&apos;ll both get a clue
         </div>
 
         {/* Filter tabs */}
@@ -623,7 +651,7 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
                       >
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
                           <span
-                            className="pill-hover"
+                            className="pill-hover pill-hover-stark"
                             onClick={() => { setReadView(true); readMounted.current = false; setTimeout(() => { const el = document.getElementById(`sub-${sub.id}`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }) }, 150) }}
                             style={{ fontSize: 14, letterSpacing: '0.02em', alignSelf: 'flex-start' }}
                           >{sub.word_title}</span>
@@ -671,6 +699,7 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
                     return (
                       <div
                         key={sub.id}
+                        className="blurb-row-stark"
                         onClick={() => { setReadView(true); readMounted.current = false; setTimeout(() => { const el = document.getElementById(`sub-${sub.id}`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }) }, 150) }}
                         style={{ padding: '20px 0', borderTop: '1px solid #eee', cursor: 'pointer' }}
                       >

@@ -298,8 +298,10 @@ export default function GroupPage({ params }: { params: { id: string } }) {
         )}
         {!isCompleted && (
           <div style={{ ...CARD, display: 'grid', gridTemplateColumns: '1fr auto' }}>
-            {/* Left: saturn photo panel */}
-            <div style={{
+            {/* Left: saturn photo panel — already its own self-contained dark
+                card (photo + dark overlay + white text), so it's excluded
+                from the dark-mode invert filter rather than doubly-inverted. */}
+            <div className="no-invert" style={{
               position: 'relative',
               backgroundImage: 'url(/saturn-bg.jpg)',
               backgroundSize: 'cover',
