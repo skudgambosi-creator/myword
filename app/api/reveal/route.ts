@@ -257,7 +257,7 @@ async function sendFinalEmail(supabase: any, week: any, group: any, members: any
       html: `
         <style>@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');</style>
         <div style="font-family: 'Inconsolata', 'Courier New', Courier, monospace; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #000;">
-          <h1 style="font-size: 48px; font-weight: bold; margin-bottom: 4px;">A — Z</h1>
+          <h1 style="font-size: 48px; font-weight: bold; margin-bottom: 4px;">A–Z</h1>
           <p style="font-size: 14px; color: #666; margin-bottom: 32px;">The Alphabet Project is complete.</p>
 
           <p style="font-size: 15px; line-height: 1.8; margin-bottom: 32px;">

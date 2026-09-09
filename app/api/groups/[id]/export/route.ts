@@ -109,7 +109,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 
   const buffer = await buildFlatDocument({
-    docTitle: `${group.name} — ${coverSubtitle}`,
+    docTitle: `${group.name} · ${coverSubtitle}`,
     coverTitle: group.name,
     coverSubtitle,
     pieces,

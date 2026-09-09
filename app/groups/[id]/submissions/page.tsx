@@ -601,7 +601,7 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
 
         {/* Hearts / envelopes legend */}
         <div style={{ textAlign: 'center', fontSize: 10, color: '#999', letterSpacing: '0.02em', marginBottom: 16, lineHeight: 1.6 }}>
-          ♥ picks your favourite of the week · ✉ sends the author an anonymous envelope — send one back and you&apos;ll both get a clue
+          ♥ picks your favourite of the week · ✉ sends the author an anonymous envelope · send one back and you&apos;ll both get a clue
         </div>
 
         {/* Filter tabs */}

@@ -33,7 +33,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   await sendEmail({
     to: 'evoelemoyne@gmail.com',
-    subject: `Season feedback — Member #${prof?.member_number ?? '?'}`,
+    subject: `Season feedback · Member #${prof?.member_number ?? '?'}`,
     html: `
       <div style="font-family: 'Inconsolata', 'Courier New', Courier, monospace; max-width: 600px; margin: 0 auto; padding: 24px;">
         <p style="font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px;">

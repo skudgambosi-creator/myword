@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   // Send invitation email
   await sendEmail({
     to: email,
-    subject: `You've been invited to My Word — ${groupName}`,
+    subject: `You've been invited to My Word · ${groupName}`,
     html: `
       <style>@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');</style>
       <div style="font-family: 'Inconsolata', 'Courier New', Courier, monospace; max-width: 560px; margin: 0 auto; padding: 40px 20px; color: #000;">
@@ -34,11 +34,11 @@ export async function POST(req: NextRequest) {
           <p style="font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px;">
             HOW IT WORKS
           </p>
-          <p style="font-size: 13px; margin-bottom: 8px;">→ Once a week, everyone writes something inspired by the letter of the week — A through Z over 26 weeks.</p>
+          <p style="font-size: 13px; margin-bottom: 8px;">→ Once a week, everyone writes something inspired by the letter of the week · A through Z over 26 weeks.</p>
           <p style="font-size: 13px; margin-bottom: 8px;">→ No rules on style or subject. Pick a word that starts with the letter. Write whatever it brings up.</p>
           <p style="font-size: 13px; margin-bottom: 8px;">→ Submissions are hidden until Wednesday, when everyone's pieces are revealed at once.</p>
           <p style="font-size: 13px; margin-bottom: 8px;">→ You have from Wednesday to Tuesday to submit. Miss the deadline: 0 points. Hit it: 1 point.</p>
-          <p style="font-size: 13px;">→ At the end of 26 weeks, you'll have a complete collection — yours and everyone else's.</p>
+          <p style="font-size: 13px;">→ At the end of 26 weeks, you'll have a complete collection · yours and everyone else's.</p>
         </div>
 
         <p style="font-size: 14px; margin-bottom: 24px;">
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
         </p>
 
         <hr style="border: none; border-top: 1px solid #eee; margin: 32px 0;" />
-        <p style="font-size: 11px; color: #999;">— My Word</p>
+        <p style="font-size: 11px; color: #999;">My Word</p>
       </div>
     `
   })

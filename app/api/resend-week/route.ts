@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
         </a>
       </div>
       <hr style="border: none; border-top: 1px solid #eee; margin: 40px 0 24px;" />
-      <p style="font-size: 11px; color: #999;">— My Word · <a href="https://www.my-word.co.uk" style="color: #999;">my-word.co.uk</a></p>
+      <p style="font-size: 11px; color: #999;">My Word · <a href="https://www.my-word.co.uk" style="color: #999;">my-word.co.uk</a></p>
     </div>
   `
 
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
   for (const email of emails) {
     await sleep(600)
     try {
-      await sendEmail({ to: email, subject: `The Alphabet Project — ${week.letter}`, html })
+      await sendEmail({ to: email, subject: `The Alphabet Project · ${week.letter}`, html })
       sent.push(email)
     } catch (e) {
       failed.push(email)

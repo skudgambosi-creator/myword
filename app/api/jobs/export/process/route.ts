@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     const groupName = group?.name || 'The Alphabet Project'
 
     const { buffer: batchBuffer, lastLetter } = await buildAllBatchDocument({
-      docTitle: `${groupName} — The Full Archive`,
+      docTitle: `${groupName} · The Full Archive`,
       coverTitle: groupName,
       coverSubtitle: 'The Full Archive',
       pieces,
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
               ${signed?.signedUrl
                 ? `<a href="${signed.signedUrl}" style="display: inline-block; background: #C85A5A; color: #fff; padding: 12px 24px; text-decoration: none; text-transform: uppercase; letter-spacing: 0.05em; font-size: 12px; font-weight: bold;">DOWNLOAD →</a>
                    <p style="font-size: 11px; color: #999; margin-top: 24px;">This link expires in 7 days.</p>`
-                : `<p style="font-size: 13px; color: #999;">Something went wrong generating the download link — reply to this email and we'll sort it out.</p>`
+                : `<p style="font-size: 13px; color: #999;">Something went wrong generating the download link. Reply to this email and we'll sort it out.</p>`
               }
             </div>
           `,
