@@ -699,11 +699,11 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
                     return (
                       <div
                         key={sub.id}
-                        className="blurb-row-stark"
                         onClick={() => { setReadView(true); readMounted.current = false; setTimeout(() => { const el = document.getElementById(`sub-${sub.id}`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }) }, 150) }}
                         style={{ padding: '20px 0', borderTop: '1px solid #eee', cursor: 'pointer' }}
                       >
-                        <div style={{ fontSize: 14, fontWeight: 700, color: '#C85A5A', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>
+                        {/* Just the title chip fills blue on hover, not the whole card */}
+                        <div className="pill-hover pill-hover-accent pill-hover-stark" style={{ fontSize: 14, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6, marginLeft: -10 }}>
                           {sub.word_title}
                         </div>
                         {sub.is_signed && sub.signed_name && (

@@ -81,6 +81,7 @@ export default function Nav() {
           ABOUT
         </Link>
         <button
+          type="button"
           onClick={handleSignOut}
           className="pill-hover"
           style={{
@@ -91,6 +92,7 @@ export default function Nav() {
           SIGN OUT
         </button>
         <button
+          type="button"
           onClick={toggleTheme}
           title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           style={{

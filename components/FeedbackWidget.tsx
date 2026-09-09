@@ -27,18 +27,12 @@ export default function FeedbackWidget() {
   return (
     <>
       <button
+        type="button"
         onClick={() => setFeedbackOpen(true)}
         className="pill-hover pill-hover-accent"
         style={{
-          fontSize: 11,
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-          fontWeight: 700,
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          fontFamily: 'inherit',
-          whiteSpace: 'nowrap',
+          fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700,
+          background: 'none', border: 'none', fontFamily: 'inherit', whiteSpace: 'nowrap',
         }}
       >
         FEEDBACK

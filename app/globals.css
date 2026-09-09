@@ -827,20 +827,12 @@ input:-webkit-autofill:active {
   color: var(--accent);
 }
 
-/* Stark pill (submissions INDEX, titles mode) — hover fills a bold baby
-   blue instead of the usual black, to read as its own distinct control. */
+/* Stark pill (submissions INDEX — the title in titles mode, the title chip
+   in blurbs mode) — hover fills a bold baby blue instead of the usual
+   black, scoped to just that chip rather than its whole row/card. */
 .pill-hover-stark:hover {
   background: #89CFF0;
   color: #000;
-}
-
-/* Stark row (submissions INDEX, blurbs mode) — same baby-blue fill, applied
-   to the whole clickable row since blurbs mode has no separate title pill. */
-.blurb-row-stark {
-  transition: background 0.12s;
-}
-.blurb-row-stark:hover {
-  background: #89CFF0;
 }
 
 /* ── BRAND HOVER ── */
