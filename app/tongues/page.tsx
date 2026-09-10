@@ -62,7 +62,7 @@ export default function TonguesPage() {
             languageId="te-reo"
             displayName="Te Reo Māori"
             nativeName="Te reo o Aotearoa"
-            description="The indigenous language of Aotearoa New Zealand. ~200 flashcards covering greetings, pronouns, verbs, nouns, numbers, colours, and full sentence patterns, plus a reference guide with the pronoun system and sentence structure."
+            description="The indigenous language of Aotearoa New Zealand. 680+ flashcards covering greetings, pronouns, verbs, nouns, numbers, colours, days, months, tikanga and marae vocabulary, and full sentence patterns, plus a reference guide with the pronoun system, sentence structure, and a conversational how-to section."
             href="/tongues/te-reo"
           />
 

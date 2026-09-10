@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { ALL_CARDS, DECKS, getAudioUrl, type Card } from '@/lib/tongues/te-reo-data'
 
-type DeckName = 'all' | 'vocab' | 'sentences' | 'particles' | 'pronouns' | 'numbers' | 'possessives' | 'colours' | 'shapes' | 'body'
+type DeckName = 'all' | 'vocab' | 'sentences' | 'particles' | 'pronouns' | 'numbers' | 'possessives' | 'colours' | 'shapes' | 'body' | 'days' | 'tikanga'
 type Mode = 'en' | 'tr'
 
 interface Scores { knew: number; unsure: number; miss: number }
@@ -18,6 +18,8 @@ const DECK_BUTTONS: { name: DeckName; label: string }[] = [
   { name: 'colours', label: 'Colours' },
   { name: 'shapes', label: 'Shapes' },
   { name: 'body', label: 'Body' },
+  { name: 'days', label: 'Days & Months' },
+  { name: 'tikanga', label: 'Tikanga' },
 ]
 
 function shuffle<T>(arr: T[]): T[] {
@@ -375,6 +377,17 @@ export default function TeReoFlashcards() {
               ['e noho rā', 'goodbye (said by the one leaving)'],
               ['āe', 'yes'],
               ['kāo', 'no'],
+              ['mōrena', 'good morning'],
+              ['pō mārie', 'good night'],
+              ['haere mai', 'come here / welcome'],
+              ['tēnā tātou katoa', 'greetings to us all'],
+              ['hongi', 'a nose-to-nose greeting'],
+              ['harirū', 'a handshake'],
+              ['pea', 'maybe / perhaps'],
+              ['koia', "that's right / correct"],
+              ['ka pai', 'okay / all right'],
+              ['koia rā?', 'really? / is that so?'],
+              ['anā', 'there it is / behold'],
             ]} />
           </RefSection>
 
@@ -396,27 +409,43 @@ export default function TeReoFlashcards() {
           </RefSection>
 
           <RefSection title="Question words" note="Questions are formed by putting these at the start of a sentence. He aha = what, Ko wai = who (using ko for identity).">
-            <RefTable rows={[['aha','what'],['wai','who'],['hea','where'],['āhea','when (future)'],['nōnahea','when (past)'],['pēhea','how / what like'],['hia','how many']]} />
+            <RefTable rows={[['aha','what'],['wai','who'],['hea','where'],['āhea','when (future)'],['nōnahea','when (past)'],['pēhea','how / what like'],['hia','how many'],['tēhea','which'],['he aha ai','why'],['nā wai','whose / by whom']]} />
           </RefSection>
 
           <RefSection title="Verbs" note="Verbs don't change form in te reo: tense is carried by the particle before them (kei te, i, ka). The verb always comes first in a sentence.">
-            <RefTable rows={[['kai','eat (also: food)'],['moe','sleep'],['haere','go / travel'],['hoki','return / also'],['noho','sit / stay / live'],['kōrero','speak / talk'],['whakarongo','listen'],['titiro','look'],['mahi','work / do'],['ako','learn / teach'],['aroha','love / care'],['tū','stand'],['oma','run'],['huri','turn'],['homai','give (to me)'],['mōhio','know / understand']]} />
+            <RefTable rows={[['kai','eat (also: food)'],['moe','sleep'],['haere','go / travel'],['hoki','return / also'],['noho','sit / stay / live'],['kōrero','speak / talk'],['whakarongo','listen'],['titiro','look'],['mahi','work / do'],['ako','learn / teach'],['aroha','love / care'],['tū','stand'],['oma','run'],['huri','turn'],['homai','give (to me)'],['mōhio','know / understand'],['tuhi','write'],['pānui','read / announce'],['inu','drink'],['tangi','cry / mourn'],['kata','laugh'],['oho','wake up / startle'],['pātai','ask / question'],['whakautu','answer / reply'],['tiki','fetch / go and get'],['hopu','catch / capture'],['tunu','cook / roast'],['horoi','wash'],['hoko','buy / sell'],['whakaaro','think']]} />
+          </RefSection>
+
+          <RefSection title="More verbs" note="A second batch to round out the everyday verb set, from watching and playing to caring for someone and getting ready.">
+            <RefTable rows={[['mātakitaki','watch'],['tākaro','play'],['wānanga','study / discuss (in a learning forum)'],['tirotiro','look around / examine'],['whakamahi','use'],['tango','take / remove'],['whiwhi','receive / obtain'],['tautoko','support'],['āwhina','help'],['whakatau','settle / decide / welcome formally'],['karanga','call out (a ceremonial call)'],['whakapono','believe'],['mahara','remember / think of'],['wareware','forget'],['maumahara','recall / remember'],['tiaki','look after / care for'],['whāngai','feed / raise'],['kuhu','enter'],['puta','come out / appear / exit'],['tahuri','attend to / turn to'],['whakamātau','try / test'],['rapu','search for'],['kimi','look for / seek'],['whakaatu','show / display'],['whakamārama','explain'],['tīmata','begin / start'],['whakaoti','finish / complete (something)'],['whakatipu','grow / grow up'],['kaukau','swim'],['kanikani','dance'],['waiata','sing'],['tono','ask (request something)'],['whakawhiti','exchange / swap'],['kukume','pull / drag'],['pana','push / push away'],['waha','carry (on the back) / broadcast'],['piki','climb'],['rere','fly'],['hinga','fall'],['pakaru','break'],['tuku','release / send / allow'],['tāpiri','add / append'],['whakatika','fix / correct / straighten'],['tatari','wait'],['tūtaki','meet'],['whakarite','prepare / arrange'],['whakapai','fix up / improve / bless'],['whakanui','celebrate / honour / make much of'],['whakatakoto','lay out / set down'],['whakahoki','return / give back']]} />
           </RefSection>
 
           <RefSection title="Nouns" note="Some words carry layered meanings: marama means moon, month, and understanding. Whenua means both land and placenta. These double meanings are culturally significant, not coincidental.">
-            <RefTable rows={[['whare','house / building'],['kāinga','home / village'],['wāhi','place'],['whenua','land / placenta'],['moana','sea / ocean'],['awa','river'],['maunga','mountain'],['ngahere','forest'],['rangi','sky / day'],['rā','sun / day / sail'],['marama','moon / month / understanding'],['wai','water'],['ahi','fire'],['tangata','person'],['tāne','man'],['wahine','woman'],['tamariki','children'],['tamaiti','child'],['whānau','family'],['iwi','tribe / people / bones'],['hapū','subtribe / pregnant'],['ingoa','name'],['reo','language / voice'],['waka','canoe / vehicle'],['pō','night'],['atarau','moonlit / reflected moonlight'],['katoa','all / everyone / everything']]} />
+            <RefTable rows={[['whare','house / building'],['kāinga','home / village'],['wāhi','place'],['whenua','land / placenta'],['moana','sea / ocean'],['awa','river'],['maunga','mountain'],['ngahere','forest'],['rangi','sky / day'],['rā','sun / day / sail'],['marama','moon / month / understanding'],['wai','water'],['ahi','fire'],['tangata','person'],['tāne','man'],['wahine','woman'],['tamariki','children'],['tamaiti','child'],['whānau','family'],['iwi','tribe / people / bones'],['hapū','subtribe / pregnant'],['ingoa','name'],['reo','language / voice'],['waka','canoe / vehicle'],['pō','night'],['atarau','moonlit / reflected moonlight'],['katoa','all / everyone / everything'],['kurī','dog'],['ngeru','cat'],['poaka','pig'],['hipi','sheep'],['kau','cow'],['hōiho','horse'],['heihei','chicken / hen'],['manu','bird'],['ika','fish'],['tūī','tūī (native songbird)'],['kea','kea (alpine parrot)'],['kererū','kererū (native wood pigeon)'],['rāpeti','rabbit'],['pūngāwerewere','spider'],['kiore','rat / mouse'],['kūmara','sweet potato'],['rīwai','potato'],['āporo','apple'],['parāoa','bread'],['miraka','milk'],['huka','sugar'],['kawhe','coffee'],['tī','tea (the drink)'],['mīti','meat'],['hēki','egg'],['tote','salt'],['hua rākau','fruit'],['huawhenua','vegetable'],['pāpā','father / dad'],['whaea','mother / mum'],['tuakana','older sibling (same gender)'],['teina','younger sibling (same gender)'],['tuahine','sister (of a male)'],['tungāne','brother (of a female)'],['koroua','elderly man / grandfather'],['kuia','elderly woman / grandmother'],['mokopuna','grandchild'],['hoa','friend'],['tama','son / boy'],['tamāhine','daughter / girl'],['ua','rain'],['hau','wind'],['kapua','cloud'],['marangai','storm / east wind'],['pukapuka','book'],['tūru','chair'],['tēpu','table'],['whāriki','mat / carpet'],['waea','telephone'],['waea pūkoro','mobile phone'],['rorohiko','computer'],['kura','school'],['hōhipera','hospital'],['moni','money'],['wiki','week'],['hāora','hour'],['meneti','minute']]} />
+          </RefSection>
+
+          <RefSection title="More nouns, people, ideas & culture" note="Words for the everyday concepts and roles that come up across marae life, community, and conversation.">
+            <RefTable rows={[['whakaaro','thought / idea'],['kupu','word'],['kaupapa','topic / purpose / agenda'],['taonga','treasure'],['mātua','parents'],['rangatira','chief / leader'],['kaumātua','elder (male)'],['tohunga','expert / priest / specialist'],['atua','god / deity / supernatural being'],['wairua','spirit'],['mana','prestige / authority / standing'],['marae','meeting grounds'],['hui','gathering / meeting'],['waiata','song'],['haka','posture dance / war dance'],['whakapapa','genealogy'],['rohe','region / boundary'],['kaitiaki','guardian / caretaker'],['koha','gift / donation'],['hākari','feast'],['kaimahi','employee / worker'],['pēpi','baby'],['hoariri','enemy'],['taumata','summit / peak / standard'],['tūranga','position / status'],['kitenga','discovery / finding'],['hokinga','return / homecoming'],['take','reason / topic / issue'],['raruraru','problem / trouble'],['wā','time / period'],['whakaaturanga','exhibition / display'],['whakaahua','photo / image'],['pikitia','picture / photo / movie'],['tauira','example'],['oranga','well-being / livelihood'],['hauora','holistic health / wellbeing'],['mamae','pain'],['hā','breath'],['harikoa','happiness / joy'],['pouaka','box'],['pouaka whakaata','television'],['reo irirangi','radio'],['reta','letter (mail)'],['wharepaku','toilet'],['haerenga','journey / trip'],['tohu','sign / mark / symbol'],['wehi','fear / awe'],['ture','law']]} />
+          </RefSection>
+
+          <RefSection title="More nouns, clothing, places & nature" note="Around the house, out on the land, and getting from place to place.">
+            <RefTable rows={[['kākahu','clothing'],['pōtae','hat'],['hū','shoes'],['tarau','trousers'],['koti','coat / jacket'],['paraikete','blanket'],['huarahi','road / path'],['tāone','town / city'],['kōhatu','stone / rock'],['roto','lake'],['puke','hill'],['one','beach / sand'],['motu','island'],['tai','tide / coast'],['ngaru','wave'],['ngutu','lip'],['niho','teeth'],['makawe','hair (of the head)'],['karu','eye (alternative term)'],['roimata','tears'],['kaipuke','ship'],['taraka','truck'],['motokā','car'],['tereina','train'],['waka rererangi','aeroplane'],['kiwi','kiwi (bird)'],['toroa','albatross']]} />
+          </RefSection>
+
+          <RefSection title="More nouns, home, seasons & extras" note="Household objects, the birds and treasures around them, and the four seasons.">
+            <RefTable rows={[['pī','chick / baby bird'],['poi','poi (item used in poi dance)'],['pounamu','greenstone / jade'],['hinu','oil / fat'],['ate','liver / seat of emotion'],['puku','stomach / belly'],['uma','chest'],['kapu','cup'],['pereti','plate'],['kāpata','cupboard'],['moenga','bed'],['pepa','paper'],['whārangi','page'],['kete','basket / kit'],['mahere','map / plan'],['karani','grandmother (informal)'],['rama','lamp / light'],['huia','huia (extinct native bird, culturally treasured)'],['ngahuru','autumn'],['raumati','summer'],['hōtoke','winter'],['kōanga','spring'],['pakihi','business'],['pūtea','fund / money pool'],['rawa','resources / property'],['hōtera','hotel'],['toa','warrior / brave person']]} />
           </RefSection>
 
           <RefSection title="Body parts" note="Manawa (breath/heart/lungs) is a rich word: it carries the sense of vitality and life force. Kanohi technically means face but is also used for eye. Ringa covers both hand and arm.">
-            <RefTable rows={[['tinana','body'],['upoko','head'],['kanohi','face / eye'],['taringa','ear'],['ihu','nose'],['waha','mouth'],['ringa','hand / arm'],['waewae','foot / leg'],['manawa','breath / heart / lungs'],['ngākau','heart / innermost feelings']]} />
+            <RefTable rows={[['tinana','body'],['upoko','head'],['kanohi','face / eye'],['taringa','ear'],['ihu','nose'],['waha','mouth'],['ringa','hand / arm'],['waewae','foot / leg'],['manawa','breath / heart / lungs'],['ngākau','heart / innermost feelings'],['kōpū','abdomen / womb'],['kiri','skin'],['iwi','bone, also means tribe/people (a real double meaning)'],['toto','blood'],['kakī','neck / throat'],['pokohiwi','shoulder'],['matimati','finger / toe'],['turi','knee']]} />
           </RefSection>
 
           <RefSection title="Descriptors" note="Descriptors follow the noun they describe: he tangata pai ia (he is a good person). Pai is probably the most useful single word in the language.">
-            <RefTable rows={[['pai','good'],['kino','bad'],['nui','big / many'],['iti','small'],['roa','long / tall'],['poto','short'],['hou','new'],['tawhito','old'],['ataahua','beautiful'],['kaha','strong'],['ngenge','tired'],['hiakai','hungry'],['hiainu','thirsty'],['hari','happy'],['pōuri','sad'],['tika','correct / right'],['hē','wrong'],['whakatoi','cheeky / playfully mischievous'],['rawe','awesome / excellent / fantastic'],['pōkarekare','rippling / agitated (as water)']]} />
+            <RefTable rows={[['pai','good'],['kino','bad'],['nui','big / many'],['iti','small'],['roa','long / tall'],['poto','short'],['hou','new'],['tawhito','old'],['ataahua','beautiful'],['kaha','strong'],['ngenge','tired'],['hiakai','hungry'],['hiainu','thirsty'],['hari','happy'],['pōuri','sad'],['tika','correct / right'],['hē','wrong'],['whakatoi','cheeky / playfully mischievous'],['rawe','awesome / excellent / fantastic'],['pōkarekare','rippling / agitated (as water)'],['wera','hot'],['makariri','cold'],['mākūkū','wet / damp'],['maroke','dry'],['riri','angry'],['whakamā','shy / embarrassed'],['ora','alive / well / healthy'],['ngāwari','easy / gentle / soft'],['uaua','difficult / hard'],['hōhā','annoyed / fed up'],['pukuriri','very angry'],['māharahara','worried'],['koa','joyful'],['mataku','afraid'],['teitei','tall / high'],['rerekē','different'],['tapu','sacred / restricted'],['noa','free of restriction / ordinary'],['wātea','free / available'],['kahurangi','precious / treasured'],['waimarie','lucky / fortunate'],['rongonui','famous / well-known'],['ngaro','lost'],['tūpato','careful / cautious'],['maha','many / numerous'],['nunui','plentiful / big (plural)'],['tuwhera','open'],['kī','full'],['ngū','silent / mute'],['haruru','loud / rumbling (of thunder, engines)'],['mā (clean)','clean'],['pakeke','adult / grown-up'],['rahi','big / great'],['tere','fast / quick'],['puhoi','slow'],['māmā','light / easy, also means "mum" (a real double meaning)'],['haumaru','safe'],['angitu','successful'],['ngoikore','weak / feeble'],['pakari','strong / firm / mature']]} />
           </RefSection>
 
-          <RefSection title="Numbers" note="Beyond 10 the system is logical: tekau mā tahi = 11, rua tekau = 20. Kore (zero) also means void and nothingness. It appears in the Māori creation narrative as the primordial state before existence.">
-            <RefTable rows={[['kore','zero / void / nothingness'],['tahi','one'],['rua','two'],['toru','three'],['whā','four'],['rima','five'],['ono','six'],['whitu','seven'],['waru','eight'],['iwa','nine'],['tekau','ten'],['tekau mā tahi','eleven'],['rua tekau','twenty'],['kotahi rau','one hundred'],['kotahi mano','one thousand']]} />
+          <RefSection title="Numbers" note="Beyond 10 the system is logical: tekau mā tahi = 11, rua tekau = 20. Kore (zero) also means void and nothingness. It appears in the Māori creation narrative as the primordial state before existence. Ordinals swap the tua- prefix onto the cardinal number.">
+            <RefTable rows={[['kore','zero / void / nothingness'],['tahi','one'],['rua','two'],['toru','three'],['whā','four'],['rima','five'],['ono','six'],['whitu','seven'],['waru','eight'],['iwa','nine'],['tekau','ten'],['tekau mā tahi','eleven'],['tekau mā rua','twelve'],['tekau mā toru','thirteen'],['tekau mā whā','fourteen'],['tekau mā rima','fifteen'],['tekau mā ono','sixteen'],['tekau mā whitu','seventeen'],['tekau mā waru','eighteen'],['tekau mā iwa','nineteen'],['rua tekau','twenty'],['toru tekau','thirty'],['whā tekau','forty'],['rima tekau','fifty'],['ono tekau','sixty'],['whitu tekau','seventy'],['waru tekau','eighty'],['iwa tekau','ninety'],['kotahi rau','one hundred'],['rua rau','two hundred'],['toru rau','three hundred'],['kotahi mano','one thousand'],['tuatahi','first'],['tuarua','second'],['tuatoru','third'],['tuawhā','fourth'],['tuarima','fifth'],['tokorua','a pair / couple'],['tini','many / countless']]} />
           </RefSection>
 
           <RefSection title="Time" note="Te reo expresses time through context and particles rather than verb tenses. These words combine with kei te / i / ka to anchor when something happens.">
@@ -439,11 +468,13 @@ export default function TeReoFlashcards() {
             </table>
           </RefSection>
 
-          <RefSection title="Possessives" note="Ō class = things you inhabit or are subordinate to (family, body, feelings, home). Ā class = things you control or act upon (objects you make, food you eat). Tō- for people/places, tā- for things you do.">
+          <RefSection title="Possessives" note="Ō class = things you inhabit or are subordinate to (family, body, feelings, home). Ā class = things you control or act upon (objects you make, food you eat). Tō- for people/places, tā- for things you do. The same dual/plural pattern as the pronouns (māua, tāua, mātou, tātou) attaches for 'our'.">
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead><tr><th style={thStyle}>Te Reo</th><th style={thStyle}>English</th><th style={thStyle}>Class</th></tr></thead>
               <tbody>
                 {[['tōku','my','ō: people, places, feelings'],['tōu','your (one person)','ō'],['tāku','my','ā: actions, objects'],['tāu','your (one person)','ā'],
+                  ['tō māua','our (two, not you)','ō'],['tō tāua','our (two, including you)','ō'],['tō mātou','our (three+, not you)','ō'],['tō tātou','our (all)','ō'],
+                  ['tā māua','our (two, not you)','ā'],['tā tāua','our (two, including you)','ā'],['tā mātou','our (three+, not you)','ā'],['tā tātou','our (all)','ā'],
                 ].map(([tr,en,cls],i) => (
                   <tr key={i}><td style={i%2===0?tdStyle:tdAltStyle}>{tr}</td><td style={i%2===0?tdStyle:tdAltStyle}>{en}</td><td style={{...(i%2===0?tdStyle:tdAltStyle),fontSize:13,color:'#555'}}>{cls}</td></tr>
                 ))}
@@ -456,11 +487,71 @@ export default function TeReoFlashcards() {
           </RefSection>
 
           <RefSection title="Colours" note="Colours in te reo often have natural world origins: kākāriki is both green and a native parakeet, kōwhai is both yellow and the native flowering tree.">
-            <RefTable rows={[['whero','red'],['kōwhai','yellow'],['kākāriki','green'],['kikorangi','blue'],['mā','white'],['mangu','black'],['karaka','orange'],['kākaka','brown'],['māwhero','pink'],['pāpura','purple']]} />
+            <RefTable rows={[['whero','red'],['kōwhai','yellow'],['kākāriki','green'],['kikorangi','blue'],['mā','white'],['mangu','black'],['karaka','orange'],['kākaka','brown'],['māwhero','pink'],['pāpura','purple'],['kiwikiwi','grey'],['kōura','gold'],['hiriwa','silver']]} />
+          </RefSection>
+
+          <RefSection title="Days of the week & months" note="The days of the week are built on Rā (day/sun) plus a number or borrowed name. The twelve traditional Māori month names track the maramataka (lunar calendar) rather than the Gregorian calendar exactly, but map roughly onto the months below.">
+            <RefTable rows={[['Rāhina','Monday'],['Rātū','Tuesday'],['Rāapa','Wednesday'],['Rāpare','Thursday'],['Rāmere','Friday'],['Rāhoroi','Saturday'],['Rātapu','Sunday'],['Kohitātea','January'],['Huitanguru','February'],['Poutūterangi','March'],['Paengawhāwhā','April'],['Haratua','May'],['Pipiri','June'],['Hōngongoi','July'],['Here-turi-kōkā','August'],['Mahuru','September'],['Whiringa-ā-nuku','October'],['Whiringa-ā-rangi','November'],['Hakihea','December']]} />
+          </RefSection>
+
+          <RefSection title="Tikanga & marae" note="Core vocabulary for the customs, protocols and physical spaces of a marae, the words in this deck are also concepts, not just labels, so a plain translation only tells part of the story.">
+            <RefTable rows={[['pōwhiri','ceremonial welcome onto a marae'],['mihi whakatau','a formal welcome speech'],['karakia','prayer / incantation / blessing'],['mauri','life force / vital essence'],['manaakitanga','hospitality / care for others'],['kotahitanga','unity / solidarity'],['whanaungatanga','the process of relationship-building'],['wharenui','meeting house'],['wharekai','dining hall'],['paepae',"the speakers' bench at the front of a meeting house"],['kaikōrero','orator / speaker'],['manuhiri','group of visitors'],['tangata whenua','host people / local people'],['ahurea','culture'],['tuku iho','custom handed down through generations'],['whakaute','respect'],['mahi tahi','working together / cooperation'],['tangihanga','the rites and rituals of mourning for the dead'],['whaikōrero','formal speech / oratory'],['waiata tangi','lament / traditional song of mourning'],['waiata-ā-ringa','action song'],['patu','a traditional short club-like weapon'],['tekoteko','carved ancestral figure'],['whakairo','carving'],['kākahu (as cloak)','a traditional woven cloak'],['tā moko','traditional facial or body tattoo'],['kōhanga reo','language nest / early-childhood language immersion'],['kura kaupapa Māori','Māori-medium immersion primary school'],['kaitiakitanga','guardianship / stewardship of the environment'],['te ao Māori','the Māori worldview'],['rangatiratanga','chieftainship / sovereignty'],['tino rangatiratanga','self-determination (a key Te Tiriti o Waitangi concept)'],['utu','reciprocity / cost / balance owed (a core tikanga concept)'],['ihi','psychic force / power / vitality']]} />
           </RefSection>
 
           <RefSection title="Sentence templates" note="The core pattern: [particle] + [verb] + [subject] + [location/object]. Kei te is your most useful particle. Put it before almost any verb for a present tense sentence.">
-            <RefTable rows={[['kei te kai au','I am eating'],['kei te pai','it\'s good / that\'s fine'],['kei te ngenge au','I\'m tired'],['kei te hiakai au','I\'m hungry'],['i haere au','I went'],['ka haere ia','she / he went'],['me haere tāua','we two should go'],['ko ___ tōku ingoa','my name is ___'],['ko wai tōu ingoa?','what is your name?'],['nō hea koe?','where are you from?'],['he aha tāu mahi?','what are you doing?'],['kāore au e mōhio ana','I don\'t know'],['whakarongo mai!','listen here!'],['kia kaha','be strong / keep going'],['ka kite anō','see you again'],['ka nui te hari o tōku ngākau','my heart is very happy']]} />
+            <RefTable rows={[['kei te kai au','I am eating'],['kei te pai','it\'s good / that\'s fine'],['kei te ngenge au','I\'m tired'],['kei te hiakai au','I\'m hungry'],['i haere au','I went'],['ka haere ia','she / he went'],['me haere tāua','we two should go'],['ko ___ tōku ingoa','my name is ___'],['ko wai tōu ingoa?','what is your name?'],['nō hea koe?','where are you from?'],['he aha tāu mahi?','what are you doing?'],['kāore au e mōhio ana','I don\'t know'],['whakarongo mai!','listen here!'],['kia kaha','be strong / keep going'],['ka kite anō','see you again'],['ka nui te hari o tōku ngākau','my heart is very happy'],['kei te aha koe?',"what's up? / how's it going?"],['kei te haere koe ki hea?','where are you going?'],['kei te haere au ki te kāinga','I am going home'],['e hia te wā?','what time is it?'],['ka taea e koe te āwhina i a au?','can you help me?'],['ki tōku whakaaro','in my opinion'],['he aha tō whakaaro?','what do you think?'],['e hia te utu o tēnei?','how much is this?'],['e hiahia ana au ki te ___, koa','I would like ___, please'],['ngā mihi mō tō āwhina','thank you for your help'],['kāore he raru','no problem at all'],['ka taea e au te noho ki konei?','can I sit here?'],['kia tūpato','take care'],['nau mai ki tō mātou kāinga','welcome to our home'],["e whakaae ana au",'I agree'],['kāore au e whakaae ana','I disagree']]} />
+          </RefSection>
+
+          <RefSection title="How to converse & build a sentence" note="Word order is the backbone of te reo: get the order right and the sentence works, even with simple vocabulary. This section walks through the pattern and a short worked exchange.">
+            <div style={{ fontSize: 14, lineHeight: 1.7, marginBottom: 16 }}>
+              <p style={{ marginBottom: 12 }}>
+                Te reo Māori is <strong>VSO</strong>, verb (or particle + verb) first, then subject, then everything else. English speakers default to subject-first (&quot;I am eating&quot;), so the biggest habit to build is starting the sentence with the particle, not the person.
+              </p>
+              <p style={{ marginBottom: 12 }}>
+                <strong>[particle] + [verb] + [subject] + [location / object]</strong><br/>
+                <em>Kei te kai au i te aporo</em> → kei te (present) + kai (eat) + au (I) + i te aporo (the apple) = &quot;I am eating the apple.&quot;
+              </p>
+              <p style={{ marginBottom: 12 }}>
+                Swap the particle to change when something happens, and everything after it stays in the same order: <em>i kai au</em> (I ate), <em>ka kai au</em> (I will eat / then I ate, narrative), <em>me kai au</em> (I should eat), <em>kua kai au</em> (I have eaten).
+              </p>
+              <p style={{ marginBottom: 0 }}>
+                To ask a question, the same word order holds, question words like <em>he aha</em> (what) or <em>ko wai</em> (who) usually open the sentence, and the reply mirrors the shape of the question back.
+              </p>
+            </div>
+            <div style={{ border: '1.5px solid #000', borderRadius: 12, padding: '16px 18px', marginBottom: 16 }}>
+              <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#444', marginBottom: 10 }}>A short exchange</div>
+              {[
+                ['A:', 'Kia ora! Ko wai tōu ingoa?', 'Hi! What is your name?'],
+                ['B:', 'Ko Mere tōku ingoa. Ā koe?', "I'm Mere. And you?"],
+                ['A:', 'Ko Hēmi tōku ingoa. Nō hea koe?', "I'm Hēmi. Where are you from?"],
+                ['B:', 'Nō Tāmaki Makaurau au. Nō hea koe?', "I'm from Auckland. Where are you from?"],
+                ['A:', 'Nō Ingarani au, engari e noho ana au i konei ināianei.', "I'm from England, but I live here now."],
+                ['B:', 'Ka pai! Kei te ako koe i te reo Māori?', "Great! Are you learning te reo Māori?"],
+                ['A:', 'Āe, kei te ako au. He uaua, engari he pai.', "Yes, I'm learning. It's hard, but it's good."],
+                ['B:', 'Kia kaha! Ka kite anō.', "Keep it up! See you again."],
+              ].map(([who, tr, en], i) => (
+                <div key={i} style={{ display: 'flex', gap: 10, padding: '7px 0', borderBottom: i < 7 ? '1px solid #eee' : 'none' }}>
+                  <span style={{ fontWeight: 'bold', width: 20, flexShrink: 0 }}>{who}</span>
+                  <span style={{ flex: 1 }}>
+                    <span style={{ fontWeight: 'bold' }}>{tr}</span>
+                    <br/>
+                    <span style={{ color: '#444', fontSize: 13, fontStyle: 'italic' }}>{en}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+            <RefTable rows={[
+              ['he aha ai koe i haere ai?', 'why did you go?'],
+              ['nā te aha koe i pōuri ai?', 'what made you sad?'],
+              ['ki tāku whakaaro, he pai tēnei', 'in my view, this is good'],
+              ['engari...', 'but... (to disagree politely, then explain)'],
+              ['nā reira...', 'and so... / therefore...'],
+              ['āe, koia rā', "yes, that's right"],
+              ['kāo, ehara i te mea pēnā', "no, it's not like that"],
+              ['he pātai tāku', 'I have a question'],
+              ['kāore anō au kia mōhio', "I don't know yet"],
+              ['waihoki...', 'also... / likewise...'],
+            ]} />
           </RefSection>
 
         </div>
