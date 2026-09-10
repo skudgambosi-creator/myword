@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
   if (!members?.length) return NextResponse.json({ error: 'No members' }, { status: 400 })
 
-  const groupUrl = `${process.env.NEXT_PUBLIC_APP_URL}/groups/${group.id}`
+  const collectionUrl = `${process.env.NEXT_PUBLIC_APP_URL}/groups/${group.id}/collection`
   let sent = 0
 
   for (const member of members) {
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
     const { error } = await sendEmail({
       to: user.email,
-      subject: 'A belated welcome.',
+      subject: `My Word · About that "Letter null" email`,
       html: `
         <style>@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');</style>
         <div style="font-family: 'Inconsolata', 'Courier New', Courier, monospace; max-width: 560px; margin: 0 auto; padding: 40px 20px; color: #000;">
@@ -38,19 +38,15 @@ export async function POST(req: NextRequest) {
             <img src="https://www.my-word.co.uk/saturn.svg" alt="My Word" width="80" height="auto" style="display: inline-block;" />
           </div>
 
-          <p style="font-size: 15px; line-height: 1.9; margin-bottom: 16px;">A belated welcome.</p>
+          <p style="font-size: 15px; line-height: 1.9; margin-bottom: 16px;">Sorry about that. This morning's reminder said "Letter null." That's a bug, not a secret 27th letter.</p>
 
-          <p style="font-size: 15px; line-height: 1.9; margin-bottom: 16px;">A few tweaks to keep things cheeky. You have now all become anonymous instead of that one time only bs. Instead, you can choose whether or not to sign your piece each week.</p>
+          <p style="font-size: 15px; line-height: 1.9; margin-bottom: 16px;">There's no letter this week. It's the Collection Week: add anything you missed from the 26, and write your epilogue whenever you're ready.</p>
 
-          <p style="font-size: 15px; line-height: 1.9; margin-bottom: 16px;">You can also add pictures. Once a week, you'll get an email from us with the week's submissions in no particular order.</p>
-
-          <p style="font-size: 15px; line-height: 1.9; margin-bottom: 32px;">We look forward to reading your words, and you keeping them.</p>
-
-          <p style="font-size: 15px; line-height: 1.9; margin-bottom: 32px;">Love.</p>
-
-          <a href="${groupUrl}" style="display: inline-block; background: #C85A5A; color: #fff; padding: 12px 24px; font-family: 'Inconsolata', 'Courier New', Courier, monospace; font-size: 12px; font-weight: bold; text-decoration: none; text-transform: uppercase; letter-spacing: 0.05em;">
-            OPEN MY WORD →
+          <a href="${collectionUrl}" style="display: inline-block; background: #C85A5A; color: #fff; padding: 12px 24px; font-family: 'Inconsolata', 'Courier New', Courier, monospace; font-size: 12px; font-weight: bold; text-decoration: none; text-transform: uppercase; letter-spacing: 0.05em;">
+            OPEN THE COLLECTION →
           </a>
+
+          <p style="font-size: 13px; color: #666; margin-top: 24px;">Closes Wednesday 16 September, 23:59.</p>
 
           <hr style="border: none; border-top: 1px solid #eee; margin: 40px 0 24px;" />
           <p style="font-size: 11px; color: #999;">My Word · <a href="https://www.my-word.co.uk" style="color: #999;">my-word.co.uk</a></p>
