@@ -90,7 +90,7 @@ async function revealWeek(supabase: any, week: any, group: any) {
   // group (Season 1, the interim project, Season 2, ...) actually runs.
   const { data: nextWeek } = await supabase
     .from('weeks')
-    .select('id, opens_at')
+    .select('id, opens_at, letter')
     .eq('group_id', group.id)
     .eq('week_num', week.week_num + 1)
     .maybeSingle()
@@ -116,6 +116,16 @@ async function revealWeek(supabase: any, week: any, group: any) {
   }
 
   await sendRevealEmail(week, group, submissions || [], members || [])
+
+  // The week right after the last lettered one is the epilogue (letter-less,
+  // "the collection week") — it's a different enough moment (no letter, add
+  // what you missed, write a closing piece) that it gets its own dedicated
+  // announcement, on top of the normal reveal email above for the week that
+  // just closed. This only ever fires once per group, since revealWeek()
+  // only runs the moment a week transitions from unrevealed to revealed.
+  if (!nextWeek.letter) {
+    await sendEpilogueOpenEmail(group, members || [])
+  }
 }
 
 const REVEAL_BODIES: Record<number, string> = {
@@ -220,6 +230,38 @@ async function sendRevealEmail(week: any, group: any, submissions: any[], member
 
           <hr style="border: none; border-top: 1px solid #eee; margin: 40px 0 24px;" />
           <p style="font-size: 11px; color: #999;">My Word · <a href="https://www.my-word.co.uk" style="color: #999;">my-word.co.uk</a></p>
+        </div>
+      `
+    })
+  }
+}
+
+async function sendEpilogueOpenEmail(group: any, members: any[]) {
+  const collectionUrl = `${process.env.NEXT_PUBLIC_APP_URL}/groups/${group.id}/collection`
+  const memberEmails = members.map(m => (m.users as any)?.email).filter(Boolean)
+
+  for (const email of memberEmails) {
+    await sleep(600)
+    await sendEmail({
+      to: email,
+      subject: `My Word · The Collection Week is open`,
+      html: `
+        <style>@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');</style>
+        <div style="font-family: 'Inconsolata', 'Courier New', Courier, monospace; max-width: 520px; margin: 0 auto; padding: 40px 20px; color: #000;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="https://www.my-word.co.uk/saturn.svg" alt="My Word" width="80" height="auto" style="display: inline-block;" />
+          </div>
+          <p style="font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 24px; text-align: center;">
+            The Collection Week
+          </p>
+          <p style="font-size: 14px; line-height: 1.8; margin-bottom: 24px;">
+            No letter this time, just your alphabet. Add anything you missed, no cap, and write your epilogue whenever you're ready.
+          </p>
+          <a href="${collectionUrl}" style="display: inline-block; background: #C85A5A; color: #fff; padding: 12px 24px; font-family: 'Inconsolata', 'Courier New', Courier, monospace; font-size: 13px; font-weight: bold; text-decoration: none; text-transform: uppercase; letter-spacing: 0.05em;">
+            OPEN THE COLLECTION →
+          </a>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 28px 0;" />
+          <p style="font-size: 11px; color: #999;">My Word · ${group.name}</p>
         </div>
       `
     })

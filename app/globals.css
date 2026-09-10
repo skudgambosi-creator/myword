@@ -827,6 +827,13 @@ input:-webkit-autofill:active {
   color: var(--accent);
 }
 
+/* Muted-grey pill (collapsed-section toggles, e.g. Collection week's
+   "Yours, on time") — resting text is grey instead of black; same
+   not-inline reasoning as .pill-hover-accent above. */
+.pill-hover-muted {
+  color: #888;
+}
+
 /* Stark pill (submissions INDEX — the title in titles mode, the title chip
    in blurbs mode) — hover fills a bold baby blue instead of the usual
    black, scoped to just that chip rather than its whole row/card. */

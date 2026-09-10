@@ -26,6 +26,7 @@ export default function CollectionPage({ params }: { params: { id: string } }) {
   const [weeks, setWeeks] = useState<WeekRow[]>([])
   const [onTimeByWeek, setOnTimeByWeek] = useState<Record<string, any>>({})
   const [catchupByWeek, setCatchupByWeek] = useState<Record<string, any>>({})
+  const [showAlphabet, setShowAlphabet] = useState(false)
 
   useEffect(() => {
     const init = async () => {
@@ -89,7 +90,7 @@ export default function CollectionPage({ params }: { params: { id: string } }) {
               The Collection Week
             </div>
             <div style={{ fontSize: 12, color: '#666', lineHeight: 1.7, marginTop: 12 }}>
-              {completed.length} / 26 done on time. Add anything you missed below, no cap, and write your epilogue whenever you're ready.
+              No letter this time, just your alphabet. Add anything you missed below if you want to fill your set.
             </div>
           </div>
         </div>
@@ -138,13 +139,25 @@ export default function CollectionPage({ params }: { params: { id: string } }) {
           </div>
         )}
 
-        {/* Completed weeks — locked, read-only */}
+        {/* Completed weeks — locked, read-only. Collapsed by default; the
+            header itself is the toggle. */}
         {completed.length > 0 && (
           <div style={CARD}>
-            <div style={{ padding: '14px 24px', borderBottom: '1px solid #000', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#888' }}>
-              Yours, on time
-            </div>
-            {completed.map(w => {
+            <button
+              type="button"
+              onClick={() => setShowAlphabet(v => !v)}
+              className="pill-hover pill-hover-muted"
+              style={{
+                width: '100%', padding: '14px 24px', textAlign: 'center',
+                borderTop: 'none', borderLeft: 'none', borderRight: 'none',
+                borderBottom: showAlphabet ? '1px solid #000' : 'none',
+                fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
+                fontFamily: 'inherit', cursor: 'pointer',
+              }}
+            >
+              Yours, on time {showAlphabet ? '— hide' : `— show all ${completed.length} →`}
+            </button>
+            {showAlphabet && completed.map(w => {
               const sub = onTimeByWeek[w.id]
               return (
                 <div key={w.id} style={{ padding: '20px 24px', borderTop: '1px solid #eee' }}>
