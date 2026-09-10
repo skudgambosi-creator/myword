@@ -3,6 +3,8 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email'
 import { getCurrentGroup } from '@/lib/groups/current'
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -22,12 +24,14 @@ export async function POST(req: NextRequest) {
   if (!members?.length) return NextResponse.json({ error: 'No members' }, { status: 400 })
 
   const collectionUrl = `${process.env.NEXT_PUBLIC_APP_URL}/groups/${group.id}/collection`
-  let sent = 0
+  const sent: string[] = []
+  const failed: string[] = []
 
   for (const member of members) {
     const user = member.users as any
     if (!user?.email) continue
 
+    await sleep(600)
     const { error } = await sendEmail({
       to: user.email,
       subject: `My Word · About that "Letter null" email`,
@@ -54,8 +58,9 @@ export async function POST(req: NextRequest) {
       `,
     })
 
-    if (!error) sent++
+    if (error) failed.push(user.email)
+    else sent.push(user.email)
   }
 
-  return NextResponse.json({ sent, total: members.length })
+  return NextResponse.json({ sent: sent.length, failed, total: members.length })
 }
