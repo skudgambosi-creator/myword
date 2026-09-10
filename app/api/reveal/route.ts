@@ -205,7 +205,7 @@ async function sendRevealEmail(week: any, group: any, submissions: any[], member
     await sleep(600)
     await sendEmail({
       to: email,
-      subject: `The Alphabet Project · ${week.letter || 'Epilogue'}`,
+      subject: `${group.name} · ${week.letter || 'Epilogue'}`,
       html: `
         <style>@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');</style>
         <div style="font-family: 'Inconsolata', 'Courier New', Courier, monospace; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #000;">
