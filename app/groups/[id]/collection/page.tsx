@@ -155,7 +155,7 @@ export default function CollectionPage({ params }: { params: { id: string } }) {
                 fontFamily: 'inherit', cursor: 'pointer',
               }}
             >
-              Yours, on time {showAlphabet ? '— hide' : `— show all ${completed.length} →`}
+              Yours, on time {showAlphabet ? '· hide' : `· show all ${completed.length} →`}
             </button>
             {showAlphabet && completed.map(w => {
               const sub = onTimeByWeek[w.id]

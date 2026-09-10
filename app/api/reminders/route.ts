@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     }
 
     const bodies: Record<string, string> = isEpilogue ? {
-      first: `The Collection Week is open. No letter this time, just your alphabet — add anything you missed, no cap, and write your epilogue whenever you're ready.`,
+      first: `The Collection Week is open. No letter this time, just your alphabet. Add anything you missed, no cap, and write your epilogue whenever you're ready.`,
       second: `Just a reminder: the Collection Week is still open, if you'd like to fill out your set or write your epilogue.`,
       last: `The Collection Week closes tomorrow at 23:59. Last chance to add anything you missed or write your epilogue.`,
     } : {
