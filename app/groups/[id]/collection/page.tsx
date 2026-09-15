@@ -27,6 +27,7 @@ export default function CollectionPage({ params }: { params: { id: string } }) {
   const [onTimeByWeek, setOnTimeByWeek] = useState<Record<string, any>>({})
   const [catchupByWeek, setCatchupByWeek] = useState<Record<string, any>>({})
   const [showAlphabet, setShowAlphabet] = useState(false)
+  const [epilogueSubmission, setEpilogueSubmission] = useState<any>(null)
 
   useEffect(() => {
     const init = async () => {
@@ -60,6 +61,17 @@ export default function CollectionPage({ params }: { params: { id: string } }) {
       }
       setOnTimeByWeek(onTime)
       setCatchupByWeek(catchup)
+
+      // The epilogue lives on the letter-less week itself (week 27, not one
+      // of the 1-26 fetched above). Find it so the entry-point link below
+      // can tell "write" from "edit" — without this it always links to a
+      // bare /submit, which tries to insert a second row on re-visit and
+      // fails against the (user_id, week_id, is_late_catchup) unique
+      // constraint instead of loading the existing one to update.
+      const { data: epiWeek } = await supabase
+        .from('weeks').select('id')
+        .eq('group_id', params.id).is('letter', null).maybeSingle()
+      if (epiWeek) setEpilogueSubmission(onTime[epiWeek.id] || null)
 
       setLoading(false)
     }
@@ -95,9 +107,10 @@ export default function CollectionPage({ params }: { params: { id: string } }) {
           </div>
         </div>
 
-        {/* Epilogue entry point */}
+        {/* Epilogue entry point — edit=1 once one exists, so re-visiting
+            loads it for update instead of trying to insert a duplicate. */}
         <Link
-          href={`/groups/${params.id}/submit`}
+          href={epilogueSubmission ? `/groups/${params.id}/submit?edit=1` : `/groups/${params.id}/submit`}
           style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
         >
           <div
@@ -106,7 +119,7 @@ export default function CollectionPage({ params }: { params: { id: string } }) {
             onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = ''; el.style.color = '' }}
           >
             <div style={{ fontSize: 16, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 700 }}>
-              Write your epilogue →
+              {epilogueSubmission ? 'Edit your epilogue →' : 'Write your epilogue →'}
             </div>
           </div>
         </Link>
