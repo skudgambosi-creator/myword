@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { fetchAllRows } from '@/lib/supabase/fetchAll'
 import Image from 'next/image'
 
 export default async function Leaderboard({ groupId, currentUserId }: { groupId: string; currentUserId: string }) {
@@ -16,10 +17,16 @@ export default async function Leaderboard({ groupId, currentUserId }: { groupId:
   const { data: users } = await supabase
     .from('users').select('*').in('id', userIds)
 
-  const { data: scores } = await supabase
-    .from('scores').select('*')
-    .eq('group_id', groupId)
-    .in('user_id', userIds)
+  // scores gets a row per member per week regardless of hit or miss, so it
+  // outgrows Supabase's per-request row cap long before the other tables
+  // here do (see lib/supabase/fetchAll.ts) — page through it rather than
+  // trusting a single .select() to return everything.
+  const scores = await fetchAllRows<any>((from, to) =>
+    supabase.from('scores').select('*')
+      .eq('group_id', groupId)
+      .in('user_id', userIds)
+      .order('id').range(from, to)
+  )
 
   const { data: weeks } = await supabase
     .from('weeks').select('*').eq('group_id', groupId)

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { fetchAllRows } from '@/lib/supabase/fetchAll'
 import Nav from '@/components/layout/Nav'
 
 
@@ -26,8 +27,13 @@ export default function LeaderboardPage({ params }: { params: { id: string } }) 
       const { data: members } = await supabase
         .from('group_members').select('user_id, users(*)')
         .eq('group_id', params.id)
-      const { data: scores } = await supabase
-        .from('scores').select('*').eq('group_id', params.id)
+      // scores gets a row per member per week regardless of hit or miss, so
+      // it outgrows Supabase's per-request row cap long before the other
+      // tables here do (see lib/supabase/fetchAll.ts) — page through it
+      // rather than trusting a single .select() to return everything.
+      const scores = await fetchAllRows<any>((from, to) =>
+        supabase.from('scores').select('*').eq('group_id', params.id).order('id').range(from, to)
+      )
       const { data: weeks } = await supabase
         .from('weeks').select('*').eq('group_id', params.id)
 
@@ -41,7 +47,7 @@ export default function LeaderboardPage({ params }: { params: { id: string } }) 
 
       const leaderboard = (members || []).map((m: any) => {
         const user = m.users
-        const userScores = (scores || []).filter((s: any) => s.user_id === m.user_id)
+        const userScores = scores.filter((s: any) => s.user_id === m.user_id)
         const total = userScores.reduce((sum: number, s: any) => sum + s.score, 0)
         let streak = 0
         for (const week of sortedWeeks) {

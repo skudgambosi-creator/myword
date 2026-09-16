@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { fetchAllRows } from '@/lib/supabase/fetchAll'
 import { sendEmail } from '@/lib/email'
 
 export const maxDuration = 60
@@ -269,12 +270,17 @@ async function sendEpilogueOpenEmail(group: any, members: any[]) {
 }
 
 async function sendFinalEmail(supabase: any, week: any, group: any, members: any[]) {
-  const { data: allScores } = await supabase
-    .from('scores').select('*, users(*)').eq('group_id', group.id)
+  // scores gets a row per member per week regardless of hit or miss, so a
+  // large, long-running group can already have more rows than a single
+  // unpaginated request returns (see lib/supabase/fetchAll.ts) — page
+  // through it so the final standings in this email are actually complete.
+  const allScores = await fetchAllRows<any>((from, to) =>
+    supabase.from('scores').select('*, users(*)').eq('group_id', group.id).order('id').range(from, to)
+  )
 
   const memberStats = members.map((m: any) => {
     const user = m.users as any
-    const total = (allScores || []).filter((s: any) => s.user_id === m.user_id)
+    const total = allScores.filter((s: any) => s.user_id === m.user_id)
       .reduce((sum: number, s: any) => sum + s.score, 0)
     const name = `Member #${user?.member_number}`
     return { name, total, email: user?.email }

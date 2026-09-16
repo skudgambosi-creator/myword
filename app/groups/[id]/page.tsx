@@ -138,9 +138,12 @@ export default function GroupPage({ params }: { params: { id: string } }) {
         .from('weeks').select('id, week_num, revealed_at, letter').eq('group_id', params.id)
       const wks = allWeeks || []
 
-      // User submissions for progress strip
+      // User submissions for progress strip — scoped to this group. Without
+      // group_id, a member of more than one group would pull in their
+      // submissions from every group they're in, since week_id alone isn't
+      // enough to rule those out against wks (which IS group-scoped).
       const { data: userSubs } = await supabase
-        .from('submissions').select('week_id').eq('user_id', userId).eq('is_late_catchup', false)
+        .from('submissions').select('week_id').eq('user_id', userId).eq('group_id', params.id).eq('is_late_catchup', false)
       const submittedWeekIds = new Set((userSubs || []).map((s: any) => s.week_id))
 
       setSubmittedWeekNums(new Set(
