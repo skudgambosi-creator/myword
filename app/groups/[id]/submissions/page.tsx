@@ -347,7 +347,7 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
     const readViewSubs = readFilter === 'mine'
       ? azSubs.filter((s: any) => s.user_id === userId)
       : readFilter === 'loved'
-      ? azSubs.filter((s: any) => myFavourites[s.week_id] === s.id)
+      ? favouriteSubs
       : azSubs
     const letterSections = buildLetterSections(readViewSubs, true)
     const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
