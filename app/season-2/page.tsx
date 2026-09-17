@@ -68,10 +68,6 @@ export default function Season2Page() {
           </div>
         </div>
 
-        <p style={{ fontSize: 13, color: '#666', lineHeight: 1.8, textAlign: 'center', marginBottom: 24 }}>
-          GET IN
-        </p>
-
         {error && (
           <div style={{ color: '#C85A5A', fontSize: 12, textAlign: 'center', marginBottom: 16 }}>{error}</div>
         )}
@@ -87,7 +83,7 @@ export default function Season2Page() {
             className="btn-black"
             style={{ display: 'block', width: '100%', padding: '18px', fontSize: 15, border: '1px solid #000', background: '#000', color: '#fff', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.1em', textTransform: 'uppercase' }}
           >
-            {sending ? '...' : 'Count me in'}
+            {sending ? '...' : 'YOZA'}
           </button>
         )}
       </main>
