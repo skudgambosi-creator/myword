@@ -5,9 +5,18 @@ import { INCONSOLATA_REGULAR_BASE64, INCONSOLATA_BOLD_BASE64 } from './fontData'
 
 export interface ExportPiece {
   weekLabel: string // e.g. 'A', or 'Epilogue' for the letter-less week
+  weekCloses?: string | null // week's closes_at (ISO) — shown under the letter on divider pages
   title: string
   bodyHtml: string
   attribution?: string // e.g. 'Member #14' — omitted entirely for a personal export
+}
+
+// Matches the on-site read/index views (app/groups/[id]/submissions/page.tsx)
+// exactly, so "which date each letter was" reads the same on the site and in
+// the archive PDF.
+function formatWeekDate(iso?: string | null): string | null {
+  if (!iso) return null
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 export interface CompletionGrid {
@@ -82,6 +91,7 @@ function makeStyles(fontFamily: string) {
     titleSpacer: { marginBottom: 16 },
     dividerLetter: { fontSize: 140, fontWeight: 700, color: '#000', textAlign: 'center' },
     dividerLetterLong: { fontSize: 54, fontWeight: 700, color: '#000', textAlign: 'center' },
+    dividerDate: { fontSize: 11, letterSpacing: 2, color: '#999', textAlign: 'center', textTransform: 'uppercase', marginTop: 12 },
     gridTitle: { fontSize: 11, textTransform: 'uppercase', letterSpacing: 2, color: '#666', marginBottom: 20 },
     gridCount: { fontSize: 13, fontWeight: 700, marginBottom: 28 },
     gridRow: { flexDirection: 'row', marginBottom: 10 },
@@ -107,15 +117,17 @@ function CoverPage({ coverTitle, coverSubtitle, styles }: { coverTitle: string; 
   )
 }
 
-function LetterDividerPage({ letter, styles }: { letter: string; styles: Styles }) {
+function LetterDividerPage({ letter, closesAt, styles }: { letter: string; closesAt?: string | null; styles: Styles }) {
   // Single letters (A-Z) get the full-size treatment; the letter-less
   // week's "Epilogue" divider is multiple characters wide and would
   // overflow/wrap ugly at fontSize 140, so it gets a smaller size instead.
   const isLong = letter.length > 1
+  const date = formatWeekDate(closesAt)
   return (
     <Page size="A4" style={styles.page}>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Text style={isLong ? styles.dividerLetterLong : styles.dividerLetter}>{letter}</Text>
+        {date && <Text style={styles.dividerDate}>{date}</Text>}
       </View>
     </Page>
   )
@@ -206,11 +218,11 @@ interface AllBatchInput {
 }
 
 function groupByLetter(pieces: ExportPiece[]) {
-  const groups: { letter: string; items: ExportPiece[] }[] = []
+  const groups: { letter: string; closesAt?: string | null; items: ExportPiece[] }[] = []
   for (const piece of pieces) {
     const last = groups[groups.length - 1]
     if (last && last.letter === piece.weekLabel) last.items.push(piece)
-    else groups.push({ letter: piece.weekLabel, items: [piece] })
+    else groups.push({ letter: piece.weekLabel, closesAt: piece.weekCloses, items: [piece] })
   }
   return groups
 }
@@ -230,7 +242,7 @@ function buildAllBatchDocumentJsx(input: AllBatchInput, images: Map<string, Reso
         const skipDivider = gi === 0 && group.letter === leadingLetterCarry
         return (
           <React.Fragment key={gi}>
-            {!skipDivider && <LetterDividerPage letter={group.letter} styles={styles} />}
+            {!skipDivider && <LetterDividerPage letter={group.letter} closesAt={group.closesAt} styles={styles} />}
             {group.items.map((p, pi) => (
               <PiecePage key={`${gi}-${pi}`} piece={p} showWeekLabel={false} images={images} styles={styles} />
             ))}

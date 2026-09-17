@@ -33,6 +33,7 @@ export default function DashboardPage() {
   const [registrationOpen, setRegistrationOpen] = useState(true)
   const [joining, setJoining] = useState(false)
   const [seasonNum, setSeasonNum] = useState(1)
+  const [aboutOpen, setAboutOpen] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -42,7 +43,18 @@ export default function DashboardPage() {
       const currentGroup = await getCurrentGroup(supabase)
       setGroup(currentGroup)
 
-      if (!currentGroup) { setLoading(false); return }
+      if (!currentGroup) {
+        // Between seasons — grab the most recently completed group just to
+        // label the "SEASON N COMPLETE" card correctly.
+        const { data: lastCompleted } = await supabase
+          .from('groups').select('*')
+          .not('completed_at', 'is', null)
+          .order('start_date', { ascending: false })
+          .limit(1).maybeSingle()
+        if (lastCompleted) setSeasonNum(await getSeasonNumber(supabase, lastCompleted))
+        setLoading(false)
+        return
+      }
 
       setSeasonNum(await getSeasonNumber(supabase, currentGroup))
 
@@ -96,14 +108,41 @@ export default function DashboardPage() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Nav />
       <main className="page-main">
-        <div style={{ border: '1px solid #000', padding: '32px', textAlign: 'center', marginBottom: 16 }}>
-          <div style={{ fontSize: 16, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 8 }}>
-            Nothing running right now
+
+        {/* Saturn symbol card — same treatment as the landing page */}
+        <div style={{ border: '1px solid #000', width: '100%', height: 'min(55vh, 480px)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+          <img src="/saturn.svg" alt="Saturn symbol" style={{ height: '65%', width: 'auto', display: 'block' }} />
+        </div>
+
+        <Link
+          href="/profile"
+          style={{ textDecoration: 'none', color: 'inherit', display: 'block', marginBottom: 16 }}
+        >
+          <div
+            style={{ border: '1px solid #000', padding: '28px 32px', textAlign: 'center', cursor: 'pointer', transition: 'background 0.12s, color 0.12s' }}
+            onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = '#000'; el.style.color = '#fff' }}
+            onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = ''; el.style.color = '' }}
+          >
+            <div style={{ fontSize: 18, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8, color: 'inherit' }}>
+              THE ALPHABET PROJECT
+            </div>
+            <div style={{ fontSize: 10, color: 'inherit', letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.5 }}>
+              SEASON {seasonNum} COMPLETE
+            </div>
           </div>
-          <div style={{ fontSize: 12, color: '#666', lineHeight: 1.7 }}>
-            Check back soon for what's next.
+        </Link>
+
+        <div
+          style={{ border: '1px solid #000', padding: '28px 32px', marginBottom: 16, textAlign: 'center' }}
+        >
+          <div style={{ fontSize: 18, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>
+            LORE
+          </div>
+          <div style={{ fontSize: 10, color: 'inherit', letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.5 }}>
+            UNDER CONSTRUCTION
           </div>
         </div>
+
         <Link
           href="/tongues"
           style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
@@ -121,6 +160,43 @@ export default function DashboardPage() {
             </div>
           </div>
         </Link>
+
+        {/* About toggle — a small red "?" pill, same treatment as the
+            masthead's PROFILE / ABOUT / FEEDBACK pills, that unminimizes
+            what's coming next instead of a generic placeholder message. */}
+        <div style={{ textAlign: 'center', marginTop: 24 }}>
+          <button
+            type="button"
+            onClick={() => setAboutOpen(v => !v)}
+            className="pill-hover pill-hover-accent"
+            style={{
+              fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700,
+              background: 'none', border: 'none', fontFamily: 'inherit', cursor: 'pointer',
+            }}
+          >
+            ?
+          </button>
+        </div>
+
+        {aboutOpen && (
+          <div style={{ marginTop: 16 }}>
+            <div style={{ border: '1px solid #000', padding: '28px 32px', textAlign: 'center' }}>
+              <div style={{ fontSize: 18, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>
+                THE ALPHABET PROJECT
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 8 }}>
+                SEASON 2
+              </div>
+              <div style={{ fontSize: 13, color: '#000' }}>
+                01/01/2027
+              </div>
+            </div>
+            <div style={{ fontSize: 12, color: '#666', lineHeight: 1.7, textAlign: 'center', marginTop: 16 }}>
+              Seasons you take part in move to your profile page when they complete, forever. If you missed it, you missed it.
+            </div>
+          </div>
+        )}
+
       </main>
       <Footer />
     </div>

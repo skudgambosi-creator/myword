@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     const { data: subs } = await service
       .from('submissions')
-      .select('id, word_title, body_html, weeks(week_num, letter), users(member_number)')
+      .select('id, word_title, body_html, weeks(week_num, letter, closes_at), users(member_number)')
       .in('id', batchIds)
 
     // .in() doesn't preserve input order — rebuild it from the job's
@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
       .filter(Boolean)
       .map((s: any) => ({
         weekLabel: s.weeks?.letter || 'Epilogue',
+        weekCloses: s.weeks?.closes_at ?? null,
         title: s.word_title,
         bodyHtml: s.body_html || '',
         attribution: `Member #${s.users?.member_number ?? '?'}`,

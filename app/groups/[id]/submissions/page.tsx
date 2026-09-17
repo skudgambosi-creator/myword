@@ -19,6 +19,11 @@ function buildWeekGroups(subs: any[]) {
   return Object.values(weekMap).sort((a, b) => a.week?.week_num - b.week?.week_num)
 }
 
+function formatWeekDate(iso?: string | null): string | null {
+  if (!iso) return null
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
 function hasImage(html: string) { return /<img[\s>]/i.test(html) }
 function hasAudio(html: string) { return /<audio[\s>]/i.test(html) }
 
@@ -336,6 +341,7 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
     return sortedLetters.map(letter => ({
       letter,
       weekId: grouped[letter][0]?.week_id as string,
+      closesAt: grouped[letter][0]?.weeks?.closes_at as string | undefined,
       subs: grouped[letter] as any[],
     }))
   }
@@ -402,12 +408,17 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
             ? empty('No revealed weeks yet.')
             : letterSections.length === 0
             ? empty(readFilter === 'mine' ? "You haven't submitted anything yet." : 'No loved pieces yet.')
-            : letterSections.map(({ letter, weekId, subs: weekSubs }) => (
+            : letterSections.map(({ letter, weekId, closesAt, subs: weekSubs }) => (
               <div key={weekId} style={{ marginBottom: 64 }}>
                 {/* Letter anchor + header */}
                 <div id={`letter-${letter}`} style={{ textAlign: 'center', fontSize: letter === 'Epilogue' ? 40 : 80, fontWeight: 900, color: '#C85A5A', lineHeight: 1, marginBottom: 8, letterSpacing: letter === 'Epilogue' ? '0.1em' : undefined, textTransform: letter === 'Epilogue' ? 'uppercase' : undefined }}>
                   {letter}
                 </div>
+                {formatWeekDate(closesAt) && (
+                  <div style={{ textAlign: 'center', fontSize: 11, color: '#999', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>
+                    {formatWeekDate(closesAt)}
+                  </div>
+                )}
                 <hr style={{ border: 'none', borderTop: '1px solid #000', margin: '0 0 32px' }} />
 
                 {/* Pieces */}
@@ -637,11 +648,16 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
           <div>
             {displayMode === 'titles' ? (
               // ── TITLES MODE ──
-              indexSections.map(({ letter, weekId, subs: weekSubs }, gi) => (
+              indexSections.map(({ letter, weekId, closesAt, subs: weekSubs }, gi) => (
                 <div key={weekId}>
-                  <div style={{ textAlign: 'center', fontSize: letter === 'Epilogue' ? 24 : 48, fontWeight: 900, fontFamily: 'monospace', color: '#000', marginBottom: 8, marginTop: gi > 0 ? 32 : 0, letterSpacing: letter === 'Epilogue' ? '0.1em' : undefined, textTransform: letter === 'Epilogue' ? 'uppercase' : undefined }}>
+                  <div style={{ textAlign: 'center', fontSize: letter === 'Epilogue' ? 24 : 48, fontWeight: 900, fontFamily: 'monospace', color: '#000', marginBottom: formatWeekDate(closesAt) ? 2 : 8, marginTop: gi > 0 ? 32 : 0, letterSpacing: letter === 'Epilogue' ? '0.1em' : undefined, textTransform: letter === 'Epilogue' ? 'uppercase' : undefined }}>
                     {letter}
                   </div>
+                  {formatWeekDate(closesAt) && (
+                    <div style={{ textAlign: 'center', fontSize: 10, color: '#999', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>
+                      {formatWeekDate(closesAt)}
+                    </div>
+                  )}
                   {weekSubs.map(sub => {
                     const isMyVote = myFavourites[sub.week_id] === sub.id
                     return (
@@ -686,11 +702,16 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
               ))
             ) : (
               // ── BLURBS MODE ──
-              indexSections.map(({ letter, weekId, subs: weekSubs }, gi) => (
+              indexSections.map(({ letter, weekId, closesAt, subs: weekSubs }, gi) => (
                 <div key={weekId}>
-                  <div style={{ textAlign: 'center', fontSize: letter === 'Epilogue' ? 24 : 48, fontWeight: 900, fontFamily: 'monospace', color: '#000', marginBottom: 8, marginTop: gi > 0 ? 32 : 0, letterSpacing: letter === 'Epilogue' ? '0.1em' : undefined, textTransform: letter === 'Epilogue' ? 'uppercase' : undefined }}>
+                  <div style={{ textAlign: 'center', fontSize: letter === 'Epilogue' ? 24 : 48, fontWeight: 900, fontFamily: 'monospace', color: '#000', marginBottom: formatWeekDate(closesAt) ? 2 : 8, marginTop: gi > 0 ? 32 : 0, letterSpacing: letter === 'Epilogue' ? '0.1em' : undefined, textTransform: letter === 'Epilogue' ? 'uppercase' : undefined }}>
                     {letter}
                   </div>
+                  {formatWeekDate(closesAt) && (
+                    <div style={{ textAlign: 'center', fontSize: 10, color: '#999', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>
+                      {formatWeekDate(closesAt)}
+                    </div>
+                  )}
                   {weekSubs.map(sub => {
                     const isMyVote = myFavourites[sub.week_id] === sub.id
                     const blurb = getBlurb(sub.body_html || '')
