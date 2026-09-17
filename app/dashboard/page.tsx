@@ -44,14 +44,7 @@ export default function DashboardPage() {
       setGroup(currentGroup)
 
       if (!currentGroup) {
-        // Between seasons — grab the most recently completed group just to
-        // label the "SEASON N COMPLETE" card correctly.
-        const { data: lastCompleted } = await supabase
-          .from('groups').select('*')
-          .not('completed_at', 'is', null)
-          .order('start_date', { ascending: false })
-          .limit(1).maybeSingle()
-        if (lastCompleted) setSeasonNum(await getSeasonNumber(supabase, lastCompleted))
+        // Between seasons — nothing here reads seasonNum any more.
         setLoading(false)
         return
       }
@@ -115,7 +108,7 @@ export default function DashboardPage() {
         </div>
 
         <Link
-          href="/profile"
+          href="/season-2"
           style={{ textDecoration: 'none', color: 'inherit', display: 'block', marginBottom: 16 }}
         >
           <div
@@ -127,7 +120,10 @@ export default function DashboardPage() {
               THE ALPHABET PROJECT
             </div>
             <div style={{ fontSize: 10, color: 'inherit', letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.5 }}>
-              SEASON {seasonNum} COMPLETE
+              SEASON 2
+            </div>
+            <div style={{ fontSize: 10, color: 'inherit', letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.5 }}>
+              01/01/2027
             </div>
           </div>
         </Link>
@@ -180,19 +176,8 @@ export default function DashboardPage() {
 
         {aboutOpen && (
           <div style={{ marginTop: 16 }}>
-            <div style={{ border: '1px solid #000', padding: '28px 32px', textAlign: 'center' }}>
-              <div style={{ fontSize: 18, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>
-                THE ALPHABET PROJECT
-              </div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#C85A5A', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 8 }}>
-                SEASON 2
-              </div>
-              <div style={{ fontSize: 13, color: '#000' }}>
-                01/01/2027
-              </div>
-            </div>
-            <div style={{ fontSize: 12, color: '#666', lineHeight: 1.7, textAlign: 'center', marginTop: 16 }}>
-              Seasons you take part in move to your profile page when they complete, forever. If you missed it, you missed it.
+            <div style={{ fontSize: 12, color: '#666', lineHeight: 1.7, textAlign: 'center' }}>
+              Seasons you take part in move to your profile page when they complete.
             </div>
           </div>
         )}

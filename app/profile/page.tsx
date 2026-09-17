@@ -4,7 +4,11 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Nav from '@/components/layout/Nav'
-import { getCurrentGroup } from '@/lib/groups/current'
+import { getCurrentGroup, getSeasonNumber } from '@/lib/groups/current'
+
+const PROJECT_LABELS: Record<string, string> = {
+  alphabet: 'The Alphabet Project',
+}
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -35,7 +39,10 @@ export default function ProfilePage() {
       const completed = (memberships || [])
         .map((m: any) => m.groups)
         .filter((g: any) => g && g.completed_at)
-      setCompletedSeasons(completed)
+      const withSeasons = await Promise.all(
+        completed.map(async (g: any) => ({ ...g, seasonNum: await getSeasonNumber(supabase, g) }))
+      )
+      setCompletedSeasons(withSeasons)
 
       setLoading(false)
     }
@@ -135,17 +142,16 @@ export default function ProfilePage() {
         {/* Completed seasons — only reachable from here once a group drops off the dashboard */}
         {completedSeasons.length > 0 && (
           <div style={{ border: '1px solid #000', borderTop: 'none', marginBottom: 0 }}>
-            <div style={{ fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#888', padding: '14px 20px 10px' }}>
-              Completed seasons
-            </div>
-            {completedSeasons.map((g: any) => (
+            {completedSeasons.map((g: any, i: number) => (
               <Link
                 key={g.id}
                 href={`/groups/${g.id}`}
                 className="pill-hover"
-                style={{ display: 'block', textDecoration: 'none', color: 'inherit', padding: '14px 20px', borderTop: '1px solid #eee', fontSize: 13 }}
+                style={{ display: 'block', textDecoration: 'none', padding: '16px 20px', borderTop: i === 0 ? 'none' : '1px solid #eee', fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase' }}
               >
-                {g.name}
+                <span style={{ color: '#000' }}>{PROJECT_LABELS[g.project_type] || g.name}</span>
+                {' '}
+                <span style={{ color: '#C85A5A' }}>Season {g.seasonNum}</span>
               </Link>
             ))}
           </div>
