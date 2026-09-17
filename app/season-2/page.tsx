@@ -69,7 +69,7 @@ export default function Season2Page() {
         </div>
 
         <p style={{ fontSize: 13, color: '#666', lineHeight: 1.8, textAlign: 'center', marginBottom: 24 }}>
-          Sign-ups aren&apos;t open yet. Leave your name down and we&apos;ll email you when they are.
+          Again?
         </p>
 
         {error && (
