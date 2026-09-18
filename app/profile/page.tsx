@@ -38,7 +38,12 @@ export default function ProfilePage() {
         .from('group_members').select('groups(*)').eq('user_id', session.user.id)
       const completed = (memberships || [])
         .map((m: any) => m.groups)
-        .filter((g: any) => g && g.completed_at)
+        // A season only counts as "yours" if your account already existed
+        // by the time it finished — an account created after a season
+        // completed (any account made from here on, for the seasons that
+        // have already wrapped) never gets to see it on their profile,
+        // even if a stray invite or admin action ever adds them as a member.
+        .filter((g: any) => g && g.completed_at && (!prof?.created_at || new Date(prof.created_at) <= new Date(g.completed_at)))
       const withSeasons = await Promise.all(
         completed.map(async (g: any) => ({ ...g, seasonNum: await getSeasonNumber(supabase, g) }))
       )

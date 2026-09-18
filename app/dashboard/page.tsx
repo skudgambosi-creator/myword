@@ -119,7 +119,7 @@ export default function DashboardPage() {
             <div style={{ fontSize: 18, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8, color: 'inherit' }}>
               THE ALPHABET PROJECT
             </div>
-            <div style={{ fontSize: 10, color: 'inherit', letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.5 }}>
+            <div style={{ fontSize: 10, color: '#C85A5A', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
               SEASON 2
             </div>
             <div style={{ fontSize: 10, color: 'inherit', letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.5 }}>

@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import Nav from '@/components/layout/Nav'
 import LanguageCard from '@/components/tongues/LanguageCard'
 import { createClient } from '@/lib/supabase/client'
@@ -44,17 +45,22 @@ export default function TonguesPage() {
       <Nav />
       <main className="page-main">
 
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.15em', color: '#555', textTransform: 'uppercase', marginBottom: 16 }}>
-          TONGUES
+        <div style={{ position: 'relative', textAlign: 'center', marginBottom: 20 }}>
+          <Link
+            href="/dashboard"
+            className="pill-hover"
+            style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' }}
+          >
+            GO BACK
+          </Link>
+          <div style={{ fontSize: 22, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+            TONGUES
+          </div>
         </div>
 
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 22, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8 }}>
-            Languages
-          </div>
-          <div style={{ fontSize: 13, lineHeight: 1.7, color: '#555' }}>
-            Each language is a standalone flashcard deck: spaced repetition, audio pronunciation, and a full reference guide.
-          </div>
+        <div style={{ marginBottom: 24, fontSize: 13, lineHeight: 1.7, color: '#555' }}>
+          <p style={{ margin: '0 0 12px' }}>Words of the world - language learning games.</p>
+          <p style={{ margin: 0 }}>If you can understand and commit the most commonly used words, sentences, and patterns of a language, you have got the weaponry you need to become fluent. Each language has a flashcard deck with audio pronunciation, and a guide to get you chewing the fat with that silver tongue of yours ASAP.</p>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>

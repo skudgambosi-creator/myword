@@ -356,7 +356,10 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
       ? favouriteSubs
       : azSubs
     const letterSections = buildLetterSections(readViewSubs, true)
-    const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+    // 'Epilogue' rides along in the jump grid after Z — shown as a full
+    // stop rather than spelling the word out, since every other entry
+    // here is a single character.
+    const allLetters = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''), 'Epilogue']
     return (
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <Nav />
@@ -539,11 +542,11 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
                         style={{
                           aspectRatio: '1', borderRadius: '50%', border: `1px solid ${border}`, background: bg, color,
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 11, fontWeight: 700, fontFamily: 'monospace', lineHeight: 1, padding: 0,
+                          fontSize: l === 'Epilogue' ? 16 : 11, fontWeight: 700, fontFamily: 'monospace', lineHeight: 1, padding: 0,
                           cursor: exists ? 'pointer' : 'default',
                         }}
                       >
-                        {l}
+                        {l === 'Epilogue' ? '.' : l}
                       </button>
                     )
                   })}
@@ -563,7 +566,7 @@ function SubmissionsPageInner({ params }: { params: { id: string } }) {
                   width: 20, height: 20, borderRadius: '50%', background: '#C85A5A', color: '#fff',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontWeight: 700, fontFamily: 'monospace', fontSize: 11, flexShrink: 0,
-                }}>{currentLetter || '?'}</span>
+                }}>{currentLetter === 'Epilogue' ? '.' : (currentLetter || '?')}</span>
                 <span>JUMP</span>
               </button>
             )}

@@ -89,9 +89,9 @@ export default function AboutPage() {
 
         <h2 style={sectionTitle}>TONGUES</h2>
 
-        <p style={para}>Tongues is built for the people.</p>
+        <p style={para}>Words of the world - language learning games.</p>
 
-        <p style={para}>The principle is simple: if you can understand and commit the most commonly used words, sentences, and patterns of a language, you have got the weaponry you need to become fluent. Currently these are flashcard games built on that principle, with more on the way. Conversation games, lessons, and whatever comes next.</p>
+        <p style={para}>If you can understand and commit the most commonly used words, sentences, and patterns of a language, you have got the weaponry you need to become fluent. Each language has a flashcard deck with audio pronunciation, and a guide to get you chewing the fat with that silver tongue of yours ASAP.</p>
 
       </main>
 

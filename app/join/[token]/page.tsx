@@ -67,6 +67,23 @@ export default async function JoinPage({ params }: { params: { token: string } }
   const { data: { user } } = await supabase.auth.getUser()
   const group = invitation.groups as any
 
+  if (group?.completed_at) {
+    return (
+      <div style={{ minHeight: '100vh' }}>
+        <nav className="nav"><Link href="/" className="nav-brand">[ MY WORD ]</Link></nav>
+        <div className="page-container" style={{ paddingTop: 48, maxWidth: 480 }}>
+          <div className="box">
+            <div className="box-header">SEASON ALREADY FINISHED</div>
+            <div style={{ padding: '20px 0 0', fontSize: 14, color: '#555' }}>
+              This season has already wrapped up, so this invitation can no longer be accepted.
+              Ask the group admin about the next one.
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div style={{ minHeight: '100vh' }}>
       <nav className="nav"><Link href="/" className="nav-brand">[ MY WORD ]</Link></nav>
@@ -114,6 +131,10 @@ function AcceptButton({ token, groupId, userId }: { token: string; groupId: stri
     <form action={async () => {
       'use server'
       const serviceClient = createServiceClient()
+      // Belt and suspenders — the page already hides this button once a
+      // season's finished, but re-check server-side too before the insert.
+      const { data: g } = await serviceClient.from('groups').select('completed_at').eq('id', groupId).single()
+      if (g?.completed_at) redirect(`/join/${token}`)
       await serviceClient.from('group_members').insert({ group_id: groupId, user_id: userId })
       await serviceClient.from('invitations').update({ accepted: true }).eq('token', token)
       redirect(`/groups/${groupId}`)
