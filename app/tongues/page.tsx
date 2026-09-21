@@ -87,6 +87,14 @@ export default function TonguesPage() {
             description="Hungarian, a language unrelated to English or Italian, with no grammatical gender but an extensive case system. 270+ flashcards covering greetings, pronouns, verbs, nouns, numbers, colours, days, months, body parts, and full sentence templates, plus a reference guide covering vowel harmony, cases, and sentence structure."
             href="/tongues/magyar"
           />
+
+          <LanguageCard
+            languageId="french"
+            displayName="Français"
+            nativeName="La langue française"
+            description="French for everyday use. 180+ flashcards covering greetings, pronouns, question words, verbs, nouns, adjectives, numbers, colours, days, months, and full sentence templates, with real recorded native-accent audio on every card, plus a reference guide covering gender, negation, and question formation."
+            href="/tongues/french"
+          />
         </div>
 
       </main>

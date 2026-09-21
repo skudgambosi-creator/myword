@@ -1,0 +1,252 @@
+export interface FrenchCard {
+  id: string
+  en: string
+  fr: string
+  cat: string
+  note?: string
+}
+
+function toSlug(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[àáâä]/g, 'a').replace(/[èéêë]/g, 'e').replace(/[ìíîï]/g, 'i')
+    .replace(/[òóôö]/g, 'o').replace(/[ùúûü]/g, 'u')
+    .replace(/ç/g, 'c').replace(/œ/g, 'oe').replace(/æ/g, 'ae').replace(/ñ/g, 'n')
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
+const CARDS_RAW: Omit<FrenchCard, 'id'>[] = [
+  // greetings
+  { en: 'hello / hi', fr: 'bonjour / salut', cat: 'greetings' },
+  { en: 'good evening', fr: 'bonsoir', cat: 'greetings' },
+  { en: 'goodbye', fr: 'au revoir', cat: 'greetings' },
+  { en: 'see you soon', fr: 'à bientôt', cat: 'greetings' },
+  { en: 'please', fr: 's\'il vous plaît', cat: 'greetings' },
+  { en: 'thank you', fr: 'merci', cat: 'greetings' },
+  { en: 'you\'re welcome', fr: 'de rien', cat: 'greetings' },
+  { en: 'yes', fr: 'oui', cat: 'greetings' },
+  { en: 'no', fr: 'non', cat: 'greetings' },
+  { en: 'excuse me / sorry', fr: 'excusez-moi / pardon', cat: 'greetings' },
+  { en: 'I don\'t understand', fr: 'je ne comprends pas', cat: 'greetings' },
+  { en: 'do you speak English?', fr: 'vous parlez anglais ?', cat: 'greetings' },
+  { en: 'how are you?', fr: 'comment allez-vous ?', cat: 'greetings' },
+  { en: 'I\'m fine, thank you', fr: 'je vais bien, merci', cat: 'greetings' },
+  { en: 'my name is…', fr: 'je m\'appelle…', cat: 'greetings' },
+  // pronouns
+  { en: 'I', fr: 'je', cat: 'pronouns' },
+  { en: 'you (singular/informal)', fr: 'tu', cat: 'pronouns' },
+  { en: 'you (formal/plural)', fr: 'vous', cat: 'pronouns' },
+  { en: 'he', fr: 'il', cat: 'pronouns' },
+  { en: 'she', fr: 'elle', cat: 'pronouns' },
+  { en: 'we', fr: 'nous / on', cat: 'pronouns', note: 'on is informal but very common' },
+  { en: 'they (masc/mixed)', fr: 'ils', cat: 'pronouns' },
+  { en: 'they (fem)', fr: 'elles', cat: 'pronouns' },
+  { en: 'me / to me', fr: 'me / moi', cat: 'pronouns' },
+  { en: 'him / her / it', fr: 'le / la / lui', cat: 'pronouns' },
+  // questions
+  { en: 'what?', fr: 'quoi ? / qu\'est-ce que ?', cat: 'questions' },
+  { en: 'who?', fr: 'qui ?', cat: 'questions' },
+  { en: 'where?', fr: 'où ?', cat: 'questions' },
+  { en: 'when?', fr: 'quand ?', cat: 'questions' },
+  { en: 'why?', fr: 'pourquoi ?', cat: 'questions' },
+  { en: 'how?', fr: 'comment ?', cat: 'questions' },
+  { en: 'how much / how many?', fr: 'combien ?', cat: 'questions' },
+  { en: 'which?', fr: 'quel / quelle ?', cat: 'questions', note: 'quel (masc), quelle (fem)' },
+  { en: 'is there / are there?', fr: 'est-ce qu\'il y a ?', cat: 'questions' },
+  // verbs
+  { en: 'to be', fr: 'être', cat: 'verbs', note: 'je suis, tu es, il/elle est, nous sommes, vous êtes, ils sont' },
+  { en: 'to have', fr: 'avoir', cat: 'verbs', note: 'j\'ai, tu as, il a, nous avons, vous avez, ils ont' },
+  { en: 'to go', fr: 'aller', cat: 'verbs', note: 'je vais, tu vas, il va, nous allons, vous allez, ils vont' },
+  { en: 'to do / to make', fr: 'faire', cat: 'verbs', note: 'je fais, tu fais, il fait, nous faisons, vous faites, ils font' },
+  { en: 'to say / to tell', fr: 'dire', cat: 'verbs', note: 'je dis, tu dis, il dit' },
+  { en: 'to want', fr: 'vouloir', cat: 'verbs', note: 'je veux, tu veux, il veut, nous voulons' },
+  { en: 'to be able to / can', fr: 'pouvoir', cat: 'verbs', note: 'je peux, tu peux, il peut, nous pouvons' },
+  { en: 'to know (a fact)', fr: 'savoir', cat: 'verbs', note: 'je sais, tu sais, il sait' },
+  { en: 'to know (a person/place)', fr: 'connaître', cat: 'verbs', note: 'je connais, tu connais' },
+  { en: 'to see', fr: 'voir', cat: 'verbs', note: 'je vois, tu vois, il voit' },
+  { en: 'to come', fr: 'venir', cat: 'verbs', note: 'je viens, tu viens, il vient' },
+  { en: 'to give', fr: 'donner', cat: 'verbs' },
+  { en: 'to take', fr: 'prendre', cat: 'verbs', note: 'je prends, tu prends, il prend' },
+  { en: 'to speak / to talk', fr: 'parler', cat: 'verbs' },
+  { en: 'to eat', fr: 'manger', cat: 'verbs' },
+  { en: 'to drink', fr: 'boire', cat: 'verbs', note: 'je bois, tu bois, il boit' },
+  { en: 'to sleep', fr: 'dormir', cat: 'verbs' },
+  { en: 'to work', fr: 'travailler', cat: 'verbs' },
+  { en: 'to live / to reside', fr: 'habiter / vivre', cat: 'verbs' },
+  { en: 'to like / to love', fr: 'aimer', cat: 'verbs' },
+  // nouns
+  { en: 'the man', fr: 'l\'homme', cat: 'nouns', note: 'masc' },
+  { en: 'the woman', fr: 'la femme', cat: 'nouns', note: 'fem' },
+  { en: 'the child', fr: 'l\'enfant', cat: 'nouns', note: 'masc or fem' },
+  { en: 'the house / home', fr: 'la maison', cat: 'nouns', note: 'fem' },
+  { en: 'the car', fr: 'la voiture', cat: 'nouns', note: 'fem' },
+  { en: 'the food', fr: 'la nourriture', cat: 'nouns', note: 'fem' },
+  { en: 'the water', fr: 'l\'eau', cat: 'nouns', note: 'fem' },
+  { en: 'the bread', fr: 'le pain', cat: 'nouns', note: 'masc' },
+  { en: 'the wine', fr: 'le vin', cat: 'nouns', note: 'masc' },
+  { en: 'the coffee', fr: 'le café', cat: 'nouns', note: 'masc' },
+  { en: 'the time / weather', fr: 'le temps', cat: 'nouns', note: 'masc; same word for both' },
+  { en: 'the day', fr: 'le jour', cat: 'nouns', note: 'masc' },
+  { en: 'the night', fr: 'la nuit', cat: 'nouns', note: 'fem' },
+  { en: 'the street', fr: 'la rue', cat: 'nouns', note: 'fem' },
+  { en: 'the city / town', fr: 'la ville', cat: 'nouns', note: 'fem' },
+  { en: 'the shop / store', fr: 'le magasin', cat: 'nouns', note: 'masc' },
+  { en: 'the friend (masc)', fr: 'l\'ami', cat: 'nouns', note: 'masc; fem: l\'amie' },
+  { en: 'the book', fr: 'le livre', cat: 'nouns', note: 'masc' },
+  { en: 'the work / job', fr: 'le travail', cat: 'nouns', note: 'masc' },
+  { en: 'the money', fr: 'l\'argent', cat: 'nouns', note: 'masc' },
+  { en: 'the thing', fr: 'la chose', cat: 'nouns', note: 'fem' },
+  { en: 'the place', fr: 'l\'endroit', cat: 'nouns', note: 'masc' },
+  { en: 'the problem', fr: 'le problème', cat: 'nouns', note: 'masc' },
+  { en: 'the word', fr: 'le mot', cat: 'nouns', note: 'masc' },
+  { en: 'the question', fr: 'la question', cat: 'nouns', note: 'fem' },
+  // adjectives
+  { en: 'big / large', fr: 'grand / grande', cat: 'adjectives', note: 'grand (masc), grande (fem)' },
+  { en: 'small / little', fr: 'petit / petite', cat: 'adjectives', note: 'petit (masc), petite (fem)' },
+  { en: 'good', fr: 'bon / bonne', cat: 'adjectives', note: 'bon (masc), bonne (fem)' },
+  { en: 'bad', fr: 'mauvais / mauvaise', cat: 'adjectives' },
+  { en: 'beautiful', fr: 'beau / belle', cat: 'adjectives', note: 'beau (masc), belle (fem)' },
+  { en: 'new', fr: 'nouveau / nouvelle', cat: 'adjectives', note: 'nouveau (masc), nouvelle (fem)' },
+  { en: 'old', fr: 'vieux / vieille', cat: 'adjectives', note: 'vieux (masc), vieille (fem)' },
+  { en: 'fast / quick', fr: 'rapide', cat: 'adjectives', note: 'same masc/fem' },
+  { en: 'slow', fr: 'lent / lente', cat: 'adjectives' },
+  { en: 'hot', fr: 'chaud / chaude', cat: 'adjectives' },
+  { en: 'cold', fr: 'froid / froide', cat: 'adjectives' },
+  { en: 'happy', fr: 'heureux / heureuse', cat: 'adjectives' },
+  { en: 'tired', fr: 'fatigué / fatiguée', cat: 'adjectives' },
+  { en: 'interesting', fr: 'intéressant / intéressante', cat: 'adjectives' },
+  { en: 'important', fr: 'important / importante', cat: 'adjectives' },
+  // numbers
+  { en: 'zero', fr: 'zéro', cat: 'numbers' },
+  { en: 'one', fr: 'un / une', cat: 'numbers' },
+  { en: 'two', fr: 'deux', cat: 'numbers' },
+  { en: 'three', fr: 'trois', cat: 'numbers' },
+  { en: 'four', fr: 'quatre', cat: 'numbers' },
+  { en: 'five', fr: 'cinq', cat: 'numbers' },
+  { en: 'six', fr: 'six', cat: 'numbers' },
+  { en: 'seven', fr: 'sept', cat: 'numbers' },
+  { en: 'eight', fr: 'huit', cat: 'numbers' },
+  { en: 'nine', fr: 'neuf', cat: 'numbers' },
+  { en: 'ten', fr: 'dix', cat: 'numbers' },
+  { en: 'eleven', fr: 'onze', cat: 'numbers' },
+  { en: 'twelve', fr: 'douze', cat: 'numbers' },
+  { en: 'thirteen', fr: 'treize', cat: 'numbers' },
+  { en: 'fourteen', fr: 'quatorze', cat: 'numbers' },
+  { en: 'fifteen', fr: 'quinze', cat: 'numbers' },
+  { en: 'sixteen', fr: 'seize', cat: 'numbers' },
+  { en: 'seventeen', fr: 'dix-sept', cat: 'numbers' },
+  { en: 'eighteen', fr: 'dix-huit', cat: 'numbers' },
+  { en: 'nineteen', fr: 'dix-neuf', cat: 'numbers' },
+  { en: 'twenty', fr: 'vingt', cat: 'numbers' },
+  { en: 'fifty', fr: 'cinquante', cat: 'numbers' },
+  { en: 'one hundred', fr: 'cent', cat: 'numbers' },
+  { en: 'one thousand', fr: 'mille', cat: 'numbers' },
+  // colours
+  { en: 'red', fr: 'rouge', cat: 'colours', note: 'same masc/fem' },
+  { en: 'blue', fr: 'bleu / bleue', cat: 'colours' },
+  { en: 'green', fr: 'vert / verte', cat: 'colours' },
+  { en: 'yellow', fr: 'jaune', cat: 'colours' },
+  { en: 'black', fr: 'noir / noire', cat: 'colours' },
+  { en: 'white', fr: 'blanc / blanche', cat: 'colours' },
+  { en: 'grey', fr: 'gris / grise', cat: 'colours' },
+  { en: 'brown', fr: 'marron', cat: 'colours', note: 'invariable — no agreement' },
+  { en: 'orange', fr: 'orange', cat: 'colours', note: 'invariable' },
+  { en: 'pink', fr: 'rose', cat: 'colours' },
+  { en: 'purple', fr: 'violet / violette', cat: 'colours' },
+  // days
+  { en: 'Monday', fr: 'lundi', cat: 'days', note: 'days are lowercase in French' },
+  { en: 'Tuesday', fr: 'mardi', cat: 'days' },
+  { en: 'Wednesday', fr: 'mercredi', cat: 'days' },
+  { en: 'Thursday', fr: 'jeudi', cat: 'days' },
+  { en: 'Friday', fr: 'vendredi', cat: 'days' },
+  { en: 'Saturday', fr: 'samedi', cat: 'days' },
+  { en: 'Sunday', fr: 'dimanche', cat: 'days' },
+  { en: 'today', fr: 'aujourd\'hui', cat: 'days' },
+  { en: 'yesterday', fr: 'hier', cat: 'days' },
+  { en: 'tomorrow', fr: 'demain', cat: 'days' },
+  // months
+  { en: 'January', fr: 'janvier', cat: 'months', note: 'months are lowercase in French' },
+  { en: 'February', fr: 'février', cat: 'months' },
+  { en: 'March', fr: 'mars', cat: 'months' },
+  { en: 'April', fr: 'avril', cat: 'months' },
+  { en: 'May', fr: 'mai', cat: 'months' },
+  { en: 'June', fr: 'juin', cat: 'months' },
+  { en: 'July', fr: 'juillet', cat: 'months' },
+  { en: 'August', fr: 'août', cat: 'months' },
+  { en: 'September', fr: 'septembre', cat: 'months' },
+  { en: 'October', fr: 'octobre', cat: 'months' },
+  { en: 'November', fr: 'novembre', cat: 'months' },
+  { en: 'December', fr: 'décembre', cat: 'months' },
+  // sentences
+  { en: 'I would like…', fr: 'je voudrais…', cat: 'sentences' },
+  { en: 'I want…', fr: 'je veux…', cat: 'sentences' },
+  { en: 'I need…', fr: 'j\'ai besoin de…', cat: 'sentences' },
+  { en: 'I have…', fr: 'j\'ai…', cat: 'sentences' },
+  { en: 'I don\'t have…', fr: 'je n\'ai pas de…', cat: 'sentences' },
+  { en: 'There is / there are…', fr: 'il y a…', cat: 'sentences' },
+  { en: 'How much is it?', fr: 'c\'est combien ?', cat: 'sentences' },
+  { en: 'It costs…', fr: 'ça coûte…', cat: 'sentences' },
+  { en: 'Do you have…?', fr: 'vous avez… ?', cat: 'sentences' },
+  { en: 'Where is…?', fr: 'où est… ?', cat: 'sentences' },
+  { en: 'I\'m going to…', fr: 'je vais à…', cat: 'sentences' },
+  { en: 'I live in…', fr: 'j\'habite à…', cat: 'sentences' },
+  { en: 'I come from…', fr: 'je viens de…', cat: 'sentences' },
+  { en: 'I like…', fr: 'j\'aime…', cat: 'sentences' },
+  { en: 'I don\'t like…', fr: 'je n\'aime pas…', cat: 'sentences' },
+  { en: 'I think that…', fr: 'je pense que…', cat: 'sentences' },
+  { en: 'I know that…', fr: 'je sais que…', cat: 'sentences' },
+  { en: 'Can you help me?', fr: 'vous pouvez m\'aider ?', cat: 'sentences' },
+  { en: 'Can you repeat please?', fr: 'vous pouvez répéter s\'il vous plaît ?', cat: 'sentences' },
+  { en: 'More slowly please', fr: 'plus lentement s\'il vous plaît', cat: 'sentences' },
+  { en: 'I\'m looking for…', fr: 'je cherche…', cat: 'sentences' },
+  { en: 'I\'d like to eat / drink…', fr: 'je voudrais manger / boire…', cat: 'sentences' },
+  { en: 'A table for two', fr: 'une table pour deux personnes', cat: 'sentences' },
+  { en: 'The bill please', fr: 'l\'addition s\'il vous plaît', cat: 'sentences' },
+  { en: 'It\'s good / delicious', fr: 'c\'est bon / délicieux', cat: 'sentences' },
+  { en: 'I don\'t know', fr: 'je ne sais pas', cat: 'sentences' },
+  { en: 'It doesn\'t matter', fr: 'ça ne fait rien / peu importe', cat: 'sentences' },
+  { en: 'Of course!', fr: 'bien sûr !', cat: 'sentences' },
+  { en: 'Let\'s go!', fr: 'on y va !', cat: 'sentences' },
+  { en: 'No problem', fr: 'pas de problème', cat: 'sentences' },
+]
+
+export const FRENCH_CARDS: FrenchCard[] = CARDS_RAW.map(c => ({ ...c, id: toSlug(c.fr) }))
+
+export const CAT_LABELS: Record<string, string> = {
+  greetings: 'Greetings',
+  pronouns: 'Pronouns',
+  questions: 'Questions',
+  verbs: 'Verbs',
+  nouns: 'Nouns',
+  adjectives: 'Adjectives',
+  numbers: 'Numbers',
+  colours: 'Colours',
+  days: 'Days',
+  months: 'Months',
+  sentences: 'Sentences',
+}
+
+export const CATS = Object.keys(CAT_LABELS)
+
+export const REF_NOTES: Record<string, string> = {
+  greetings: 'Use <em>bonjour</em> for formal/daytime greetings and <em>salut</em> informally. <em>Vous</em> shows respect; <em>tu</em> is for friends and family. In Marseille and the south, people often greet warmly with a kiss on each cheek (<em>la bise</em>).',
+  pronouns: '<em>On</em> is used as \'we\' in everyday speech — <em>on y va</em> (let\'s go) is far more common than <em>nous y allons</em>. Formal writing uses <em>nous</em>.',
+  questions: 'In spoken French, questions are often formed just by raising your intonation: <em>Tu parles anglais ?</em> is more common than the formal inversion <em>Parles-tu anglais ?</em>',
+  verbs: '<strong>Être</strong> and <strong>avoir</strong> are the two most essential verbs — they form compound past tenses. <em>Passé composé</em>: <em>j\'ai mangé</em> (I ate), <em>je suis allé</em> (I went). Most verbs use <em>avoir</em>; verbs of motion use <em>être</em>.',
+  nouns: 'All French nouns have gender (masculine or feminine). The definite article is <em>le</em> (masc), <em>la</em> (fem), <em>l\'</em> (before a vowel/h). Plural: <em>les</em> for all genders. Indefinite: <em>un</em> (masc), <em>une</em> (fem), <em>des</em> (plural).',
+  adjectives: 'Most adjectives agree with the noun they describe: add <em>-e</em> for feminine, <em>-s</em> for plural. Many adjectives come <em>after</em> the noun in French: <em>un chat noir</em>. Exceptions (BAGS adjectives — Beauty, Age, Goodness, Size) come before: <em>un grand homme</em>.',
+  numbers: '<em>Soixante-dix</em> (70) = sixty-ten. <em>Quatre-vingts</em> (80) = four-twenties. <em>Quatre-vingt-dix</em> (90) = four-twenty-ten. These quirks come from an old Gaulish vigesimal counting system.',
+  colours: 'Colour adjectives agree with the noun they describe, except <em>marron</em> and <em>orange</em> which are invariable (never add -e or -s). <em>Une robe rouge</em>, <em>des chaussures rouges</em>.',
+  days: 'Days and months are not capitalised in French. Use <em>le lundi</em> to mean \'every Monday\', and <em>lundi</em> (no article) for \'this coming Monday\'.',
+  months: 'Months are written lowercase. To say \'in January\' use <em>en janvier</em>. To say \'on 3 January\' use <em>le 3 janvier</em>.',
+  sentences: 'The negative wraps the verb: <em>je ne sais pas</em> (I don\'t know). In casual spoken French the <em>ne</em> is often dropped: <em>je sais pas</em>. <em>Est-ce que</em> is a reliable question marker: <em>est-ce qu\'il y a…?</em> (is there…?)',
+}
+
+export function getAudioUrl(fr: string): string | null {
+  const card = FRENCH_CARDS.find(c => c.fr === fr)
+  if (!card) return null
+  return `/tongues/french/audio/${card.id}.mp3`
+}
