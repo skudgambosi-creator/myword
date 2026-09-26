@@ -362,6 +362,8 @@ export const AUDIO: Record<string, number> = {
   'rongo': 6887,
   'tūmanako': 8690,
   'whakapā': 9707,
+  // hoa compounds (Te Aka word IDs)
+  'kiritata': 45494, 'hoamahi': 1294, 'hoa rangatira': 39607,
 }
 
 export function getAudioUrl(tr: string): string | null {
@@ -639,6 +641,12 @@ const CARDS_RAW = [
   { en: 'elderly woman / grandmother', tr: 'kuia', cat: 'nouns' },
   { en: 'grandchild', tr: 'mokopuna', cat: 'nouns' },
   { en: 'friend', tr: 'hoa', cat: 'nouns' },
+  { en: 'steadfast / loyal friend', tr: 'hoa pūmau', cat: 'nouns' },
+  { en: 'close friend (lit. near friend)', tr: 'hoa tata', cat: 'nouns' },
+  { en: 'neighbour', tr: 'kiritata', cat: 'nouns' },
+  { en: 'workmate / colleague', tr: 'hoamahi', cat: 'nouns' },
+  { en: 'spouse / partner', tr: 'hoa rangatira', cat: 'nouns' },
+  { en: 'sweetheart / beloved', tr: 'hoa aroha', cat: 'nouns' },
   { en: 'son / boy', tr: 'tama', cat: 'nouns' },
   { en: 'daughter / girl', tr: 'tamāhine', cat: 'nouns' },
   // Weather / nature
@@ -733,6 +741,8 @@ const CARDS_RAW = [
   { en: 'greetings to us all', tr: 'tēnā tātou katoa', cat: 'greetings' },
   { en: 'a nose-to-nose greeting', tr: 'hongi', cat: 'greetings' },
   { en: 'a handshake', tr: 'harirū', cat: 'greetings' },
+  { en: 'hey friend (addressing one person)', tr: 'e hoa', cat: 'greetings' },
+  { en: 'friends (addressing a group)', tr: 'e hoa mā', cat: 'greetings' },
 
   // Basics (extra)
   { en: 'maybe / perhaps', tr: 'pea', cat: 'basics' },
