@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { ALL_CARDS, DECKS, getAudioUrl, type Card } from '@/lib/tongues/te-reo-data'
+import { ALL_CARDS, DECKS, getAudioUrl, subDecks, type Card } from '@/lib/tongues/te-reo-data'
 import { DIALOGUES } from '@/lib/tongues/te-reo-dialogues'
 import ConversationPractice from './ConversationPractice'
 
@@ -9,8 +9,11 @@ type Mode = 'en' | 'tr'
 
 interface Scores { knew: number; unsure: number; miss: number }
 
+const MIXED_SIZE = 20
+const VOCAB_GROUPS = ['nouns', 'verbs', 'descriptors']
+
 const DECK_BUTTONS: { name: DeckName; label: string }[] = [
-  { name: 'all', label: 'All' },
+  { name: 'all', label: 'Mixed 20' },
   { name: 'vocab', label: 'Vocab' },
   { name: 'sentences', label: 'Sentences' },
   { name: 'particles', label: 'Particles' },
@@ -42,6 +45,15 @@ const s = {
   statL: { fontSize: 11, color: '#444', marginTop: 1, letterSpacing: '0.04em' },
   progressWrap: { height: 6, background: '#f0f0f0' },
   deckWrap: { padding: '12px 16px', borderBottom: '1px solid #ccc', display: 'flex', gap: 8, flexWrap: 'wrap' as const },
+  subWrap: { padding: '10px 16px', borderBottom: '1px solid #ccc', display: 'flex', gap: 6, flexWrap: 'wrap' as const, alignItems: 'center' },
+  subGroupLabel: { width: '100%', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#444', marginTop: 4 },
+  subBtn: (active: boolean): React.CSSProperties => ({
+    fontSize: 11, padding: '4px 10px', borderRadius: 16,
+    border: active ? '1.5px solid #000' : '1.5px solid #ccc',
+    background: active ? '#000' : '#fff',
+    color: active ? '#fff' : '#444',
+    cursor: 'pointer', fontFamily: "Georgia,serif", minHeight: 28,
+  }),
   deckBtn: (active: boolean): React.CSSProperties => ({
     fontSize: 13, padding: '7px 14px', borderRadius: 20,
     border: active ? '1.5px solid #000' : '1.5px solid #ccc',
@@ -136,6 +148,7 @@ const doneMessages: [number, string][] = [
 export default function TeReoFlashcards() {
   const [tab, setTab] = useState<'drill' | 'ref' | 'converse'>('drill')
   const [activeDeck, setActiveDeck] = useState<DeckName>('all')
+  const [activeSub, setActiveSub] = useState<string | null>(null)
   const [deck, setDeck] = useState<Card[]>([])
   const [queue, setQueue] = useState<Card[]>([])
   const [current, setCurrent] = useState<Card | null>(null)
@@ -168,10 +181,14 @@ export default function TeReoFlashcards() {
     a.play().catch(() => setAudioPlaying(false))
   }, [stopAudio])
 
-  const startDeck = useCallback((name: DeckName, currentMode: Mode = mode) => {
+  const startDeck = useCallback((name: DeckName, currentMode: Mode = mode, sub: string | null = null) => {
     stopAudio()
-    const cards = shuffle(DECKS[name] || ALL_CARDS)
+    const source = DECKS[name] || ALL_CARDS
+    const cards = name === 'all'
+      ? shuffle(ALL_CARDS).slice(0, MIXED_SIZE)
+      : shuffle(sub ? source.filter(c => c.sub === sub) : source)
     setActiveDeck(name)
+    setActiveSub(sub)
     setDeck(cards)
     setQueue([...cards])
     setScores({ knew: 0, unsure: 0, miss: 0 })
@@ -235,8 +252,14 @@ export default function TeReoFlashcards() {
 
   const handleChangeMode = (m: Mode) => {
     setMode(m)
-    startDeck(activeDeck, m)
+    startDeck(activeDeck, m, activeSub)
   }
+
+  const deckCards = activeDeck === 'all' ? [] : DECKS[activeDeck] || []
+  const hasSubs = deckCards.some(c => c.sub)
+  const subGroups = activeDeck === 'vocab'
+    ? VOCAB_GROUPS.map(cat => ({ label: cat, subs: subDecks(deckCards.filter(c => c.cat === cat)) }))
+    : [{ label: null as string | null, subs: subDecks(deckCards) }]
 
   const remaining = queue.length + (current ? 1 : 0)
   const hasAudio = current ? !!getAudioUrl(current.tr) : false
@@ -276,6 +299,25 @@ export default function TeReoFlashcards() {
               </button>
             ))}
           </div>
+
+          {/* Sub-deck buttons */}
+          {hasSubs && (
+            <div style={s.subWrap}>
+              <button style={s.subBtn(activeSub === null)} onClick={() => startDeck(activeDeck, mode, null)}>
+                All ({deckCards.length})
+              </button>
+              {subGroups.map(({ label, subs }) => (
+                <div key={label ?? 'subs'} style={{ display: 'contents' }}>
+                  {label && <div style={s.subGroupLabel}>{label}</div>}
+                  {subs.map(({ name, count }) => (
+                    <button key={name} style={s.subBtn(activeSub === name)} onClick={() => startDeck(activeDeck, mode, name)}>
+                      {name} ({count})
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Mode buttons */}
           <div style={s.modeWrap}>
@@ -356,7 +398,7 @@ export default function TeReoFlashcards() {
                     ))
                   )}
                 </div>
-                <button style={s.restartBtn} onClick={() => startDeck(activeDeck)}>
+                <button style={s.restartBtn} onClick={() => startDeck(activeDeck, mode, activeSub)}>
                   Ka haere anō · go again
                 </button>
               </div>
