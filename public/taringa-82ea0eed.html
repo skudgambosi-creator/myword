@@ -1972,11 +1972,12 @@ document.addEventListener('pointerdown', ev => {
 });
 document.addEventListener('pointermove', ev => {
   if (!sheetDrag || ev.pointerId !== sheetDrag.id) return; const d = sheetDrag.y - ev.clientY; if (Math.abs(d) > 4) sheetDrag.moved = true;
-  const h = Math.max(120, Math.min(innerHeight * .9, sheetDrag.h + d)); document.documentElement.style.setProperty('--sheet', h + 'px'); sheetDrag.cur = h;
+  const h = Math.max(60, Math.min(innerHeight * .9, sheetDrag.h + d)); document.documentElement.style.setProperty('--sheet', h + 'px'); sheetDrag.cur = h;
 });
 addEventListener('pointerup', ev => {
   if (!sheetDrag) return; $('#guide').classList.remove('dragging');
   if (!sheetDrag.moved){ setSnap(SNAP === 'peek' ? 'half' : SNAP === 'half' ? 'full' : 'peek'); }
+  else if ((sheetDrag.cur || sheetDrag.h) < (innerHeight < 560 ? 112 : 140) && window.setPanelMin){ setSnap('peek'); setPanelMin(true); }
   else { const h = sheetDrag.cur || sheetDrag.h, opts = [['peek', innerHeight < 560 ? 148 : 196], ['half', innerHeight * .52], ['full', innerHeight * .86]]; setSnap(opts.sort((a, b) => Math.abs(a[1] - h) - Math.abs(b[1] - h))[0][0]); }
   sheetDrag = null;
 });
@@ -2525,9 +2526,9 @@ function drawScene(vx, vy, vr, k){
     const T = big ? t.toUpperCase() : t, rp = (r || 0) * vr;
     let px = big ? (ph ? 10 : 11) : Math.max(8, Math.min(13, rp * .42)), wt = big ? 700 : 500, sp = big ? '2px' : '.4px';
     ctx.font = font(px, wt); spacing(sp); let w = ctx.measureText(T).width; spacing();
-    if (!big && w > rp * 1.9){ if (rp < 9) return; px = 8; ctx.font = font(px, wt); spacing(sp); w = ctx.measureText(T).width; spacing(); if (w > rp * 1.9) return; }
+    if (!big && w > rp * 1.55){ if (rp < 10) return; px = 8; ctx.font = font(px, wt); spacing(sp); w = ctx.measureText(T).width; spacing(); if (w > rp * 1.55) return; }
     if (big && fo !== co && rp * 2 < Math.min(w, 60)) return;
-    const X = vx + x * vr, Y = big ? vy + y * vr + Math.min(16, Math.max(9, rp * .14)) : vy + y * vr, bx = [X - w / 2 - 3, Y - px * .7, X + w / 2 + 3, Y + px * .7];
+    const X = vx + x * vr, Y = big ? vy + y * vr - 9 : vy + y * vr, bx = [X - w / 2 - 3, Y - px * .7, X + w / 2 + 3, Y + px * .7];
     if (boxes.some(q => bx[0] < q[2] && bx[2] > q[0] && bx[1] < q[3] && bx[3] > q[1])) return;
     boxes.push(bx); label(T, X, Y, big ? (co === '?' ? C['ink-soft'] : C.orange) : C.teal, px, 'center', wt, sp); });
   return;
@@ -3946,9 +3947,9 @@ html.skin-recon .dsec{border-top-style:dashed}
     if (lens === 'scene' || lens === 'genre' || (lens === 'people' && window.PARENTS && PARENTS.length)){
       const g = new Map(); all.forEach(r => { const k = groupOf(lens, r); (g.get(k) || g.set(k, []).get(k)).push(r); });
       const gs = [...g].map(([k, rs]) => [k, rs, rs.reduce((n, r) => n + r.list.length, 0)]).sort((p, q) => (p[0] === 'other tags' || p[0] === 'other groups') - (q[0] === 'other tags' || q[0] === 'other groups') || q[2] - p[2]);
-      if (!INIT.has(lens) && gs[0]){ OPEN.add(lens + ':' + gs[0][0]); INIT.add(lens); }
+      if (XF){ const r0 = all.find(r => r.k === XF.k); if (r0 && !INIT.has(lens + '|' + XF.k)){ OPEN.add(lens + ':' + groupOf(lens, r0)); INIT.add(lens + '|' + XF.k); } }
       box.innerHTML = gs.map(([k, rs, n]) => { const id = lens + ':' + k, o = OPEN.has(id); return `<button class="xg" data-xg="${esc(id)}" aria-expanded="${o}"><b>${esc(k)}</b><span>${rs.length} ${lens === 'scene' ? (rs.length === 1 ? 'city' : 'cities') : lens === 'people' ? (rs.length === 1 ? 'circle' : 'circles') : (rs.length === 1 ? 'genre' : 'genres')} · ${n} ▾</span></button>${o ? `<div class="xgrp">${rowsHtml(rs, max)}</div>` : ''}`; }).join('');
-    } else if (lens === 'people'){ box.innerHTML = rowsHtml(all.slice(0, 30), max) + (all.length > 30 ? `<div class="g-meta" style="margin-top:6px">${all.length - 30} smaller groups. type a name above to find one.</div>` : ''); }
+    } else if (lens === 'people'){ box.innerHTML = rowsHtml(all.slice(0, 30), max) + (all.length > 30 ? `<div class="g-meta" style="margin-top:6px">${all.length - 30} smaller groups. search above to find one.</div>` : ''); }
     else box.innerHTML = rowsHtml(all, max);
   }
   const re0 = renderExplore;
@@ -4575,4 +4576,203 @@ body.pmin.hasnow #pnow{display:inline-flex}
 /* listen's view switcher always shows the lens on screen */
 (function(){ const s0 = setLens; setLens = function(){ const r = s0.apply(this, arguments); if (MODE === 'create' && typeof refreshViews === 'function'){ if (['time','place','scene','genre','people'].includes(lens) && LVIEW !== 'albums' && LVIEW !== 'sound') LVIEW = lens; refreshViews(); } return r; }; })();
 </script>
+<style id="v70-css">
+/* ===== colour: one meaning per colour, in both themes. red = chosen and action, blue = places and links, ochre/amber = in the playlist ===== */
+html.skin-recon:not(#_){--teal:#8ea2ff!important;--blue:#8ea2ff!important}
+html:not(.skin-recon):not(#_){--ultra:#b8801c!important;--sun:#b8801c!important}
+
+/* ===== header: the name without a dot, the three modes as words on the same line ===== */
+html body #guide .gh1 .mark i{display:none!important}
+html body #guide .ghead .gh1{display:flex!important;align-items:baseline!important;gap:10px;margin-bottom:12px!important}
+html body #guide .gh1 .mark{display:inline-flex!important}
+html body #guide .gh1 .mode{display:flex!important;gap:16px!important;margin:0 0 0 auto!important;border:0!important;outline:0!important;background:none!important;padding:0!important;box-shadow:none!important;grid-template-columns:none!important;width:auto!important}
+html body #guide .gh1 .mode button{background:none!important;border:0!important;outline:0!important;box-shadow:none!important;text-shadow:none!important;padding:2px 0!important;min-height:0!important;color:var(--ink-soft)!important;position:relative;border-radius:0!important}
+html body #guide .gh1 .mode button[aria-pressed="true"]{color:var(--ink)!important}
+html body #guide .gh1 .mode button::before{content:"";position:absolute;left:-11px;top:50%;width:6px;height:6px;border-radius:50%;transform:translateY(-50%);opacity:0;transition:opacity .15s}
+html body #guide .gh1 .mode button[aria-pressed="true"]::before{background:var(--orange);opacity:1}
+html body #guide .gh1 .mode button:not([aria-pressed="true"]):hover::before,html body #guide .gh1 .mode button:not([aria-pressed="true"]):focus-visible::before{box-shadow:inset 0 0 0 1.2px var(--ink-soft);opacity:1}
+
+/* ===== settings: a gear in the map's top corner ===== */
+#settings.gear70{position:fixed!important;top:14px!important;right:14px!important;z-index:42!important;width:36px;height:36px;padding:0!important;display:grid!important;place-items:center;border-radius:999px!important;background:color-mix(in srgb,var(--panel) 90%,transparent)!important;border:1px solid var(--hair)!important;color:var(--ink-soft)!important;box-shadow:none!important;text-shadow:none!important}
+#settings.gear70 span{display:none}
+#settings.gear70:hover,#settings.gear70:focus-visible{color:var(--ink)!important;border-color:var(--ink-soft)!important}
+body.setfull #settings.gear70{width:auto;padding:0 16px!important;display:inline-flex!important;align-items:center;gap:8px}
+body.setfull #settings.gear70 span{display:inline}
+body:not([data-mode]) #settings.gear70{display:none!important}
+
+/* ===== the view chip: one folded control on the map, opening to every view ===== */
+#vchip{position:fixed;z-index:7;top:14px;left:calc(var(--pw,0px) + 14px);display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:color-mix(in srgb,var(--panel) 90%,transparent);border:1px solid var(--hair);color:var(--ink);cursor:pointer;font:inherit;transition:opacity .2s}
+body[data-mode] #vchip{display:inline-flex}
+body.setfull #vchip{display:none!important}
+#vchip::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--orange)}
+#vchip em{font-style:normal;color:var(--ink-soft);font-size:.85em}
+#vchip.open{display:none!important}
+#vbar70{position:fixed;z-index:8;top:14px;left:calc(var(--pw,0px) + 14px);display:none;gap:4px;padding:6px 8px;border-radius:16px;background:color-mix(in srgb,var(--panel) 95%,transparent);border:1px solid var(--hair);box-shadow:0 4px 18px rgba(0,0,0,.18)}
+#vbar70.open{display:flex}
+#vbar70 button{display:flex;flex-direction:column;align-items:center;gap:5px;padding:4px 10px;background:none;border:0;color:var(--ink-soft);cursor:pointer;font:inherit}
+#vbar70 button::before{content:"";width:5px;height:5px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--ink-soft)}
+#vbar70 button[aria-current="true"]{color:var(--ink)}
+#vbar70 button[aria-current="true"]::before{background:var(--orange);box-shadow:none}
+#vbar70 button:hover,#vbar70 button:focus-visible{color:var(--ink)}
+html.skin-recon #vchip,html.skin-recon #vbar70 button{font:500 10px/14px var(--mono);letter-spacing:.14em;text-transform:uppercase}
+html:not(.skin-recon) #vchip,html:not(.skin-recon) #vbar70 button{font-size:13px}
+/* the old view bars give way to the chip */
+html body .lview{display:none!important}
+html body #guide .tabs:has([data-xtab]),html body #guide .tabs:has([data-rlens]){display:none!important}
+html body #guide .tabs:has([data-xtab]) + .g-meta{display:none!important}
+html body #guide .rv > .g-h:first-child{display:none!important}
+html body #guide .xfilter{display:none!important}
+@media (max-width:760px){
+  #vchip,#vbar70{top:10px;left:10px}
+  #vbar70{right:10px;justify-content:space-between}
+  body.sheetfull #vchip{opacity:0;pointer-events:none}
+  #settings.gear70{top:10px!important;right:10px!important}
+}
+
+/* ===== hiding the panel: an edge handle on a computer, a swipe on a phone ===== */
+@media (min-width:761px){
+  #pmin{padding:18px 4px!important;font-size:13px!important;letter-spacing:0!important}
+  #pexp{padding:18px 5px!important}
+}
+@media (max-width:760px){
+  #pmin{display:none!important}
+  #pexp{white-space:nowrap;max-width:calc(100vw - 40px);overflow:hidden;text-overflow:ellipsis}
+  #pnow{display:none!important}
+}
+
+/* ===== buttons: pills for actions, the main one solid; no square boxes ===== */
+html body #guide .btn{border-radius:999px!important;border:1px solid var(--hair)!important;background:transparent!important;color:var(--ink-soft)!important;box-shadow:none!important;text-shadow:none!important}
+html body #guide .btn:not([disabled]):hover{color:var(--ink)!important;border-color:var(--ink-soft)!important}
+html body #guide .btn.solid{background:var(--orange)!important;color:var(--on-acc)!important;border-color:var(--orange)!important}
+html.skin-recon body #guide .btn.solid:hover{background:var(--orange)!important;color:var(--on-acc)!important}
+html.skin-recon #guide button.play,html.skin-recon #guide a.play,html.skin-recon #guide .ask,html.skin-recon #guide .tourbtn,html.skin-recon #guide .gaps,html.skin-recon #guide .more,html.skin-recon #guide .rcomm{border-radius:999px!important}
+html body #guide .xlisten{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+html body #guide .xlisten .wcm{min-width:34px;padding:0 10px!important}
+html body #guide .wcmenu{display:none;flex-basis:100%;margin-top:2px}
+html body #guide .wcmenu.open{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ===== artist panel: about higher, releases and links as a two-way switch ===== */
+html body #guide .ask{margin:12px 0 4px!important}
+.rls70{display:flex;gap:20px;margin:18px 0 6px;border-bottom:1px solid var(--hair)}
+.rls70 button{position:relative;padding:7px 0 7px 0;background:none;border:0;color:var(--ink-soft);cursor:pointer;font:inherit}
+.rls70 button[aria-pressed="true"]{color:var(--ink);padding-left:12px}
+.rls70 button[aria-pressed="true"]::before{content:"";position:absolute;left:0;top:50%;width:6px;height:6px;border-radius:50%;background:var(--orange);transform:translateY(-50%)}
+.rls70 button:not([aria-pressed="true"]):hover{color:var(--ink)}
+html.skin-recon .rls70 button{font:500 10px/14px var(--mono);letter-spacing:.14em;text-transform:uppercase}
+html:not(.skin-recon) .rls70 button{font-size:14px}
+.rlgrp70[hidden]{display:none!important}
+
+html body #guide .gh1 .mode button{display:inline-flex!important;align-items:center!important;gap:6px!important;overflow:visible!important}
+html body #guide .gh1 .mode .md70{width:6px;height:6px;border-radius:50%;flex:none;display:inline-block;background:transparent}
+html body #guide .gh1 .mode button[aria-pressed="true"] .md70{background:var(--orange)}
+html body #guide .gh1 .mode button:not([aria-pressed="true"]):hover .md70{box-shadow:inset 0 0 0 1.2px var(--ink-soft)}
+html body #guide .gh1 .mode{gap:10px!important}
+/* v70 fixes */
+html body #guide .gh1 .mode button::before{content:none!important;display:none!important}
+html body #guide .gh1 .mode button::after{content:""!important;display:block!important;position:absolute!important;left:-11px!important;top:50%!important;width:6px!important;height:6px!important;border-radius:50%!important;transform:translateY(-50%)!important;opacity:0;background:none!important;border:0!important;inset:auto auto auto -11px!important}
+html body #guide .gh1 .mode button[aria-pressed="true"]::after{background:var(--orange)!important;opacity:1!important}
+html body #guide .gh1 .mode button:not([aria-pressed="true"]):hover::after{box-shadow:inset 0 0 0 1.2px var(--ink-soft);opacity:1}
+html:not(.skin-recon) body #guide .gh1 .mode button{font-size:15px!important;font-weight:450!important}
+html.skin-recon body #guide .gh1 .mode button{font:500 11px/16px var(--mono)!important;letter-spacing:.16em!important}
+html body #guide .gh1 .mark{font-size:inherit}
+#pmin,#pexp{writing-mode:horizontal-tb!important}
+html body #guide .srch input,html body #guide .find{border-radius:999px!important}
+.rlgrp70[data-g="rel"] > .g-sec:first-child > .g-h{display:none!important}
+@media (max-width:760px){ #vbar70{right:56px!important;gap:0} #vbar70 button{padding:4px 6px} }
+</style>
+<button id="vchip" aria-label="Change view" aria-haspopup="true"><span id="vchipt">time</span><em>⌄</em></button>
+<div id="vbar70" role="group" aria-label="Views"></div>
+<script>
+(function(){
+  try { readTheme(); } catch (e) {}
+  /* ---- header: modes into the header line; settings out to the map corner ---- */
+  const gh1 = document.querySelector('#guide .gh1'), md = document.querySelector('#guide .ghead .mode');
+  if (gh1 && md){ const set = $('#settings'); gh1.appendChild(md); if (set){ document.body.appendChild(set); set.classList.add('gear70'); } }
+  document.querySelectorAll('#guide .gh1 .mode button').forEach(b => { if (!b.querySelector('.md70')) b.insertAdjacentHTML('afterbegin', '<i class="md70" aria-hidden="true"></i>'); });
+
+  /* ---- the view chip ---- */
+  const NAME = {time: 'time', place: 'place', scene: 'city', genre: 'genre', people: 'links', albums: 'releases', sound: 'sound'};
+  const views = () => MODE === 'create' ? ['time', 'place', 'scene', 'genre', 'people', 'albums'] : ['time', 'place', 'scene', 'genre', 'people'];
+  const cur = () => MODE === 'create' ? (typeof LVIEW !== 'undefined' ? LVIEW : lens) : lens;
+  const chip = $('#vchip'), bar = $('#vbar70');
+  const close = () => { bar.classList.remove('open'); chip.classList.remove('open'); };
+  const open = () => { bar.innerHTML = views().map(v => `<button data-v70="${v}" aria-current="${v === cur()}">${NAME[v]}</button>`).join(''); bar.classList.add('open'); chip.classList.add('open'); const b = bar.querySelector('[aria-current="true"]') || bar.firstChild; if (b) b.focus(); };
+  const apply = v => {
+    if (MODE === 'create'){ const b = document.querySelector(`[data-lview="${v}"]`); if (b) return b.click(); return setLens(v); }
+    const rl = GB().querySelector(`[data-rlens="${v}"]`); if (rl) return rl.click();
+    const xt = GB().querySelector(`[data-xtab="${v}"]`); if (xt) return xt.click();
+    setLens(v);
+  };
+  chip.addEventListener('click', ev => { ev.stopPropagation(); open(); });
+  bar.addEventListener('click', ev => { const b = ev.target.closest('[data-v70]'); if (!b) return; ev.stopPropagation(); close(); apply(b.dataset.v70); });
+  document.addEventListener('click', ev => { if (bar.classList.contains('open') && !bar.contains(ev.target)) close(); }, true);
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && bar.classList.contains('open')){ close(); chip.focus(); } });
+
+  /* ---- the panel handle and the "panel" tab ---- */
+  const pmin = $('#pmin'), pexp = $('#pexp');
+  if (pmin){ pmin.textContent = '‹'; pmin.setAttribute('aria-label', 'Hide the panel'); }
+  const tabText = () => { const np = ($('#pnowt') && $('#pnowt').textContent) || ''; if (!pexp) return; if (isPhone()) pexp.textContent = '▴ panel' + (np ? '  ·  ' + np : ''); else pexp.textContent = '›'; };
+
+  /* ---- every frame: chip label, sheet state, tab text ---- */
+  const f0 = frame;
+  frame = function(now){
+    const t = NAME[cur()] || cur(); const el = $('#vchipt'); if (el && el.textContent !== t) el.textContent = t;
+    document.body.classList.toggle('sheetfull', isPhone() && SNAP === 'full' && !PMIN);
+    tabText();
+    return f0(now);
+  };
+
+  /* ---- artist panel: about higher, releases and links as a switch, whole catalogue under listen ---- */
+  let RLS = 'rel';
+  const playWhole = i => {
+    const rel = (typeof artistReleases === 'function' ? artistReleases(i) : []).slice().sort((p, q) => (p.year || 9999) - (q.year || 9999));
+    const ks = rel.flatMap(r => r.ks || []); if (!ks.length) return;
+    SP = null; queueWhy = 'whole catalogue, oldest first'; queue = ks.slice(1); playTrack(ks[0], 'whole catalogue');
+  };
+  window.playWhole = playWhole;
+  const rg0 = renderGuide;
+  renderGuide = function(i){
+    const r = rg0.apply(this, arguments);
+    try {
+      const g = GB(), ask = g.querySelector('#ask'), story = g.querySelector('#story'), xl = g.querySelector('.xlisten');
+      if (ask) ask.textContent = 'tell me about them';
+      /* about, straight after the play row and the one-line description */
+      let anchor = xl; if (xl && xl.nextElementSibling && xl.nextElementSibling.classList.contains('g-meta')) anchor = xl.nextElementSibling;
+      if (anchor && ask){ anchor.after(ask); if (story) ask.after(story); }
+      /* whole catalogue, folded under listen */
+      if (xl && !xl.querySelector('.wcm')){
+        const has = !!(LIB.by[i] && LIB.by[i].length);
+        const lb = xl.querySelector('[data-xlisten]');
+        if (lb) lb.insertAdjacentHTML('afterend', `<button class="btn wcm" data-wcm aria-label="More ways to listen" aria-expanded="false">▾</button>`);
+        const hint = xl.querySelector('small');
+        (hint || xl.lastElementChild).insertAdjacentHTML(hint ? 'beforebegin' : 'afterend', `<div class="wcmenu"><button class="btn" data-whole="${i}" ${has ? '' : 'disabled title="no files of theirs here yet"'}>whole catalogue, oldest first</button></div>`);
+      }
+      /* releases or links */
+      const secs = [...g.children];
+      const head = el => (el.querySelector(':scope > .g-h') || {}).textContent || '';
+      const rel = secs.filter(el => el.classList.contains('g-sec') && (el.classList.contains('disco') || /^releases|^your files/.test(head(el).trim())));
+      const lnk = secs.filter(el => el.classList.contains('rv') || (el.classList.contains('g-sec') && /^links in your library|^more from them/.test(head(el).trim())));
+      if (rel.length && lnk.length && !g.querySelector('.rls70')){
+        const first = [...rel, ...lnk].sort((a, b) => secs.indexOf(a) - secs.indexOf(b))[0];
+        first.insertAdjacentHTML('beforebegin', `<div class="rls70" role="group" aria-label="Show"><button data-rls="rel" aria-pressed="${RLS === 'rel'}">releases</button><button data-rls="lnk" aria-pressed="${RLS === 'lnk'}">links</button></div>`);
+        const box = g.querySelector('.rls70');
+        const relBox = document.createElement('div'), lnkBox = document.createElement('div'); relBox.className = lnkBox.className = 'rlgrp70';
+        relBox.dataset.g = 'rel'; lnkBox.dataset.g = 'lnk';
+        rel.forEach(el => relBox.appendChild(el)); lnk.forEach(el => lnkBox.appendChild(el));
+        box.after(relBox, lnkBox); relBox.hidden = RLS !== 'rel'; lnkBox.hidden = RLS !== 'lnk';
+      }
+    } catch (e) { console.warn('v70 panel', e); }
+    return r;
+  };
+  document.addEventListener('click', ev => {
+    const s = ev.target.closest('[data-rls]');
+    if (s){ RLS = s.dataset.rls; const g = GB(); g.querySelectorAll('[data-rls]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.rls === RLS))); g.querySelectorAll('.rlgrp70').forEach(x => x.hidden = x.dataset.g !== RLS); return; }
+    const m = ev.target.closest('[data-wcm]');
+    if (m){ const menu = m.closest('.xlisten').querySelector('.wcmenu'); const o = !menu.classList.contains('open'); menu.classList.toggle('open', o); m.setAttribute('aria-expanded', String(o)); return; }
+    const w = ev.target.closest('[data-whole]'); if (w && !w.disabled){ playWhole(+w.dataset.whole); return; }
+  });
+  if (typeof sel === 'number' && sel != null && MODE) renderGuide(sel);
+})();
+</script>
+
 </body></html>
