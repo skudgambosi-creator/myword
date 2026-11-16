@@ -1486,7 +1486,7 @@ function renderResolve(){
 
 /* theme toggle: auto follows the device */
 const THEMES = ['auto', 'light', 'dark'];
-let theme = 'auto'; try { theme = localStorage.getItem('taringa.theme') || 'auto'; } catch (e) {}
+let theme = 'dark'; try { theme = localStorage.getItem('taringa.theme') || 'dark'; } catch (e) {}
 function applyTheme(){
   const r = document.documentElement; if (theme === 'auto') delete r.dataset.theme; else r.dataset.theme = theme;
   const b = $('#theme'); b.querySelector('span').textContent = theme; b.setAttribute('aria-label', 'Theme: ' + theme);
@@ -1810,10 +1810,10 @@ function setFacet(k){
 }
 
 /* --- create: multi-select filters, one path control --- */
-function qLabel(q){ const t = q.tags || (q.tag ? [q.tag] : []), r = q.regs || (q.reg ? [q.reg] : []); return `${t.join(' / ') || 'any sound'} from ${r.map(regName).join(' / ') || 'anywhere'}, ${yrName(q)}`; }
+function qLabel(q){ const t = (q.tags || (q.tag ? [q.tag] : [])).map(x => x.startsWith('fam:') ? x.slice(4) : x), r = q.regs || (q.reg ? [q.reg] : []); return `${t.join(' / ') || 'any sound'} from ${r.map(regName).join(' / ') || 'anywhere'}, ${yrName(q)}`; }
 function qTest(a, q, slack = 3){
   const tags = q.tags || (q.tag ? [q.tag] : []), regs = q.regs || (q.reg ? [q.reg] : []);
-  if (tags.length && !tags.some(t => a.g.some(g => norm(g).includes(t)) || norm(a.ds || '').includes(t))) return false;
+  if (tags.length && !tags.some(t => t.startsWith('fam:') ? a.g.some(g => D.gfam && D.gfam[g] === t.slice(4)) : (a.g.some(g => norm(g).includes(t)) || norm(a.ds || '').includes(t)))) return false;
   if (regs.length && !regs.some(r => r.t === 'ci' ? a.ci === r.c : r.t === 'co' ? coOf(a) === r.c : regionOf(a) === r.c)) return false;
   if (q.ids && q.ids.length && !q.ids.includes(a.id)) return false;
   if (q.y0 != null){ const sp = span(a); if (!sp || sp[0] - slack > q.y1 || sp[1] + slack < q.y0) return false; }
@@ -2544,7 +2544,7 @@ function drawScene(vx, vy, vr, k){
 }
 
 function drawGenre(vx, vy, vr, k){
-  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.globalAlpha = .28; ctx.setLineDash([6, 5]); ctx.beginPath(); ctx.arc(vx, vy, vr * .99, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+
   ctx.globalAlpha = .18; ctx.beginPath();
   tagLabels.forEach(([, , , a]) => { ctx.moveTo(vx + Math.cos(a) * vr * .2, vy + Math.sin(a) * vr * .2); ctx.lineTo(vx + Math.cos(a) * vr * .8, vy + Math.sin(a) * vr * .8); }); ctx.stroke();
   // threaded loops at the hub, from the patch
@@ -4772,6 +4772,136 @@ html body #guide .srch input,html body #guide .find{border-radius:999px!importan
     const w = ev.target.closest('[data-whole]'); if (w && !w.disabled){ playWhole(+w.dataset.whole); return; }
   });
   if (typeof sel === 'number' && sel != null && MODE) renderGuide(sel);
+})();
+</script>
+
+<style id="v71-css">
+/* ===== landing: centred, one pill, the sigil at the foot ===== */
+html body .landing .lw{display:flex!important;flex-direction:column!important;align-items:center!important;text-align:center!important;margin:0 auto!important}
+html body .landing h1{margin-left:auto!important;margin-right:auto!important;text-align:center!important}
+html body .landing .lm{justify-content:center!important;margin-left:auto!important;margin-right:auto!important}
+html body .landing .lc,html:not(.skin-recon) body .landing .lc{justify-content:center!important;margin:6px auto 0!important;width:auto!important}
+html body .landing #enter,html.skin-recon body .landing #enter{border-radius:999px!important;padding:16px 34px 16px 26px!important}
+html body .landing #enter::before,html body .landing #enter::after{display:none!important}
+html body .landing #enter:hover,html body .landing #enter:focus-visible{background:var(--orange)!important;color:var(--on-acc,#fff)!important;filter:brightness(1.08)}
+html body .landing .lsig,html:not(.skin-recon) body .landing .lsig{position:fixed!important;left:50%!important;bottom:calc(env(safe-area-inset-bottom,0px) + 26px)!important;transform:translateX(-50%)!important;margin:0!important;width:30px!important;height:40px!important}
+
+@media (max-width:760px){html body .landing .lc,html.skin-recon body .landing .lc,html:not(.skin-recon) body .landing .lc{align-items:center!important;margin:6px auto 0!important}}
+html body .landing .lm i{display:none!important}
+/* ===== header: one dot only, never two ===== */
+html body #guide .gh1 .mode button::after,html body #guide .gh1 .mode button::before{content:none!important;display:none!important}
+html body #guide .gh1 .mode{gap:14px!important}
+
+/* ===== every remaining square control becomes a pill or a circle ===== */
+html body #libv button,html body #libv input,html body #libv .lh2 input{border-radius:999px!important}
+html body #libv .rt{border-radius:0!important}
+html body #libv .lh1 .mark i{display:none!important}
+html body #libv .lh2 button[aria-pressed="true"]{background:var(--ink)!important;color:var(--ground)!important;border-color:var(--ink)!important}
+html body #libv .acts button.pri{background:var(--orange)!important;border-color:var(--orange)!important;color:var(--on-acc)!important}
+html body #libv .sheet{border-radius:14px!important;border-width:1px!important;border-color:var(--hair)!important}
+html body #libv .gh{border-top-width:1px!important;border-top-color:var(--hair)!important}
+body:has(#libv.on) #settings.gear70,body:has(#libv.on) #vchip{display:none!important}
+html body #guide .chips button,html body #guide .fgrp button,html body #guide .fgrp select,html body #guide .fgrp input,html body #guide #qyany{border-radius:999px!important}
+html body .mapctl button,html body .zoomctl button{border-radius:999px!important}
+html body #guide .tag,html body #guide .pill,html body #guide .badge,html body #gbody .g-h small,html body #gbody small.tag{border-radius:999px!important}
+html body #guide [data-themeset],html body #guide .setbtns button,html body #gbody .btn,html body #gbody button.add{border-radius:999px!important}
+html.skin-recon body #guide .card,html.skin-recon body #guide .mkcard,html.skin-recon body #guide .lcard{border-radius:14px!important}
+
+/* ===== listen filters: sound family → genre, place → country → city, links network → circle ===== */
+.ft70{margin:4px 0 2px}
+.ft70 .fr{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--hair)}
+.ft70 .fr.l2{padding-left:16px}
+.ft70 .fr .fs{flex:1;display:flex;align-items:center;gap:8px;background:none;border:0;padding:2px 0;color:var(--ink);cursor:pointer;font:inherit;text-align:left;border-radius:0!important}
+.ft70 .fr .fs i{width:7px;height:7px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1.2px var(--ink-soft)}
+.ft70 .fr .fs[aria-pressed="true"] i{background:var(--orange);box-shadow:none}
+.ft70 .fr .fs:hover i{box-shadow:inset 0 0 0 1.2px var(--ink)}
+.ft70 .fr .n{color:var(--ink-soft);font-size:.86em;font-variant-numeric:tabular-nums}
+.ft70 .fr .fo{background:none!important;border:0!important;color:var(--ink-soft);cursor:pointer;padding:2px 6px;font:inherit;min-width:24px}
+.ft70 .fr .fo[aria-expanded="true"]{color:var(--ink)}
+.ft70 .sub{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 10px 16px;border-bottom:1px solid var(--hair)}
+.ft70 .sub button{border:1px solid var(--hair);background:none;color:var(--ink-soft);padding:4px 10px;cursor:pointer;font:inherit;font-size:.92em}
+.ft70 .sub button[aria-pressed="true"]{border-color:var(--orange);color:var(--ink);background:color-mix(in srgb,var(--orange) 16%,transparent)}
+.ft70 .on70{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 6px}
+.ft70 .on70 button{border:1px solid var(--orange);background:color-mix(in srgb,var(--orange) 16%,transparent);color:var(--ink);padding:4px 10px;cursor:pointer;font:inherit;font-size:.92em}
+html.skin-recon .ft70 .fs,html.skin-recon .ft70 .sub button,html.skin-recon .ft70 .on70 button{font:500 10px/14px var(--mono);letter-spacing:.12em;text-transform:uppercase}
+html.skin-recon .ft70 .n{font:400 10px/14px var(--mono)}
+html:not(.skin-recon) .ft70 .fs{font-size:14px}
+html:not(.skin-recon) .ft70 .sub button,html:not(.skin-recon) .ft70 .on70 button{font-size:12.5px}
+#fsound.ft-host,#fplace.ft-host{display:block!important}
+</style>
+<script>
+(function(){
+  /* ---- listen filters as trees ---- */
+  const OPENF = new Set();
+  const famN = {}, famG = {};
+  A.forEach(a => { const fs = new Set(); (a.g || []).forEach(g => { const f = D.gfam && D.gfam[g]; if (f){ fs.add(f); (famG[f] ||= {})[g] = (famG[f][g] || 0) + 1; } }); fs.forEach(f => famN[f] = (famN[f] || 0) + 1); });
+  const FAMS = Object.keys(famN).sort((p, q) => famN[q] - famN[p]);
+  const coN = {}, ciByCo = {};
+  A.forEach(a => { const c = coOf(a); if (!c) return; coN[c] = (coN[c] || 0) + 1; if (a.ci && !a.ap) ((ciByCo[(a.cc || c)] ||= {})[a.ci] = (ciByCo[(a.cc || c)][a.ci] || 0) + 1); });
+  const contOf = c => (typeof CONT !== 'undefined' && CONT[c]) || null;
+  const CONTS = Object.keys(CONTN).filter(k => Object.keys(coN).some(c => contOf(c) === k)).sort((p, q) => Object.keys(coN).filter(c => contOf(c) === q).reduce((n, c) => n + coN[c], 0) - Object.keys(coN).filter(c => contOf(c) === p).reduce((n, c) => n + coN[c], 0));
+  const contN = k => Object.keys(coN).filter(c => contOf(c) === k).reduce((n, c) => n + coN[c], 0);
+  const tagOn = v => (Q.tags || []).includes(v), regOn = (t, c) => (Q.regs || []).some(r => r.t === t && r.c === c);
+  const row = (lvl, key, sel, label, n, attrs, openable) => `<div class="fr${lvl ? ' l2' : ''}"><button class="fs" ${attrs} aria-pressed="${sel}"><i></i><span>${esc(label)}</span></button><span class="n">${n}</span>${openable ? `<button class="fo" data-fopen="${esc(key)}" aria-expanded="${OPENF.has(key)}" aria-label="Show what sits inside ${esc(label)}">${OPENF.has(key) ? '⌄' : '›'}</button>` : '<span style="min-width:24px"></span>'}</div>`;
+  const shown = v => v.startsWith('fam:') ? v.slice(4) : v;
+  function sound(){
+    const tg = Q.tags || [];
+    let h = '';
+    const ids = Q.ids && Q.ids.length ? `<button id="clrids" aria-pressed="true">${esc(Q.idsLab || 'linked set')} ×</button>` : '';
+    if (tg.length || ids) h += `<div class="on70">${ids}${tg.map(t => `<button data-ftag="${esc(t)}" aria-pressed="true">${esc(shown(t))} ×</button>`).join('')}</div>`;
+    h += FAMS.map(f => {
+      const k = 's:' + f; let r = row(0, k, tagOn('fam:' + f), f, famN[f], `data-ftag="fam:${esc(f)}"`, true);
+      if (OPENF.has(k)){ const gs = Object.entries(famG[f]).sort((p, q) => q[1] - p[1]).slice(0, 40); r += `<div class="sub">${gs.map(([g]) => `<button data-ftag="${esc(norm(g))}" aria-pressed="${tagOn(norm(g))}">${esc(g)}</button>`).join('')}</div>`; }
+      return r; }).join('');
+    return `<div class="ft70">${h}</div>`;
+  }
+  function place(){
+    const rg = Q.regs || [];
+    let h = rg.length ? `<div class="on70">${rg.map(r => `<button data-freg="${r.t}:${esc(r.c)}" aria-pressed="true">${esc(regName(r))} ×</button>`).join('')}</div>` : '';
+    h += CONTS.map(k => {
+      const key = 'p:' + k; let r = row(0, key, regOn('cont', k), CONTN[k], contN(k), `data-freg="cont:${k}"`, true);
+      if (OPENF.has(key)){
+        const cos = Object.keys(coN).filter(c => contOf(c) === k).sort((p, q) => coN[q] - coN[p]);
+        r += cos.map(c => { const ck = 'c:' + c, cis = ciByCo[c] ? Object.entries(ciByCo[c]).sort((p, q) => q[1] - p[1]) : [];
+          let rr = row(1, ck, regOn('co', c), regName({t: 'co', c}), coN[c], `data-freg="co:${c}"`, cis.length > 0);
+          if (OPENF.has(ck) && cis.length) rr += `<div class="sub">${cis.slice(0, 60).map(([ci]) => `<button data-freg="ci:${esc(ci)}" aria-pressed="${regOn('ci', ci)}">${esc(ci)}</button>`).join('')}</div>`;
+          return rr; }).join('');
+      }
+      return r; }).join('');
+    return `<div class="ft70">${h}</div>`;
+  }
+  function links(){
+    if (typeof CLUSTERS === 'undefined' || !CLUSTERS.length) return '';
+    const fam = new Map(); CLUSTERS.forEach((c, k) => { const key = c.par != null && window.PARENTS ? 'n:' + c.par : 'n:other'; (fam.get(key) || fam.set(key, []).get(key)).push(k); });
+    const cur = Q.idsK;
+    const keys = [...fam.keys()].sort((p, q) => (p === 'n:other') - (q === 'n:other'));
+    return `<div class="ft70">${keys.map(key => {
+      const ks = fam.get(key), n = ks.reduce((s, k) => s + CLUSTERS[k].list.length, 0);
+      const lab = key === 'n:other' ? 'other groups' : (window.netName ? netName(PARENTS[+key.slice(2)]) : 'network');
+      let r = row(0, key, false, lab, n, `data-fopen="${esc(key)}"`, true);
+      if (OPENF.has(key)) r += `<div class="sub">${ks.slice(0, 60).map(k => `<button data-flink="${k}" aria-pressed="${cur === k}">${esc(A[CLUSTERS[k].hub != null ? CLUSTERS[k].hub : CLUSTERS[k].list[0]].n)} · ${CLUSTERS[k].list.length}</button>`).join('')}</div>`;
+      return r; }).join('')}</div>`;
+  }
+  const rc0 = renderChips;
+  renderChips = function(){
+    const fs = $('#fsound'), fp = $('#fplace'); if (!fs || !fp || !Q) return rc0.apply(this, arguments);
+    fs.classList.add('ft-host'); fp.classList.add('ft-host');
+    fs.innerHTML = sound(); fp.innerHTML = place();
+    let fl = $('#flinks70');
+    if (!fl){ const grp = fp.closest('.fgrp'); if (grp) grp.insertAdjacentHTML('afterend', '<div class="fgrp"><div class="fl">links</div><div id="flinks70"></div></div>'); fl = $('#flinks70'); }
+    if (fl) fl.innerHTML = links();
+  };
+  document.addEventListener('click', ev => {
+    const o = ev.target.closest('[data-fopen]');
+    if (o && o.closest('#guide')){ ev.stopPropagation(); const k = o.dataset.fopen; OPENF.has(k) ? OPENF.delete(k) : OPENF.add(k); renderChips(); return; }
+    if (ev.target.closest('#clrids') && Q) Q.idsK = null;
+    const l = ev.target.closest('[data-flink]');
+    if (l){ ev.stopPropagation(); const k = +l.dataset.flink;
+      if (Q.idsK === k){ Q.ids = []; Q.idsLab = null; Q.idsK = null; }
+      else { Q.ids = CLUSTERS[k].list.map(i => A[i].id); Q.idsK = k; Q.idsLab = A[CLUSTERS[k].hub != null ? CLUSTERS[k].hub : CLUSTERS[k].list[0]].n + ' circle'; }
+      qSolve(); renderChips(); renderSetBody(); if (typeof flyToQ === 'function') flyToQ(); return; }
+  }, true);
+  if (MODE === 'create' && Q && $('#fsound')) renderChips();
 })();
 </script>
 
