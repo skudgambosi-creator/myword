@@ -2695,10 +2695,11 @@ function frame2(now){
   else if (lens === 'genre') drawGenre(vx, vy, vr, k);
   else if (lens === 'people') drawPeople();
   // links: hairlines, the selected artist's links as live beams
-  const showAll = lens === 'people', selEdges = sel != null ? adj[sel] : [];
+  const ck72 = lens === 'people' && XF && typeof XF.k === 'string' && XF.k.startsWith('cl:') ? CLUSTERS.findIndex(c => c.k === XF.k) : -1;
+  const showAll = ck72 >= 0, selEdges = sel != null ? adj[sel] : [];
   if (showAll || sel != null){
     const scl = sel != null ? MEM[sel] : -1;
-    const list = showAll ? (window.__intra ||= D.e.map((_, j) => j).filter(j => MEM[D.e[j][0]] === MEM[D.e[j][1]])) : scl >= 0 ? D.e.map((_, j) => j).filter(j => MEM[D.e[j][0]] === scl && !(D.es && D.es[j] === 'credit')) : selEdges;
+    const list = showAll ? (window.__intra ||= D.e.map((_, j) => j).filter(j => MEM[D.e[j][0]] === MEM[D.e[j][1]])).filter(j => MEM[D.e[j][0]] === ck72) : scl >= 0 ? D.e.map((_, j) => j).filter(j => MEM[D.e[j][0]] === scl && !(D.es && D.es[j] === 'credit')) : selEdges;
     for (const j of list){
       const [a, b, w, p] = D.e[j], A1 = pos[a], B1 = pos[b];
       if (lens === 'place' && (!A1[2] || !B1[2])) continue;
@@ -4486,7 +4487,7 @@ body:not([data-mode]) #pmin,body:not([data-mode]) #pexp,body.setfull #pmin,body.
     const N2 = nbMap();
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const fk = XF && typeof XF.k === 'string' && XF.k.startsWith('cl:') ? CLUSTERS.findIndex(c => c.k === XF.k) : -1;
-    if (fk < 0){
+    if (fk < 0){ return;
       /* every view: one stroke per pair of neighbouring circles, heavier for more links */
       ctx.strokeStyle = C.orange; ctx.lineCap = 'round';
       N2.forEach((m, a) => m.forEach((js, b) => { if (b < a) return; if (CLUSTERS[a].par == null || CLUSTERS[a].par !== CLUSTERS[b].par) return; const ga = byK.get(a), gb = byK.get(b); if (!ga || !gb) return;
@@ -4811,6 +4812,9 @@ html.skin-recon body #guide .card,html.skin-recon body #guide .mkcard,html.skin-
 .ft70{margin:4px 0 2px}
 .ft70 .fr{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--hair)}
 .ft70 .fr.l2{padding-left:16px}
+.ft70 .fr .fs .n{margin-left:auto}
+.ft70 .fr .fs .cv{min-width:18px;text-align:right;color:var(--ink-soft)}
+.ft70 .fr .fs[aria-expanded="true"] .cv{color:var(--ink)}
 .ft70 .fr .fs{flex:1;display:flex;align-items:center;gap:8px;background:none;border:0;padding:2px 0;color:var(--ink);cursor:pointer;font:inherit;text-align:left;border-radius:0!important}
 .ft70 .fr .fs i{width:7px;height:7px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1.2px var(--ink-soft)}
 .ft70 .fr .fs[aria-pressed="true"] i{background:var(--orange);box-shadow:none}
@@ -4842,7 +4846,10 @@ html:not(.skin-recon) .ft70 .sub button,html:not(.skin-recon) .ft70 .on70 button
   const CONTS = Object.keys(CONTN).filter(k => Object.keys(coN).some(c => contOf(c) === k)).sort((p, q) => Object.keys(coN).filter(c => contOf(c) === q).reduce((n, c) => n + coN[c], 0) - Object.keys(coN).filter(c => contOf(c) === p).reduce((n, c) => n + coN[c], 0));
   const contN = k => Object.keys(coN).filter(c => contOf(c) === k).reduce((n, c) => n + coN[c], 0);
   const tagOn = v => (Q.tags || []).includes(v), regOn = (t, c) => (Q.regs || []).some(r => r.t === t && r.c === c);
-  const row = (lvl, key, sel, label, n, attrs, openable) => `<div class="fr${lvl ? ' l2' : ''}"><button class="fs" ${attrs} aria-pressed="${sel}"><i></i><span>${esc(label)}</span></button><span class="n">${n}</span>${openable ? `<button class="fo" data-fopen="${esc(key)}" aria-expanded="${OPENF.has(key)}" aria-label="Show what sits inside ${esc(label)}">${OPENF.has(key) ? '⌄' : '›'}</button>` : '<span style="min-width:24px"></span>'}</div>`;
+  const row = (lvl, key, sel, label, n, attrs, openable) => openable
+    ? `<div class="fr${lvl ? ' l2' : ''}"><button class="fs" data-fopen="${esc(key)}" aria-expanded="${OPENF.has(key)}" aria-pressed="${sel}"><i></i><span>${esc(label)}</span><span class="n">${n}</span><span class="cv">${OPENF.has(key) ? '⌄' : '›'}</span></button></div>`
+    : `<div class="fr${lvl ? ' l2' : ''}"><button class="fs" ${attrs} aria-pressed="${sel}"><i></i><span>${esc(label)}</span><span class="n">${n}</span><span class="cv"></span></button></div>`;
+  const allChip = (attrs, on, label) => `<button ${attrs} aria-pressed="${on}">all ${esc(label)}</button>`;
   const shown = v => v.startsWith('fam:') ? v.slice(4) : v;
   function sound(){
     const tg = Q.tags || [];
@@ -4850,8 +4857,8 @@ html:not(.skin-recon) .ft70 .sub button,html:not(.skin-recon) .ft70 .on70 button
     const ids = Q.ids && Q.ids.length ? `<button id="clrids" aria-pressed="true">${esc(Q.idsLab || 'linked set')} ×</button>` : '';
     if (tg.length || ids) h += `<div class="on70">${ids}${tg.map(t => `<button data-ftag="${esc(t)}" aria-pressed="true">${esc(shown(t))} ×</button>`).join('')}</div>`;
     h += FAMS.map(f => {
-      const k = 's:' + f; let r = row(0, k, tagOn('fam:' + f), f, famN[f], `data-ftag="fam:${esc(f)}"`, true);
-      if (OPENF.has(k)){ const gs = Object.entries(famG[f]).sort((p, q) => q[1] - p[1]).slice(0, 40); r += `<div class="sub">${gs.map(([g]) => `<button data-ftag="${esc(norm(g))}" aria-pressed="${tagOn(norm(g))}">${esc(g)}</button>`).join('')}</div>`; }
+      const k = 's:' + f, any = tagOn('fam:' + f) || Object.keys(famG[f]).some(g => tagOn(norm(g))); let r = row(0, k, any, f, famN[f], '', true);
+      if (OPENF.has(k)){ const gs = Object.entries(famG[f]).sort((p, q) => q[1] - p[1]).slice(0, 40); r += `<div class="sub">${allChip(`data-ftag="fam:${esc(f)}"`, tagOn('fam:' + f), f)}${gs.map(([g]) => `<button data-ftag="${esc(norm(g))}" aria-pressed="${tagOn(norm(g))}">${esc(g)}</button>`).join('')}</div>`; }
       return r; }).join('');
     return `<div class="ft70">${h}</div>`;
   }
@@ -4859,12 +4866,13 @@ html:not(.skin-recon) .ft70 .sub button,html:not(.skin-recon) .ft70 .on70 button
     const rg = Q.regs || [];
     let h = rg.length ? `<div class="on70">${rg.map(r => `<button data-freg="${r.t}:${esc(r.c)}" aria-pressed="true">${esc(regName(r))} ×</button>`).join('')}</div>` : '';
     h += CONTS.map(k => {
-      const key = 'p:' + k; let r = row(0, key, regOn('cont', k), CONTN[k], contN(k), `data-freg="cont:${k}"`, true);
+      const cos = Object.keys(coN).filter(c => contOf(c) === k).sort((p, q) => coN[q] - coN[p]);
+      const key = 'p:' + k, any = regOn('cont', k) || cos.some(c => regOn('co', c) || Object.keys(ciByCo[c] || {}).some(ci => regOn('ci', ci))); let r = row(0, key, any, CONTN[k], contN(k), '', true);
       if (OPENF.has(key)){
-        const cos = Object.keys(coN).filter(c => contOf(c) === k).sort((p, q) => coN[q] - coN[p]);
+        r += `<div class="sub" style="border-bottom:0;padding-bottom:4px">${allChip(`data-freg="cont:${k}"`, regOn('cont', k), CONTN[k])}</div>`;
         r += cos.map(c => { const ck = 'c:' + c, cis = ciByCo[c] ? Object.entries(ciByCo[c]).sort((p, q) => q[1] - p[1]) : [];
-          let rr = row(1, ck, regOn('co', c), regName({t: 'co', c}), coN[c], `data-freg="co:${c}"`, cis.length > 0);
-          if (OPENF.has(ck) && cis.length) rr += `<div class="sub">${cis.slice(0, 60).map(([ci]) => `<button data-freg="ci:${esc(ci)}" aria-pressed="${regOn('ci', ci)}">${esc(ci)}</button>`).join('')}</div>`;
+          let rr = row(1, ck, regOn('co', c) || cis.some(([ci]) => regOn('ci', ci)), regName({t: 'co', c}), coN[c], `data-freg="co:${c}"`, cis.length > 0);
+          if (OPENF.has(ck) && cis.length) rr += `<div class="sub">${allChip(`data-freg="co:${c}"`, regOn('co', c), regName({t: 'co', c}))}${cis.slice(0, 60).map(([ci]) => `<button data-freg="ci:${esc(ci)}" aria-pressed="${regOn('ci', ci)}">${esc(ci)}</button>`).join('')}</div>`;
           return rr; }).join('');
       }
       return r; }).join('');
@@ -4878,7 +4886,7 @@ html:not(.skin-recon) .ft70 .sub button,html:not(.skin-recon) .ft70 .on70 button
     return `<div class="ft70">${keys.map(key => {
       const ks = fam.get(key), n = ks.reduce((s, k) => s + CLUSTERS[k].list.length, 0);
       const lab = key === 'n:other' ? 'other groups' : (window.netName ? netName(PARENTS[+key.slice(2)]) : 'network');
-      let r = row(0, key, false, lab, n, `data-fopen="${esc(key)}"`, true);
+      let r = row(0, key, ks.includes(cur), lab, n, '', true);
       if (OPENF.has(key)) r += `<div class="sub">${ks.slice(0, 60).map(k => `<button data-flink="${k}" aria-pressed="${cur === k}">${esc(A[CLUSTERS[k].hub != null ? CLUSTERS[k].hub : CLUSTERS[k].list[0]].n)} · ${CLUSTERS[k].list.length}</button>`).join('')}</div>`;
       return r; }).join('')}</div>`;
   }
