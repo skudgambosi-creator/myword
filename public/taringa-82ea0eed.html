@@ -2550,7 +2550,7 @@ function drawGenre(vx, vy, vr, k){
   // threaded loops at the hub, from the patch
   ctx.globalAlpha = .55; ctx.lineWidth = 1.5; for (let j = -1; j <= 1; j++){ ctx.beginPath(); ctx.arc(vx + j * vr * .045, vy, vr * .07, 0, TAU); ctx.stroke(); }
   ctx.globalAlpha = 1;
-  if (k > .6){ const bxs = [];
+  if (k > .6 && MODE !== 'explore'){ const bxs = [];
     tagLabels.forEach(([t, lx, ly, a]) => { const c = Math.cos(a), s = Math.sin(a) >= 0 ? 1 : -1, al = Math.abs(c) < .08 ? 'center' : c > 0 ? 'left' : 'right', T = t.toUpperCase();
       const mw = (str, px) => { ctx.font = font(px); spacing('1.6px'); const w = ctx.measureText(str).width; spacing(); return w; };
       let x = vx + lx * vr + (al === 'left' ? 6 : al === 'right' ? -6 : 0), y = vy + ly * vr, px = 9, lines = [T];
@@ -2699,7 +2699,7 @@ function frame2(now){
   const showAll = ck72 >= 0, selEdges = sel != null ? adj[sel] : [];
   if (showAll || sel != null){
     const scl = sel != null ? MEM[sel] : -1;
-    const list = showAll ? (window.__intra ||= D.e.map((_, j) => j).filter(j => MEM[D.e[j][0]] === MEM[D.e[j][1]])).filter(j => MEM[D.e[j][0]] === ck72) : scl >= 0 ? D.e.map((_, j) => j).filter(j => MEM[D.e[j][0]] === scl && !(D.es && D.es[j] === 'credit')) : selEdges;
+    const list = lens === 'people' ? (showAll ? [...new Set([...(window.__intra ||= D.e.map((_, j) => j).filter(j => MEM[D.e[j][0]] === MEM[D.e[j][1]])).filter(j => MEM[D.e[j][0]] === ck72), ...selEdges])] : selEdges) : showAll ? [] : scl >= 0 ? D.e.map((_, j) => j).filter(j => MEM[D.e[j][0]] === scl && !(D.es && D.es[j] === 'credit')) : selEdges;
     for (const j of list){
       const [a, b, w, p] = D.e[j], A1 = pos[a], B1 = pos[b];
       if (lens === 'place' && (!A1[2] || !B1[2])) continue;
@@ -2731,6 +2731,7 @@ function frame2(now){
     if (LIB.n && !LIB.by[i]) alpha *= .28;
     if (matches && !matches.has(i)) alpha = lens === 'people' ? .045 : .1;
     if (lens === 'scene' && MODE === 'explore' && !window.CITYOPEN && !window.SCENECO) alpha = 0;
+    if (lens === 'genre' && MODE === 'explore' && !(XF && XF.k) && sel == null) alpha = 0;
     const res = MODE === 'create' && matches && matches.has(i);
     if (res) col = C.ultra;
     if (sel != null && i !== sel && !nbr.has(i)) alpha *= .45;
@@ -2755,6 +2756,7 @@ function frame2(now){
 
 function drawNames2(nbr){
   if (lens === 'scene' && MODE === 'explore' && !window.CITYOPEN && sel == null) return;
+  if (lens === 'genre' && MODE === 'explore' && !(XF && XF.k) && sel == null) return;
   const z = lens === 'place' ? zoom : vz, boxes = [];
   if (lens === 'people' && E.ringBoxes) boxes.push(...E.ringBoxes);
   const fits = bx => !boxes.some(b => bx[0] < b[2] && bx[2] > b[0] && bx[1] < b[3] && bx[3] > b[1]) && bx[0] > VR.x && bx[2] < VR.x + VR.w && bx[1] > VR.y && bx[3] < VR.y + VR.h;
@@ -4499,7 +4501,7 @@ body:not([data-mode]) #pmin,body:not([data-mode]) #pexp,body.setfull #pmin,body.
     /* one circle open: its links out, each one drawn, and a named way to every neighbour */
     const g0 = byK.get(fk); if (!g0) return; const [ox, oy] = sp(g0), orr = g0.r * vr;
     const same = b => CLUSTERS[fk].par != null && CLUSTERS[b].par === CLUSTERS[fk].par;
-    N2[fk].forEach((js, b) => { if (!same(b)) return; js.forEach(j => { const [a1, b1] = D.e[j], A1 = pos[a1], B1 = pos[b1]; if (!A1 || !B1) return; const st = window.edgeStyle ? edgeStyle(j) : {c: C.teal, w: 1};
+    N2[fk].forEach((js, b) => { return; js.forEach(j => { const [a1, b1] = D.e[j], A1 = pos[a1], B1 = pos[b1]; if (!A1 || !B1) return; const st = window.edgeStyle ? edgeStyle(j) : {c: C.teal, w: 1};
       ctx.strokeStyle = st.c; ctx.lineWidth = st.w; ctx.globalAlpha = .4; ctx.setLineDash(st.d || []); const mx = (A1[0] + B1[0]) / 2, my = (A1[1] + B1[1]) / 2, dx = B1[0] - A1[0], dy = B1[1] - A1[1];
       ctx.beginPath(); ctx.moveTo(A1[0], A1[1]); ctx.quadraticCurveTo(mx - dy * .12, my + dx * .12, B1[0], B1[1]); ctx.stroke(); ctx.setLineDash([]); }); });
     ctx.globalAlpha = 1;
@@ -4910,6 +4912,183 @@ html:not(.skin-recon) .ft70 .sub button,html:not(.skin-recon) .ft70 .on70 button
       qSolve(); renderChips(); renderSetBody(); if (typeof flyToQ === 'function') flyToQ(); return; }
   }, true);
   if (MODE === 'create' && Q && $('#fsound')) renderChips();
+})();
+</script>
+
+<style id="v73-css">
+/* path: order by, then a direction */
+.pb73{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px}
+.pb73 button,.pd73 button{border:1px solid var(--hair);background:none;color:var(--ink-soft);padding:6px 13px;cursor:pointer;font:inherit;border-radius:999px!important}
+.pb73 button[aria-current="true"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+.pd73{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px;align-items:center}
+.pd73 button[aria-current="true"]{border-color:var(--orange);color:var(--ink);background:color-mix(in srgb,var(--orange) 16%,transparent)}
+.pd73 select{border:1px solid var(--hair);background:var(--panel);color:var(--ink);padding:6px 12px;border-radius:999px;font:inherit}
+.ph73{margin-top:10px;font-size:12.5px;line-height:1.5;color:var(--ink-soft)}
+html.skin-recon .pb73 button,html.skin-recon .pd73 button,html.skin-recon .pd73 select{font:500 10px/14px var(--mono);letter-spacing:.12em;text-transform:uppercase}
+html.skin-recon .ph73{font-size:11px;letter-spacing:.04em}
+.fl73{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);margin-top:14px}
+/* review: every release button reads as a toggle */
+.stops .rh button[aria-pressed="true"]{border-color:var(--orange)!important;color:var(--ink)!important}
+.stops .allrel73{margin:6px 0 2px 10px}
+</style>
+<script>
+(function(){
+  /* =========================== genre: families, then genres, then artists =========================== */
+  const famOfA = a => (window.famOf && famOf(a)) || 'unknown';
+  let HITS = [];
+  const gRows = () => (typeof xsData === 'function' ? xsData('genre') : []);
+  const famOfRow = r => (D.gfam && D.gfam[r.lab]) || null;
+  const openFam = () => {
+    if (!matches || (XF && XF.k)) return null;
+    const c = new Map(); matches.forEach(i => { const f = famOfA(A[i]); c.set(f, (c.get(f) || 0) + 1); });
+    let best = null, bn = 0; c.forEach((n, f) => { if (n > bn){ bn = n; best = f; } }); return best;
+  };
+  const fr0 = frame;
+  frame = function(now){
+    fr0(now); HITS = [];
+    if (lens !== 'genre' || MODE !== 'explore' || sel != null) return;
+    if (XF && XF.k) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const fams = new Map();
+    for (let i = 0; i < N; i++){ const p = pos[i]; if (!p || p.dim) continue; const f = famOfA(A[i]); (fams.get(f) || fams.set(f, []).get(f)).push(p); }
+    const of = openFam();
+    const bubbles = [];
+    fams.forEach((ps, f) => {
+      if (ps.length < 2) return;
+      const x = ps.reduce((s, p) => s + p[0], 0) / ps.length, y = ps.reduce((s, p) => s + p[1], 0) / ps.length;
+      const ds = ps.map(p => Math.hypot(p[0] - x, p[1] - y)).sort((a, b) => a - b), r = Math.max(14, ds[Math.floor(ds.length * .85)] + 6);
+      bubbles.push({f, x, y, r, n: ps.length});
+    });
+    const mono = getComputedStyle(document.documentElement).getPropertyValue('--mono') || 'monospace';
+    bubbles.forEach(b => {
+      const on = !of || of === b.f;
+      ctx.globalAlpha = on ? (of ? .75 : .5) : .12; ctx.strokeStyle = C.teal; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1;
+      if (on) __label(b.f.toUpperCase(), b.x, b.y - b.r - 10, b.f === 'unknown' ? C['ink-soft'] : C.orange, 10, 'center', 700, '1.8px');
+      if (!of) HITS.push({kind: 'fam', f: b.f, x: b.x, y: b.y, r: b.r});
+    });
+    if (!of) return;
+    /* the open family: its genres as bubbles packed inside */
+    const B = bubbles.find(b => b.f === of); if (!B) return;
+    const rows = gRows().filter(r => (famOfRow(r) || 'unknown') === of && r.list.length).sort((p, q) => q.list.length - p.list.length).slice(0, 28);
+    if (!rows.length) return;
+    const cs = rows.map(r => ({r: Math.sqrt(r.list.length), row: r}));
+    d3.packSiblings(cs); const enc = d3.packEnclose(cs), k = (B.r * .9) / enc.r;
+    cs.forEach(c => {
+      const x = B.x + (c.x - enc.x) * k, y = B.y + (c.y - enc.y) * k, r = c.r * k;
+      ctx.fillStyle = C.ground; ctx.globalAlpha = .55; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = .9; ctx.strokeStyle = C.teal; ctx.lineWidth = 1; ctx.stroke(); ctx.globalAlpha = 1;
+      const t = c.row.lab; ctx.font = '500 9px ' + mono; const w = ctx.measureText(t).width;
+      if (w < r * 1.7) __label(t, x, y, C.teal, 9, 'center', 500, '.4px');
+      HITS.push({kind: 'gen', row: c.row, x, y, r});
+    });
+  };
+  const ta = tapAt;
+  tapAt = function(ev){
+    if (lens === 'genre' && MODE === 'explore' && HITS.length){
+      const x = ev.clientX, y = ev.clientY, hit = HITS.filter(h => Math.hypot(h.x - x, h.y - y) <= h.r).sort((a, b) => a.r - b.r)[0];
+      if (hit && hit.kind === 'gen') return setFacet(hit.row.k);
+      if (hit && hit.kind === 'fam'){ const h = [...document.querySelectorAll('.xg')].find(b => b.dataset.xg === 'genre:' + (hit.f === 'unknown' ? 'other tags' : hit.f)); if (h) return h.click(); }
+    }
+    return ta.apply(this, arguments);
+  };
+
+  /* =========================== path: order by, then a direction =========================== */
+  const BASES = [['time', 'time'], ['place', 'place'], ['city', 'city'], ['genre', 'genre'], ['links', 'links'], ['shuffle', 'shuffle']];
+  const DIRS = {
+    time: [['time', 'oldest first'], ['rtime', 'newest first']],
+    place: [['placeaz', 'a to z'], ['placeza', 'z to a'], ['globe', 'outward from']],
+    city: [['sceneaz', 'a to z'], ['sceneza', 'z to a']],
+    genre: [['genre', 'around the wheel'], ['rgenre', 'the other way']],
+    links: [['doors', 'strongest link next']],
+    shuffle: [['shuffle', 'new shuffle']]
+  };
+  const baseOf = p => Object.keys(DIRS).find(b => DIRS[b].some(d => d[0] === p)) || 'time';
+  Object.assign(PATHLENS, {placeaz: 'place', placeza: 'place', sceneaz: 'scene', sceneza: 'scene', rgenre: 'genre'});
+  Object.assign(PATHWORDS, {placeaz: 'country by country, a to z', placeza: 'country by country, z to a', globe: 'outward from a place', sceneaz: 'city by city, a to z', sceneza: 'city by city, z to a', genre: 'family by family, around the genre wheel', rgenre: 'family by family, the other way round', doors: 'link to link'});
+  const coName = c => regName({t: 'co', c});
+  const FAMORDER = () => { const o = []; Object.values(D.gfam || {}).forEach(f => { if (!o.includes(f)) o.push(f); }); return o; };
+  const startCo = () => { if (Q.from) return Q.from; const c = new Map(); (QR ? QR.list : []).forEach(i => { const k = coOf(A[i]); if (k) c.set(k, (c.get(k) || 0) + 1); }); let b = null, n = 0; c.forEach((v, k) => { if (v > n){ n = v; b = k; } }); return b; };
+  const centroid = c => { const ps = A.filter(a => coOf(a) === c && a.la != null); if (!ps.length) return null; return [ps.reduce((s, a) => s + a.lo, 0) / ps.length, ps.reduce((s, a) => s + a.la, 0) / ps.length]; };
+  const q0 = qOrder;
+  qOrder = function(list, mode){
+    const L2 = list.slice(), ey = i => era(A[i]) || 9999;
+    if (mode === 'placeaz' || mode === 'placeza'){ const d = mode === 'placeaz' ? 1 : -1; return L2.sort((x, y) => (coOf(A[x]) ? 0 : 1) - (coOf(A[y]) ? 0 : 1) || d * coName(coOf(A[x]) || '').localeCompare(coName(coOf(A[y]) || '')) || (A[x].ci || '').localeCompare(A[y].ci || '') || ey(x) - ey(y)); }
+    if (mode === 'sceneaz' || mode === 'sceneza'){ const d = mode === 'sceneaz' ? 1 : -1; return L2.sort((x, y) => (A[x].ci && !A[x].ap ? 0 : 1) - (A[y].ci && !A[y].ap ? 0 : 1) || d * (A[x].ci || '').localeCompare(A[y].ci || '') || ey(x) - ey(y)); }
+    if (mode === 'globe'){ const s = Q && startCo(), c0 = s && centroid(s); if (!c0) return q0(list, mode);
+      const dist = i => A[i].la == null ? 9 : d3.geoDistance(c0, [A[i].lo, A[i].la]); return L2.sort((x, y) => dist(x) - dist(y) || ey(x) - ey(y)); }
+    if (mode === 'genre' || mode === 'rgenre'){ const o = FAMORDER(), d = mode === 'genre' ? 1 : -1, fi = i => { const f = window.famOf ? famOf(A[i]) : null; const k = f ? o.indexOf(f) : -1; return k < 0 ? 999 : k; };
+      return L2.sort((x, y) => (fi(x) === 999) - (fi(y) === 999) || d * (fi(x) - fi(y)) || ((A[x].g || [])[0] || '~').localeCompare((A[y].g || [])[0] || '~') || ey(x) - ey(y)); }
+    return q0(list, mode);
+  };
+  const help = p => {
+    const n = QR ? QR.list.length : 0, first = n ? A[QR.list[0]].n : '', last = n ? A[QR.list[n - 1]].n : '';
+    const ends = n > 1 ? ` it starts with ${first} and ends with ${last}.` : '';
+    return ({
+      time: 'from the earliest artist to the latest, by the year each one started.', rtime: 'from the latest artist back to the earliest.',
+      placeaz: 'country by country in alphabetical order; within a country, city by city, oldest first.', placeza: 'country by country in reverse alphabetical order.',
+      globe: `starts in ${coName(startCo() || '') || 'the place you choose'} and moves outward, nearest places first, until it reaches the furthest.`,
+      sceneaz: 'city by city in alphabetical order, oldest first within each; artists placed only by country come last.', sceneza: 'city by city in reverse alphabetical order.',
+      genre: 'one genre family at a time, in the order they sit around the genre view; oldest first within each.', rgenre: 'one genre family at a time, round the genre view the other way.',
+      doors: 'starts with the artist you hold most and each next artist shares a link with the last: a band, a credit or a collaboration. when no link is left, it jumps to the nearest in time and place.',
+      shuffle: 'any order. tap again for a new one.'
+    }[p] || '') + ends;
+  };
+  const pathHtml = () => {
+    const p = Q.path || 'time', b = baseOf(p);
+    const present = [...new Set((QR ? QR.list : []).map(i => coOf(A[i])).filter(Boolean))].sort((x, y) => coName(x).localeCompare(coName(y)));
+    return `<div class="fl73">order by</div><div class="pb73">${BASES.map(([k, l]) => `<button data-pbase="${k}" aria-current="${b === k}">${l}</button>`).join('')}</div>
+      <div class="pd73">${DIRS[b].map(([k, l]) => `<button data-path="${k}" aria-current="${p === k}">${l}</button>`).join('')}${p === 'globe' ? `<select id="pfrom73" aria-label="Start from">${present.map(c => `<option value="${c}"${c === startCo() ? ' selected' : ''}>${esc(coName(c))}</option>`).join('')}</select>` : ''}</div>
+      <div class="ph73">${esc(help(p))}</div>`;
+  };
+  const rl = renderListen;
+  renderListen = function(){
+    const r = rl.apply(this, arguments);
+    if (LSTEP === 'path' && Q){ const pl = GB().querySelector('.pathlist'); if (pl) pl.outerHTML = `<div class="pathlist73">${pathHtml()}</div>`; }
+    return r;
+  };
+  const rsb = renderSetBody;
+  renderSetBody = function(){
+    const r = rsb.apply(this, arguments);
+    const c = GB().querySelector('#qbody .chips [data-path]'); if (c && Q) c.parentElement.outerHTML = `<div class="pathlist73">${pathHtml()}</div>`;
+    return r;
+  };
+  document.addEventListener('click', ev => {
+    const b = ev.target.closest('[data-pbase]'); if (!b || !Q) return;
+    ev.stopPropagation(); setPath(DIRS[b.dataset.pbase][0][0]); if (LSTEP === 'path') renderListen();
+  }, true);
+  document.addEventListener('click', ev => { if (ev.target.closest('[data-path]') && LSTEP === 'path') setTimeout(() => renderListen(), 0); });
+  document.addEventListener('change', ev => { if (ev.target.id !== 'pfrom73' || !Q) return; Q.from = ev.target.value; setPath('globe'); if (LSTEP === 'path') renderListen(); });
+
+  /* =========================== review: several releases, the whole catalogue, no repeats =========================== */
+  const fk = t => t.file ? t.file.name + '|' + t.file.size : t.title;
+  const st1 = stopTracks;
+  window.stopTracks = stopTracks = function(i){
+    const ks = st1(i); if (!ks) return ks;
+    const hand = Q && Q.pick && Q.pick[A[i].id]; if (hand) return ks;
+    const seen = new Set(); return ks.filter(k => { const t = norm(LIB.t[k].title || ''); if (seen.has(t)) return false; seen.add(t); return true; });
+  };
+  document.addEventListener('click', ev => {
+    const r = ev.target.closest('[data-pickrel]'); if (!r || !Q) return;
+    ev.stopImmediatePropagation();
+    const [i, j] = r.dataset.pickrel.split(':').map(Number), rel = artistReleases(i)[j], keys = rel.ks.map(k => fk(LIB.t[k]));
+    const cur = (Q.pick && Q.pick[A[i].id]) || [], has = keys.every(k => cur.includes(k));
+    const next = has ? cur.filter(k => !keys.includes(k)) : [...new Set(cur.concat(keys))];
+    Q.pick ||= {}; if (next.length) Q.pick[A[i].id] = next; else delete Q.pick[A[i].id];
+    const top = GB().scrollTop; renderListen(); GB().scrollTop = top;
+  }, true);
+  document.addEventListener('click', ev => {
+    const w = ev.target.closest('[data-allrel]'); if (!w || !Q) return;
+    const i = +w.dataset.allrel, rel = artistReleases(i).slice().sort((a, b) => (a.year || 9999) - (b.year || 9999));
+    Q.pick ||= {}; Q.pick[A[i].id] = rel.flatMap(x => x.ks).map(k => fk(LIB.t[k]));
+    const top = GB().scrollTop; renderListen(); GB().scrollTop = top;
+  });
+  const rl2 = renderListen;
+  renderListen = function(){
+    const r = rl2.apply(this, arguments);
+    if (LSTEP === 'review'){ GB().querySelectorAll('.stops li').forEach(li => { const rel = li.querySelector('.rel'); const o = li.querySelector('[data-stopopen]'); if (rel && o && !li.querySelector('.allrel73')) rel.insertAdjacentHTML('beforebegin', `<button class="btn allrel73" data-allrel="${o.dataset.stopopen}">every release, oldest first</button>`); });
+      GB().querySelectorAll('.stops .rh button[data-pickrel]').forEach(b => { const [i, j] = b.dataset.pickrel.split(':').map(Number), cur = stopTracks(i) || [], on = artistReleases(i)[j].ks.every(k => cur.includes(k)); b.setAttribute('aria-pressed', String(on)); b.textContent = on ? '✓ whole release in' : 'add whole release'; }); }
+    return r;
+  };
 })();
 </script>
 
