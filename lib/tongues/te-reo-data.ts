@@ -26,7 +26,7 @@ export const AUDIO: Record<string, number> = {
   'āe': 54, 'kāo': 2193,
   'au': 502, 'koe': 41987, 'ia': 1644, 'māua': 3934, 'tāua': 15321, 'rātou': 6589,
   'mātou': 3910, 'tātou': 7664, 'kōrua': 3076, 'koutou': 3165,
-  'aha': 50, 'wai (who)': 9017, 'hea': 1006, 'āhea': 307, 'nōnahea': 4459, 'pēhea': 5421, 'hia': 1129,
+  'aha': 50, 'wai|questions': 9017, 'hea': 1006, 'āhea': 307, 'nōnahea': 4459, 'pēhea': 5421, 'hia': 1129,
   'kai': 1894, 'moe': 50550, 'haere': 715, 'hoki': 1352, 'noho': 4438, 'kōrero': 3003,
   'whakarongo': 9838, 'titiro': 8226, 'mahi': 14146, 'ako': 158, 'aroha': 414, 'tū': 8562,
   'oma': 15572, 'huri': 1602, 'homai': 1371, 'mōhio': 4147, 'i': 1640, 'ka': 1828,
@@ -34,7 +34,7 @@ export const AUDIO: Record<string, number> = {
   'tōku': 8398, 'tōu': 8547, 'tāu': 7674, 'tāku': 7309,
   'whero': 10283, 'kōwhai': 3180, 'kākāriki': 2104, 'kikorangi': 2641, 'mā': 3481,
   'mangu': 3636, 'karaka': 2273, 'kākaka': 38979, 'māwhero': 3982, 'pāpura': 5202,
-  'tapatoru': 7470, 'tapawhā': 7476, 'porohīta': 5865, 'whetu': 10293, 'porotītaha': 43998,
+  'tapatoru': 7470, 'tapawhā': 7476, 'porohīta': 5865, 'whetū': 10293, 'porotītaha': 43998,
   'rawe': 6654, 'pō': 5689, 'atarau': 470, 'pōkarekare': 5766, 'katoa': 2399, 'rāua': 6595,
   'ao': 256, 'ata': 456, 'ahiahi': 71, 'tonu': 8429, 'kē': 2504,
   'atu': 493, 'ake': 143, 'iho': 1668, 'mai': 3474, 'engari': 661, 'ā': 39, 'nā reira': 4347,
@@ -49,7 +49,7 @@ export const AUDIO: Record<string, number> = {
   'tamariki': 7339, 'tamaiti': 7326, 'whānau': 10062, 'iwi': 1822, 'hapū': 877,
   'ingoa': 1760, 'reo': 6700, 'waka': 9104,
   'pai': 4936, 'kino': 2663, 'nui': 4488, 'iti': 1813, 'roa': 6850, 'poto': 5925,
-  'hou': 1464, 'tawhito': 7871, 'ataahua': 457, 'kaha': 1835, 'ngenge': 53183,
+  'hou': 1464, 'tawhito': 7871, 'ātaahua': 457, 'kaha': 1835, 'ngenge': 53183,
   'hiakai': 1134, 'hiainu': 1133, 'hari': 899, 'pōuri': 5962, 'tika': 51697, 'hē': 1004,
   'whakatoi': 9952,
   'tahi': 7059, 'rua': 6941, 'toru': 8517, 'whā': 9293, 'rima': 6777, 'ono': 4782,
@@ -372,7 +372,10 @@ export const AUDIO: Record<string, number> = {
   'tau kē': 11316, 'he aha hoki': 1010, 'mō āke tonu': 4119,
 }
 
-export function getAudioUrl(tr: string): string | null {
+// Keys of the form 'word|cat' pin a sense where one spelling has several
+// Te Aka entries (wai: who 9017, water 9019). Checked before the plain key.
+export function getAudioUrl(tr: string, cat?: string): string | null {
+  if (cat && AUDIO[`${tr}|${cat}`] !== undefined) return `${BASE}${AUDIO[`${tr}|${cat}`]}.mp3`
   if (AUDIO[tr] !== undefined) return `${BASE}${AUDIO[tr]}.mp3`
   const clean = tr.toLowerCase().replace(/[^a-zāēīōū\s]/g, '').trim()
   if (AUDIO[clean] !== undefined) return `${BASE}${AUDIO[clean]}.mp3`
@@ -484,7 +487,7 @@ const CARDS_RAW = [
   { en: 'green', tr: 'kākāriki', cat: 'colours' },
   { en: 'blue', tr: 'kikorangi', cat: 'colours' },
   { en: 'white', tr: 'mā', cat: 'colours' },
-  { en: 'black', tr: 'mangu', cat: 'colours' },
+  { en: 'black (pango also common)', tr: 'mangu', cat: 'colours' },
   { en: 'orange', tr: 'karaka', cat: 'colours' },
   { en: 'brown', tr: 'kākaka', cat: 'colours' },
   { en: 'pink', tr: 'māwhero', cat: 'colours' },
@@ -518,7 +521,7 @@ const CARDS_RAW = [
   { en: 'triangle', tr: 'tapatoru', cat: 'shapes' },
   { en: 'square / rectangle', tr: 'tapawhā', cat: 'shapes' },
   { en: 'circle', tr: 'porohīta', cat: 'shapes' },
-  { en: 'star', tr: 'whetu', cat: 'shapes' },
+  { en: 'star', tr: 'whetū', cat: 'shapes' },
   { en: 'oval / ellipse', tr: 'porotītaha', cat: 'shapes' },
   { en: 'house / building', tr: 'whare', cat: 'nouns', sub: 'Home, objects & clothing' },
   { en: 'home / village', tr: 'kāinga', cat: 'nouns', sub: 'Home, objects & clothing' },
@@ -552,7 +555,7 @@ const CARDS_RAW = [
   { en: 'short', tr: 'poto', cat: 'descriptors', sub: 'Size, speed & distance' },
   { en: 'new', tr: 'hou', cat: 'descriptors', sub: 'Qualities' },
   { en: 'old', tr: 'tawhito', cat: 'descriptors', sub: 'Qualities' },
-  { en: 'beautiful', tr: 'ataahua', cat: 'descriptors', sub: 'Qualities' },
+  { en: 'beautiful', tr: 'ātaahua', cat: 'descriptors', sub: 'Qualities' },
   { en: 'strong', tr: 'kaha', cat: 'descriptors', sub: 'Feelings & states' },
   { en: 'tired', tr: 'ngenge', cat: 'descriptors', sub: 'Feelings & states' },
   { en: 'hungry', tr: 'hiakai', cat: 'descriptors', sub: 'Feelings & states' },
@@ -1321,9 +1324,9 @@ const CARDS_RAW = [
   { en: "so what's the problem?", tr: 'he aha hoki te hē?', cat: 'sentences', sub: 'Kīwaha (Hauraki)' },
   { en: "simmer down, you didn't need to say that", tr: 'e kare hoki', cat: 'sentences', sub: 'Kīwaha (Hauraki)' },
   { en: 'serves you right!', tr: 'kai toa!', cat: 'sentences', sub: 'Kīwaha (Hauraki)' },
-  { en: 'it was his / her fault', tr: 'nōna te hē', cat: 'sentences', sub: 'Kīwaha (Hauraki)' },
-  { en: 'it was my fault', tr: 'nōku te hē', cat: 'sentences', sub: 'Kīwaha (Hauraki)' },
-  { en: 'it was your fault', tr: 'nōu te hē', cat: 'sentences', sub: 'Kīwaha (Hauraki)' },
+  { en: 'it was his / her fault (Hauraki nō form)', tr: 'nōna te hē', cat: 'sentences', sub: 'Kīwaha (Hauraki)' },
+  { en: 'it was my fault (Hauraki nō form; nāku te hē elsewhere)', tr: 'nōku te hē', cat: 'sentences', sub: 'Kīwaha (Hauraki)' },
+  { en: 'it was your fault (Hauraki nō form)', tr: 'nōu te hē', cat: 'sentences', sub: 'Kīwaha (Hauraki)' },
   { en: 'big mouth / loudmouth', tr: 'wahanui', cat: 'sentences', sub: 'Kīwaha (Hauraki)' },
   { en: 'young and inexperienced (lit. the dung is still yellow)', tr: 'kei kōwhai tonu te hamuti', cat: 'sentences', sub: 'Kīwaha (Hauraki)' },
   { en: 'silenced / shut up (by someone)', tr: 'ka wahangūtia', cat: 'sentences', sub: 'Kīwaha (Hauraki)' },

@@ -1,7 +1,6 @@
 // Dialogue data for both (a) the reference panel's worked-exchange displays
 // and (b) the new interactive Conversation practice mode. Each line reuses
-// vocabulary/sentences already vetted in conversation-cards.ts / the main
-// deck, so nothing here introduces unverified grammar.
+// vocabulary/sentences already vetted in the main deck (te-reo-data.ts), so nothing here introduces unverified grammar.
 
 export interface DialogueLine {
   speaker: 'A' | 'B'

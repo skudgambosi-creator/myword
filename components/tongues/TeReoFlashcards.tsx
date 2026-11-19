@@ -170,9 +170,9 @@ export default function TeReoFlashcards() {
     setAudioPlaying(false)
   }, [])
 
-  const playAudio = useCallback((tr: string) => {
+  const playAudio = useCallback((tr: string, cat?: string) => {
     stopAudio()
-    const url = getAudioUrl(tr)
+    const url = getAudioUrl(tr, cat)
     if (!url) return
     const a = new Audio(url)
     audioRef.current = a
@@ -201,7 +201,7 @@ export default function TeReoFlashcards() {
     setCurrent(cards[0] || null)
     setQueue(cards.slice(1))
     if (first && currentMode === 'tr') {
-      setTimeout(() => playAudio(first.tr), 100)
+      setTimeout(() => playAudio(first.tr, first.cat), 100)
     }
   }, [mode, stopAudio, playAudio])
 
@@ -215,7 +215,7 @@ export default function TeReoFlashcards() {
     if (flipped || !current) return
     setFlipped(true)
     if (mode === 'en') {
-      playAudio(current.tr)
+      playAudio(current.tr, current.cat)
     }
   }
 
@@ -245,7 +245,7 @@ export default function TeReoFlashcards() {
       setCurrent(nextCard)
       setFlipped(false)
       if (mode === 'tr') {
-        setTimeout(() => playAudio(nextCard.tr), 50)
+        setTimeout(() => playAudio(nextCard.tr, nextCard.cat), 50)
       }
       return next
     })
@@ -263,7 +263,7 @@ export default function TeReoFlashcards() {
     : [{ label: null as string | null, subs: subDecks(deckCards) }]
 
   const remaining = queue.length + (current ? 1 : 0)
-  const hasAudio = current ? !!getAudioUrl(current.tr) : false
+  const hasAudio = current ? !!getAudioUrl(current.tr, current.cat) : false
   const total = scores.knew + scores.unsure + scores.miss
   const donePct = total > 0 ? Math.round((scores.knew / total) * 100) : 0
   const doneMsg = doneMessages.find(([n]) => donePct >= n)![1]
@@ -339,7 +339,7 @@ export default function TeReoFlashcards() {
                   {hasAudio && (
                     <button
                       style={s.audioBtn(audioPlaying)}
-                      onClick={e => { e.stopPropagation(); if (current) playAudio(current.tr) }}
+                      onClick={e => { e.stopPropagation(); if (current) playAudio(current.tr, current.cat) }}
                     >
                       ▶
                     </button>
@@ -500,7 +500,7 @@ export default function TeReoFlashcards() {
           </RefSection>
 
           <RefSection title="Descriptors" note="Descriptors follow the noun they describe: he tangata pai ia (he is a good person). Pai is probably the most useful single word in the language.">
-            <RefTable rows={[['pai','good'],['kino','bad'],['nui','big / many'],['iti','small'],['roa','long / tall'],['poto','short'],['hou','new'],['tawhito','old'],['ataahua','beautiful'],['kaha','strong'],['ngenge','tired'],['hiakai','hungry'],['hiainu','thirsty'],['hari','happy'],['pōuri','sad'],['tika','correct / right'],['hē','wrong'],['whakatoi','cheeky / playfully mischievous'],['rawe','awesome / excellent / fantastic'],['pōkarekare','rippling / agitated (as water)'],['wera','hot'],['makariri','cold'],['mākūkū','wet / damp'],['maroke','dry'],['riri','angry'],['whakamā','shy / embarrassed'],['ora','alive / well / healthy'],['ngāwari','easy / gentle / soft'],['uaua','difficult / hard'],['hōhā','annoyed / fed up'],['pukuriri','very angry'],['māharahara','worried'],['koa','joyful'],['mataku','afraid'],['teitei','tall / high'],['rerekē','different'],['tapu','sacred / restricted'],['noa','free of restriction / ordinary'],['wātea','free / available'],['kahurangi','precious / treasured'],['waimarie','lucky / fortunate'],['rongonui','famous / well-known'],['ngaro','lost'],['tūpato','careful / cautious'],['maha','many / numerous'],['nunui','plentiful / big (plural)'],['tuwhera','open'],['kī','full'],['ngū','silent / mute'],['haruru','loud / rumbling (of thunder, engines)'],['mā (clean)','clean'],['pakeke','adult / grown-up'],['rahi','big / great'],['tere','fast / quick'],['pūhoi','slow'],['māmā','light / easy, also means "mum" (a real double meaning)'],['haumaru','safe'],['angitu','successful'],['ngoikore','weak / feeble'],['pakari','strong / firm / mature'],['tata','near / close'],['tawhiti','far / distant']]} />
+            <RefTable rows={[['pai','good'],['kino','bad'],['nui','big / many'],['iti','small'],['roa','long / tall'],['poto','short'],['hou','new'],['tawhito','old'],['ātaahua','beautiful'],['kaha','strong'],['ngenge','tired'],['hiakai','hungry'],['hiainu','thirsty'],['hari','happy'],['pōuri','sad'],['tika','correct / right'],['hē','wrong'],['whakatoi','cheeky / playfully mischievous'],['rawe','awesome / excellent / fantastic'],['pōkarekare','rippling / agitated (as water)'],['wera','hot'],['makariri','cold'],['mākūkū','wet / damp'],['maroke','dry'],['riri','angry'],['whakamā','shy / embarrassed'],['ora','alive / well / healthy'],['ngāwari','easy / gentle / soft'],['uaua','difficult / hard'],['hōhā','annoyed / fed up'],['pukuriri','very angry'],['māharahara','worried'],['koa','joyful'],['mataku','afraid'],['teitei','tall / high'],['rerekē','different'],['tapu','sacred / restricted'],['noa','free of restriction / ordinary'],['wātea','free / available'],['kahurangi','precious / treasured'],['waimarie','lucky / fortunate'],['rongonui','famous / well-known'],['ngaro','lost'],['tūpato','careful / cautious'],['maha','many / numerous'],['nunui','plentiful / big (plural)'],['tuwhera','open'],['kī','full'],['ngū','silent / mute'],['haruru','loud / rumbling (of thunder, engines)'],['mā (clean)','clean'],['pakeke','adult / grown-up'],['rahi','big / great'],['tere','fast / quick'],['pūhoi','slow'],['māmā','light / easy, also means "mum" (a real double meaning)'],['haumaru','safe'],['angitu','successful'],['ngoikore','weak / feeble'],['pakari','strong / firm / mature'],['tata','near / close'],['tawhiti','far / distant']]} />
           </RefSection>
 
           <RefSection title="Numbers" note="Beyond 10 the system is logical: tekau mā tahi = 11, rua tekau = 20. Kore (zero) also means void and nothingness. It appears in the Māori creation narrative as the primordial state before existence. Ordinals swap the tua- prefix onto the cardinal number.">
@@ -550,11 +550,11 @@ export default function TeReoFlashcards() {
           </RefSection>
 
           <RefSection title="Shapes">
-            <RefTable rows={[['tapatoru','triangle'],['tapawhā','square / rectangle'],['porohīta','circle'],['whetu','star'],['porotītaha','oval / ellipse']]} />
+            <RefTable rows={[['tapatoru','triangle'],['tapawhā','square / rectangle'],['porohīta','circle'],['whetū','star'],['porotītaha','oval / ellipse']]} />
           </RefSection>
 
           <RefSection title="Colours" note="Colours in te reo often have natural world origins: kākāriki is both green and a native parakeet, kōwhai is both yellow and the native flowering tree.">
-            <RefTable rows={[['whero','red'],['kōwhai','yellow'],['kākāriki','green'],['kikorangi','blue'],['mā','white'],['mangu','black'],['karaka','orange'],['kākaka','brown'],['māwhero','pink'],['pāpura','purple'],['kiwikiwi','grey'],['kōura','gold'],['hiriwa','silver']]} />
+            <RefTable rows={[['whero','red'],['kōwhai','yellow'],['kākāriki','green'],['kikorangi','blue'],['mā','white'],['mangu / pango','black'],['karaka','orange'],['kākaka','brown'],['māwhero','pink'],['pāpura','purple'],['kiwikiwi','grey'],['kōura','gold'],['hiriwa','silver']]} />
           </RefSection>
 
           <RefSection title="Days of the week & months" note="The days of the week are built on Rā (day/sun) plus a number or borrowed name. The twelve traditional Māori month names track the maramataka (lunar calendar) rather than the Gregorian calendar exactly, but map roughly onto the months below.">
@@ -592,7 +592,7 @@ export default function TeReoFlashcards() {
               </p>
               <p style={{ marginBottom: 12 }}>
                 <strong>[particle] + [verb] + [subject] + [location / object]</strong><br/>
-                <em>Kei te kai au i te aporo</em> → kei te (present) + kai (eat) + au (I) + i te aporo (the apple) = &quot;I am eating the apple.&quot;
+                <em>Kei te kai au i te āporo</em> → kei te (present) + kai (eat) + au (I) + i te āporo (the apple) = &quot;I am eating the apple.&quot;
               </p>
               <p style={{ marginBottom: 12 }}>
                 Swap the particle to change when something happens, and everything after it stays in the same order: <em>i kai au</em> (I ate), <em>ka kai au</em> (I will eat / then I ate, narrative), <em>me kai au</em> (I should eat), <em>kua kai au</em> (I have eaten).
