@@ -4,7 +4,7 @@ import { ALL_CARDS, DECKS, getAudioUrl, subDecks, type Card } from '@/lib/tongue
 import { DIALOGUES } from '@/lib/tongues/te-reo-dialogues'
 import ConversationPractice from './ConversationPractice'
 
-type DeckName = 'all' | 'vocab' | 'sentences' | 'particles' | 'pronouns' | 'numbers' | 'possessives' | 'colours' | 'shapes' | 'body' | 'days' | 'tikanga'
+type DeckName = 'all' | 'vocab' | 'sentences' | 'particles' | 'pronouns' | 'numbers' | 'possessives' | 'colours' | 'shapes' | 'body' | 'days' | 'tikanga' | 'kiwaha'
 type Mode = 'en' | 'tr'
 
 interface Scores { knew: number; unsure: number; miss: number }
@@ -25,6 +25,7 @@ const DECK_BUTTONS: { name: DeckName; label: string }[] = [
   { name: 'body', label: 'Body' },
   { name: 'days', label: 'Days & Months' },
   { name: 'tikanga', label: 'Tikanga' },
+  { name: 'kiwaha', label: 'Kīwaha & praise' },
 ]
 
 function shuffle<T>(arr: T[]): T[] {
@@ -453,6 +454,19 @@ export default function TeReoFlashcards() {
             </table>
           </RefSection>
 
+          <RefSection title="Near me, near you, over there" note="One three-way pattern runs through pronouns, 'this/that', plurals and places. The first column sits with the speaker, the second with the listener, the third away from both. Learn one row and the others follow: swap tē- for ē- to go plural, swap the ending onto ko- for places.">
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead><tr><th style={thStyle}></th><th style={thStyle}>Near me</th><th style={thStyle}>Near you</th><th style={thStyle}>Away from us</th></tr></thead>
+              <tbody>
+                {[['Person','ahau / au (I)','koe (you)','ia (them)'],['One thing','tēnei (this)','tēnā (that)','tērā (that over there)'],['Many things','ēnei (these)','ēnā (those)','ērā (those over there)'],['Place','konei (here)','konā (there)','korā (over there)'],
+                ].map(([k,a,b,c],i) => (
+                  <tr key={i}><td style={{...(i%2===0?tdStyle:tdAltStyle),fontSize:13,color:'#555'}}>{k}</td><td style={i%2===0?tdStyle:tdAltStyle}>{a}</td><td style={i%2===0?tdStyle:tdAltStyle}>{b}</td><td style={i%2===0?tdStyle:tdAltStyle}>{c}</td></tr>
+                ))}
+              </tbody>
+            </table>
+            <div style={{ fontSize: 13, color: '#555', marginTop: 8, lineHeight: 1.6 }}>Reira works alongside these for &quot;there, the place we just mentioned&quot;: waiho ki reira (leave it there). In use: homai tēnā (give me that, by you), mauria atu ki korā (take it over there).</div>
+          </RefSection>
+
           <RefSection title="Question words" note="Questions are formed by putting these at the start of a sentence. He aha = what, Ko wai = who (using ko for identity).">
             <RefTable rows={[['aha','what'],['wai','who'],['hea','where'],['āhea','when (future)'],['nōnahea','when (past)'],['pēhea','how / what like'],['hia','how many'],['tēhea','which'],['he aha ai','why'],['nā wai','whose / by whom']]} />
           </RefSection>
@@ -495,6 +509,10 @@ export default function TeReoFlashcards() {
 
           <RefSection title="Time" note="Te reo expresses time through context and particles rather than verb tenses. These words combine with kei te / i / ka to anchor when something happens.">
             <RefTable rows={[['ata','morning / dawn'],['ao','daytime / world / dawn'],['ahiahi','afternoon / evening'],['pō','night'],['ināianei','now'],['āpōpō','tomorrow'],['inanahi','yesterday'],['i tēnei rā','today']]} />
+          </RefSection>
+
+          <RefSection title="Time phrases" note="Two small switches build most of these. i points back or to now (i tērā wiki, last week), ā points forward (ā tērā wiki, next week). tēnei means this one, tērā means that one, so i tēnei wiki = this week, i tērā wiki = last week, ā tērā wiki = next week.">
+            <RefTable rows={[['i tēnei rā / tēnei rangi','today'],['i tēnei ata','this morning'],['i tēnei ahiahi','this afternoon'],['i tēnei pō','tonight'],['i tēnei wiki','this week'],['i tērā wiki','last week'],['i tērā marama','last month'],['i tērā tau','last year'],['ā tērā wiki','next week'],['ā tērā marama','next month'],['ā tērā tau','next year'],['ināianei tonu','right now'],['mō ake tonu','forever'],['i ngā wā katoa','all the time'],['ia rā ia rā','every day']]} />
           </RefSection>
 
           <RefSection title="Directional particles" note="These four particles attach to verbs to show direction relative to the speaker. Haere mai = come towards me, haere atu = go away. Whakarongo mai means listen here!">
@@ -549,6 +567,22 @@ export default function TeReoFlashcards() {
 
           <RefSection title="Sentence templates" note="The core pattern: [particle] + [verb] + [subject] + [location/object]. Kei te is your most useful particle. Put it before almost any verb for a present tense sentence.">
             <RefTable rows={[['kei te kai au','I am eating'],['kei te pai','it\'s good / that\'s fine'],['kei te ngenge au','I\'m tired'],['kei te hiakai au','I\'m hungry'],['i haere au','I went'],['ka haere ia','she / he went'],['me haere tāua','we two should go'],['ko ___ tōku ingoa','my name is ___'],['ko wai tōu ingoa?','what is your name?'],['nō hea koe?','where are you from?'],['he aha tāu mahi?','what are you doing?'],['kāore au e mōhio ana','I don\'t know'],['whakarongo mai!','listen here!'],['kia kaha','be strong / keep going'],['ka kite anō','see you again'],['ka nui te hari o tōku ngākau','my heart is very happy'],['kei te aha koe?',"what's up? / how's it going?"],['kei te haere koe ki hea?','where are you going?'],['kei te haere au ki te kāinga','I am going home'],['e hia te wā?','what time is it?'],['ka taea e koe te āwhina i a au?','can you help me?'],['ki tōku whakaaro','in my opinion'],['he aha tō whakaaro?','what do you think?'],['e hia te utu o tēnei?','how much is this?'],['e hiahia ana au ki te ___, koa','I would like ___, please'],['ngā mihi mō tō āwhina','thank you for your help'],['kāore he raru','no problem at all'],['ka taea e au te noho ki konei?','can I sit here?'],['kia tūpato','take care'],['nau mai ki tō mātou kāinga','welcome to our home'],["e whakaae ana au",'I agree'],['kāore au e whakaae ana','I disagree']]} />
+          </RefSection>
+
+          <RefSection title="He tono, commands" note="Commands lean on the directional particles: mai pulls towards the speaker, atu pushes away. Homai (give to me) and hoatu (give to someone else) carry the direction inside the word. Short verbs (two long vowels or fewer) usually take e in front: e noho, e oho, e tū. Kaua e + verb says don't.">
+            <RefTable rows={[['uru mai','come inside'],['haere atu','go away / off you go'],['puta atu','go out'],['e noho ki konei','sit here'],['homai ngā mea rā','give me those things over there'],['hoatu','give (to someone else)'],['hoatu ēnei ki a Mere','give these to Mere'],['mauria mai','bring it'],['mauria mai ki konei','bring it here'],['mauria atu','take it away'],['mauria atu ki korā','take it over there'],['waiho','leave it alone'],['waiho ki reira','leave it there'],['whakatata mai','come closer'],['whakatata atu','go closer'],['kia tere te haere','go quickly'],['kia tere mai, tamariki mā','hurry up, children'],['turituri','be quiet'],['kaua e tangi',"don't cry"],['e oho','wake up']]} />
+          </RefSection>
+
+          <RefSection title="Koe, kōrua, koutou" note="Same sentence, three audiences: swap only the pronoun for one, two, or three-plus people. Te āhua nei (it looks like) softens a statement into an observation.">
+            <RefTable rows={[['kei te pai koe / kōrua / koutou?','are you (one / two / all) okay?'],['kei te haere koe / kōrua / koutou ki hea?','where are you (one / two / all) going?'],['te āhua nei, kei te raru koe','looks like you are in trouble'],['te āhua nei, kei te ngaro kōrua','looks like you two are lost']]} />
+          </RefSection>
+
+          <RefSection title="Praise & exclamations" note="Everyday reactions, heavy in kōrero with kids and mates. Hoki here adds emphasis (really, so), not its 'return' meaning. Several (wananei, tumeke, e mara, keke ana) sit at the slangy end and vary by region and generation.">
+            <RefTable rows={[['tau kē!','awesome!'],['wananei!','wicked!'],['tumeke!','awesome! / too much!'],['e mara!','hey bro!'],['titiro!','look!'],['kia tau!','relax / settle'],['keke ana te haere','off like a rocket'],['he reka!','yum!'],['me haere',"let's go"],['te ātaahua hoki!',"that's beautiful!"],['he tino pai hoki koe!',"you're very good!"],['ka mau te wehi!',"that's amazing!"],['kātahi nā te tamaiti mōhio, ko koe!','what a clever child you are!'],['kei runga noa atu koe!',"you're the best!"],['auē, e hika mā!','goodness me!'],['pai kare!','by golly!'],['kaua e mahi pēnā!',"don't do that!"]]} />
+          </RefSection>
+
+          <RefSection title="Kīwaha of Hauraki" note="Colloquial sayings recorded for the Hauraki region. Kīwaha carry attitude more than literal meaning, so learn them as whole chunks. Note the possessive: nōku / nōu / nōna te hē = my / your / their fault.">
+            <RefTable rows={[['kāti anō hoki','a know-all / show-off'],['whakamanamana i a au','praising myself'],['he aha hoki?','so what?'],['he aha hoki te hē?',"so what's the problem?"],['e kare hoki','simmer down'],['kai toa!','serves you right!'],['nōku / nōu / nōna te hē','my / your / their fault'],['wahanui','big mouth'],['kei kōwhai tonu te hamuti','young and inexperienced'],['ka wahangūtia','silenced'],['harihari kōrero','gossip'],['ngutu tawetawe','talkative'],['kaua koe e ngarengare mai ki ahau',"don't boss me around"],['kua pāngu te tangata','fed up / a nuisance'],['e kī! e kī!','is that right?'],['purahutihuti ana','ragged, tattered'],['engari mō tēnā','but as for that'],['nā wai rā i kī?','who said that?'],['kurehu taku titiro','my sight is foggy'],['kaua e kōrero pēnā',"don't talk like that"],['kia ngāwari te kōrero','keep it gentle and simple'],['mā tō reo anō kia mārama','let your voice make it clear']]} />
           </RefSection>
 
           <RefSection title="How to converse & build a sentence" note="Word order is the backbone of te reo: get the order right and the sentence works, even with simple vocabulary. This section walks through the pattern, then works through several full exchanges scenario by scenario. (The Converse tab turns these same exchanges into an interactive practice.)">
