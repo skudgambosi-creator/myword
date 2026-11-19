@@ -1,416 +1,12 @@
 'use client'
-import { useState, useRef, useEffect, useCallback } from 'react'
-import { ALL_CARDS, DECKS, getAudioUrl, subDecks, type Card } from '@/lib/tongues/te-reo-data'
+import React from 'react'
 import { DIALOGUES } from '@/lib/tongues/te-reo-dialogues'
-import ConversationPractice from './ConversationPractice'
 
-type DeckName = 'all' | 'vocab' | 'sentences' | 'particles' | 'pronouns' | 'numbers' | 'possessives' | 'colours' | 'shapes' | 'body' | 'days' | 'tikanga' | 'kiwaha'
-type Mode = 'en' | 'tr'
-
-interface Scores { knew: number; unsure: number; miss: number }
-
-const MIXED_SIZE = 20
-const VOCAB_GROUPS = ['nouns', 'verbs', 'descriptors']
-
-const DECK_BUTTONS: { name: DeckName; label: string }[] = [
-  { name: 'all', label: 'Mixed 20' },
-  { name: 'vocab', label: 'Vocab' },
-  { name: 'sentences', label: 'Sentences' },
-  { name: 'particles', label: 'Particles' },
-  { name: 'pronouns', label: 'Pronouns' },
-  { name: 'numbers', label: 'Numbers' },
-  { name: 'possessives', label: 'Possessives' },
-  { name: 'colours', label: 'Colours' },
-  { name: 'shapes', label: 'Shapes' },
-  { name: 'body', label: 'Body' },
-  { name: 'days', label: 'Days & Months' },
-  { name: 'tikanga', label: 'Tikanga' },
-  { name: 'kiwaha', label: 'Kīwaha & praise' },
-]
-
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]]
-  }
-  return a
-}
-
-const s = {
-  root: { fontFamily: "Georgia,'Times New Roman',serif", background: '#fff', color: '#000', display: 'flex', flexDirection: 'column' as const, flex: 1 },
-  statsBar: { display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', borderBottom: '1px solid #ccc' },
-  stat: { padding: '10px 8px', textAlign: 'center' as const, borderRight: '1px solid #ccc' },
-  statLast: { padding: '10px 8px', textAlign: 'center' as const },
-  statN: { fontSize: 24, fontWeight: 'bold' },
-  statL: { fontSize: 11, color: '#444', marginTop: 1, letterSpacing: '0.04em' },
-  progressWrap: { height: 6, background: '#f0f0f0' },
-  deckWrap: { padding: '12px 16px', borderBottom: '1px solid #ccc', display: 'flex', gap: 8, flexWrap: 'wrap' as const },
-  subWrap: { padding: '10px 16px', borderBottom: '1px solid #ccc', display: 'flex', gap: 6, flexWrap: 'wrap' as const, alignItems: 'center' },
-  subGroupLabel: { width: '100%', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#444', marginTop: 4 },
-  subBtn: (active: boolean): React.CSSProperties => ({
-    fontSize: 11, padding: '4px 10px', borderRadius: 16,
-    border: active ? '1.5px solid #000' : '1.5px solid #ccc',
-    background: active ? '#000' : '#fff',
-    color: active ? '#fff' : '#444',
-    cursor: 'pointer', fontFamily: "Georgia,serif", minHeight: 28,
-  }),
-  deckBtn: (active: boolean): React.CSSProperties => ({
-    fontSize: 13, padding: '7px 14px', borderRadius: 20,
-    border: active ? '1.5px solid #000' : '1.5px solid #ccc',
-    background: active ? '#000' : '#fff',
-    color: active ? '#fff' : '#444',
-    cursor: 'pointer', fontFamily: "Georgia,serif", minHeight: 36,
-  }),
-  modeWrap: { display: 'grid', gridTemplateColumns: '1fr 1fr', borderBottom: '1px solid #ccc' },
-  modeBtn: (active: boolean): React.CSSProperties => ({
-    padding: '10px 8px', fontSize: 13,
-    border: 'none', borderRight: '1px solid #ccc',
-    background: active ? '#000' : '#fff',
-    color: active ? '#fff' : '#444',
-    cursor: 'pointer', fontFamily: "Georgia,serif",
-    fontWeight: active ? 'bold' : 'normal',
-  }),
-  modeBtnLast: (active: boolean): React.CSSProperties => ({
-    padding: '10px 8px', fontSize: 13,
-    border: 'none',
-    background: active ? '#000' : '#fff',
-    color: active ? '#fff' : '#444',
-    cursor: 'pointer', fontFamily: "Georgia,serif",
-    fontWeight: active ? 'bold' : 'normal',
-  }),
-  cardArea: { flex: 1, display: 'flex', flexDirection: 'column' as const, padding: '20px 16px 16px' },
-  card: (revealed: boolean): React.CSSProperties => ({
-    flex: 1, border: '2px solid #000', borderRadius: 12,
-    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-    padding: '32px 24px', textAlign: 'center', cursor: 'pointer',
-    minHeight: 240, marginBottom: 16, position: 'relative',
-    background: revealed ? '#f0f0f0' : '#fff', userSelect: 'none',
-  }),
-  cardHint: { fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#444', marginBottom: 20, fontStyle: 'italic' },
-  cardEn: { fontSize: 22, lineHeight: 1.4, marginBottom: 8, color: '#444' },
-  cardTr: { fontSize: 36, fontWeight: 'bold', lineHeight: 1.3, color: '#000', marginBottom: 12 },
-  cardCat: { fontSize: 12, border: '1px solid #ccc', borderRadius: 20, padding: '3px 12px', color: '#444', fontStyle: 'italic', position: 'absolute' as const, bottom: 16 },
-  audioBtn: (playing: boolean): React.CSSProperties => ({
-    position: 'absolute', top: 14, right: 14, width: 44, height: 44,
-    borderRadius: '50%', border: playing ? '1.5px solid #000' : '1.5px solid #ccc',
-    background: playing ? '#f0f0f0' : '#fff', cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
-  }),
-  tapPrompt: { fontSize: 13, color: '#444', textAlign: 'center' as const, marginBottom: 12, fontStyle: 'italic', minHeight: 20 },
-  ratingRow: { display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 4 },
-  rBtn: (variant: 'miss' | 'unsure' | 'knew'): React.CSSProperties => ({
-    minHeight: 64, borderRadius: 12,
-    border: variant === 'miss' ? '2px dashed #000' : '2px solid #000',
-    background: variant === 'knew' ? '#000' : '#fff',
-    color: variant === 'knew' ? '#fff' : '#000',
-    cursor: 'pointer', fontFamily: "Georgia,serif",
-    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-    gap: 4, padding: '12px 6px',
-  }),
-  rLabel: { fontSize: 15, fontWeight: 'bold' },
-  rSub: (knew: boolean): React.CSSProperties => ({ fontSize: 10, color: knew ? '#ccc' : '#444', letterSpacing: '0.03em' }),
-  doneScreen: { flex: 1, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', padding: '32px 24px', textAlign: 'center' as const },
-  donePct: { fontSize: 72, fontWeight: 'bold', lineHeight: 1, marginBottom: 8 },
-  doneMsg: { fontSize: 18, fontStyle: 'italic', color: '#444', marginBottom: 32, lineHeight: 1.5 },
-  doneGrid: { display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, width: '100%', marginBottom: 32 },
-  doneStat: { border: '1.5px solid #000', borderRadius: 12, padding: '16px 8px', textAlign: 'center' as const },
-  doneStatN: { fontSize: 28, fontWeight: 'bold' },
-  doneStatL: { fontSize: 11, color: '#444', marginTop: 4, letterSpacing: '0.04em' },
-  restartBtn: { width: '100%', minHeight: 64, border: '2px solid #000', borderRadius: 12, background: '#000', color: '#fff', fontSize: 18, fontFamily: "Georgia,serif", cursor: 'pointer', fontWeight: 'bold' },
-  tabNav: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderBottom: '2px solid #000' },
-  tabBtn: (active: boolean): React.CSSProperties => ({
-    padding: '12px 6px', fontSize: 13, fontWeight: 'bold',
-    border: 'none', borderRight: '2px solid #000',
-    background: active ? '#000' : '#f0f0f0',
-    color: active ? '#fff' : '#444',
-    cursor: 'pointer', fontFamily: "Georgia,serif",
-  }),
-  tabBtnLast: (active: boolean): React.CSSProperties => ({
-    padding: '12px 6px', fontSize: 13, fontWeight: 'bold',
-    border: 'none',
-    background: active ? '#000' : '#f0f0f0',
-    color: active ? '#fff' : '#444',
-    cursor: 'pointer', fontFamily: "Georgia,serif",
-  }),
-  refView: { flex: 1, overflowY: 'auto' as const, padding: '12px 16px 40px' },
-  refSection: { marginBottom: 32 },
-  refTitle: { fontSize: 16, fontWeight: 'bold', borderBottom: '2px solid #000', paddingBottom: 6, marginBottom: 4 },
-  refNote: { fontSize: 13, color: '#444', fontStyle: 'italic', marginBottom: 12, lineHeight: 1.6, padding: '8px 0' },
-}
-
-const doneMessages: [number, string][] = [
-  [80, 'Ka pai rawa atu! Outstanding.'],
-  [60, 'Ka pai! Keep going.'],
-  [40, 'Kia kaha! Progress.'],
-  [0, 'Ka mutu. Practice makes perfect!'],
-]
-
-export default function TeReoFlashcards() {
-  const [tab, setTab] = useState<'drill' | 'ref' | 'converse'>('drill')
-  const [activeDeck, setActiveDeck] = useState<DeckName>('all')
-  const [activeSub, setActiveSub] = useState<string | null>(null)
-  const [deck, setDeck] = useState<Card[]>([])
-  const [queue, setQueue] = useState<Card[]>([])
-  const [current, setCurrent] = useState<Card | null>(null)
-  const [flipped, setFlipped] = useState(false)
-  const [scores, setScores] = useState<Scores>({ knew: 0, unsure: 0, miss: 0 })
-  const [firstMisses, setFirstMisses] = useState<Card[]>([])
-  const [seenThisRound, setSeenThisRound] = useState<Set<string>>(new Set())
-  const [mode, setMode] = useState<Mode>('en')
-  const [done, setDone] = useState(false)
-  const [audioPlaying, setAudioPlaying] = useState(false)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-
-  const stopAudio = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause()
-      audioRef.current = null
-    }
-    setAudioPlaying(false)
-  }, [])
-
-  const playAudio = useCallback((tr: string, cat?: string) => {
-    stopAudio()
-    const url = getAudioUrl(tr, cat)
-    if (!url) return
-    const a = new Audio(url)
-    audioRef.current = a
-    setAudioPlaying(true)
-    a.onended = () => { setAudioPlaying(false); audioRef.current = null }
-    a.onerror = () => { setAudioPlaying(false); audioRef.current = null }
-    a.play().catch(() => setAudioPlaying(false))
-  }, [stopAudio])
-
-  const startDeck = useCallback((name: DeckName, currentMode: Mode = mode, sub: string | null = null) => {
-    stopAudio()
-    const source = DECKS[name] || ALL_CARDS
-    const cards = name === 'all'
-      ? shuffle(ALL_CARDS).slice(0, MIXED_SIZE)
-      : shuffle(sub ? source.filter(c => c.sub === sub) : source)
-    setActiveDeck(name)
-    setActiveSub(sub)
-    setDeck(cards)
-    setQueue([...cards])
-    setScores({ knew: 0, unsure: 0, miss: 0 })
-    setFirstMisses([])
-    setSeenThisRound(new Set())
-    setFlipped(false)
-    setDone(false)
-    const first = cards[0] || null
-    setCurrent(cards[0] || null)
-    setQueue(cards.slice(1))
-    if (first && currentMode === 'tr') {
-      setTimeout(() => playAudio(first.tr, first.cat), 100)
-    }
-  }, [mode, stopAudio, playAudio])
-
-  useEffect(() => {
-    startDeck('all')
-  }, [])
-
-  const progress = deck.length > 0 ? Math.round((scores.knew / deck.length) * 100) : 0
-
-  const handleFlip = () => {
-    if (flipped || !current) return
-    setFlipped(true)
-    if (mode === 'en') {
-      playAudio(current.tr, current.cat)
-    }
-  }
-
-  const handleRate = (r: 'knew' | 'unsure' | 'miss') => {
-    if (!current) return
-    stopAudio()
-    setScores(prev => ({ ...prev, [r]: prev[r] + 1 }))
-
-    let newFirstMisses = firstMisses
-    if (!seenThisRound.has(current.tr)) {
-      setSeenThisRound(prev => { const s = new Set(Array.from(prev)); s.add(current.tr); return s })
-      if (r !== 'knew') newFirstMisses = [...firstMisses, current]
-      setFirstMisses(newFirstMisses)
-    }
-
-    setQueue(prev => {
-      const next = [...prev]
-      if (r === 'miss') next.push(current)
-      else if (r === 'unsure') next.splice(Math.min(4, next.length), 0, current)
-
-      if (next.length === 0) {
-        setDone(true)
-        setCurrent(null)
-        return []
-      }
-      const nextCard = next.shift()!
-      setCurrent(nextCard)
-      setFlipped(false)
-      if (mode === 'tr') {
-        setTimeout(() => playAudio(nextCard.tr, nextCard.cat), 50)
-      }
-      return next
-    })
-  }
-
-  const handleChangeMode = (m: Mode) => {
-    setMode(m)
-    startDeck(activeDeck, m, activeSub)
-  }
-
-  const deckCards = activeDeck === 'all' ? [] : DECKS[activeDeck] || []
-  const hasSubs = deckCards.some(c => c.sub)
-  const subGroups = activeDeck === 'vocab'
-    ? VOCAB_GROUPS.map(cat => ({ label: cat, subs: subDecks(deckCards.filter(c => c.cat === cat)) }))
-    : [{ label: null as string | null, subs: subDecks(deckCards) }]
-
-  const remaining = queue.length + (current ? 1 : 0)
-  const hasAudio = current ? !!getAudioUrl(current.tr, current.cat) : false
-  const total = scores.knew + scores.unsure + scores.miss
-  const donePct = total > 0 ? Math.round((scores.knew / total) * 100) : 0
-  const doneMsg = doneMessages.find(([n]) => donePct >= n)![1]
-
-  return (
-    <div style={s.root}>
-      {/* Tab nav */}
-      <div style={s.tabNav}>
-        <button style={s.tabBtn(tab === 'drill')} onClick={() => setTab('drill')}>Drill</button>
-        <button style={s.tabBtn(tab === 'ref')} onClick={() => setTab('ref')}>Reference</button>
-        <button style={s.tabBtnLast(tab === 'converse')} onClick={() => setTab('converse')}>Converse</button>
-      </div>
-
-      {/* Drill view */}
-      {tab === 'drill' && (
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-          {/* Stats */}
-          <div style={s.statsBar}>
-            <div style={s.stat}><div style={s.statN}>{scores.knew}</div><div style={s.statL}>Knew it</div></div>
-            <div style={s.stat}><div style={s.statN}>{scores.unsure}</div><div style={s.statL}>Unsure</div></div>
-            <div style={s.statLast}><div style={s.statN}>{scores.miss}</div><div style={s.statL}>Missed</div></div>
-          </div>
-
-          {/* Progress bar */}
-          <div style={s.progressWrap}>
-            <div style={{ height: '100%', background: '#000', width: `${progress}%`, transition: 'width 0.2s' }} />
-          </div>
-
-          {/* Deck buttons */}
-          <div style={s.deckWrap}>
-            {DECK_BUTTONS.map(({ name, label }) => (
-              <button key={name} style={s.deckBtn(activeDeck === name)} onClick={() => startDeck(name)}>
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {/* Sub-deck buttons */}
-          {hasSubs && (
-            <div style={s.subWrap}>
-              <button style={s.subBtn(activeSub === null)} onClick={() => startDeck(activeDeck, mode, null)}>
-                All ({deckCards.length})
-              </button>
-              {subGroups.map(({ label, subs }) => (
-                <div key={label ?? 'subs'} style={{ display: 'contents' }}>
-                  {label && <div style={s.subGroupLabel}>{label}</div>}
-                  {subs.map(({ name, count }) => (
-                    <button key={name} style={s.subBtn(activeSub === name)} onClick={() => startDeck(activeDeck, mode, name)}>
-                      {name} ({count})
-                    </button>
-                  ))}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Mode buttons */}
-          <div style={s.modeWrap}>
-            <button style={s.modeBtn(mode === 'en')} onClick={() => handleChangeMode('en')}>English → te reo</button>
-            <button style={s.modeBtnLast(mode === 'tr')} onClick={() => handleChangeMode('tr')}>Te reo → English</button>
-          </div>
-
-          {/* Queue count */}
-          <div style={{ padding: '6px 16px 0', fontSize: 12, color: '#999', fontStyle: 'italic', textAlign: 'right' }}>
-            {remaining} remaining
-          </div>
-
-          {/* Card area */}
-          {!done ? (
-            <div style={s.cardArea}>
-              {current && (
-                <div style={s.card(flipped)} onClick={handleFlip}>
-                  {hasAudio && (
-                    <button
-                      style={s.audioBtn(audioPlaying)}
-                      onClick={e => { e.stopPropagation(); if (current) playAudio(current.tr, current.cat) }}
-                    >
-                      ▶
-                    </button>
-                  )}
-                  <div style={s.cardHint}>
-                    {!flipped
-                      ? (mode === 'en' ? 'what is this in te reo?' : 'what does this mean?')
-                      : (mode === 'en' ? 'te reo māori' : 'english meaning')}
-                  </div>
-                  {mode === 'en' && !flipped && <div style={s.cardEn}>{current.en}</div>}
-                  {mode === 'en' && flipped && <div style={s.cardTr}>{current.tr}</div>}
-                  {mode === 'tr' && !flipped && <div style={s.cardTr}>{current.tr}</div>}
-                  {mode === 'tr' && flipped && <div style={s.cardEn}>{current.en}</div>}
-                  <div style={s.cardCat}>{current.cat}</div>
-                </div>
-              )}
-
-              <div style={s.tapPrompt}>{!flipped ? 'tap card to reveal' : ''}</div>
-
-              <div style={{ ...s.ratingRow, visibility: flipped ? 'visible' : 'hidden' }}>
-                <button style={s.rBtn('miss')} onClick={() => handleRate('miss')}>
-                  <span style={s.rLabel}>Miss</span>
-                  <span style={s.rSub(false)}>comes back</span>
-                </button>
-                <button style={s.rBtn('unsure')} onClick={() => handleRate('unsure')}>
-                  <span style={s.rLabel}>Unsure</span>
-                  <span style={s.rSub(false)}>soon again</span>
-                </button>
-                <button style={s.rBtn('knew')} onClick={() => handleRate('knew')}>
-                  <span style={s.rLabel}>Knew it</span>
-                  <span style={s.rSub(true)}>spaced out</span>
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div style={s.cardArea}>
-              <div style={s.doneScreen}>
-                <div style={s.donePct}>{donePct}%</div>
-                <div style={s.doneMsg}>{doneMsg}</div>
-                <div style={s.doneGrid}>
-                  <div style={s.doneStat}><div style={s.doneStatN}>{scores.knew}</div><div style={s.doneStatL}>Knew it</div></div>
-                  <div style={s.doneStat}><div style={s.doneStatN}>{scores.unsure}</div><div style={s.doneStatL}>Unsure</div></div>
-                  <div style={s.doneStat}><div style={s.doneStatN}>{scores.miss}</div><div style={s.doneStatL}>Missed it</div></div>
-                </div>
-                <div style={{ width: '100%', textAlign: 'left', marginBottom: 24 }}>
-                  <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#444', marginBottom: 10, fontFamily: 'Georgia,serif' }}>
-                    First attempt misses
-                  </div>
-                  {firstMisses.length === 0 ? (
-                    <div style={{ fontStyle: 'italic', color: '#444', fontSize: 14 }}>Ka pai! No misses on first attempt!</div>
-                  ) : (
-                    firstMisses.map((c, i) => (
-                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '9px 0', borderBottom: '1px solid #ccc' }}>
-                        <span style={{ fontWeight: 'bold', fontSize: 16 }}>{c.tr}</span>
-                        <span style={{ color: '#444', fontSize: 14 }}>{c.en}</span>
-                      </div>
-                    ))
-                  )}
-                </div>
-                <button style={s.restartBtn} onClick={() => startDeck(activeDeck, mode, activeSub)}>
-                  Ka haere anō · go again
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Reference view */}
-      {tab === 'ref' && (
-        <div style={s.refView}>
+// Grammar reference. Each RefSection carries a title; pass `only` to show a subset
+// (topics show their own sections), or nothing for the full A to Z.
+export default function TeReoReference({ only }: { only?: string[] }) {
+  const all = (
+    <>
 
           <RefSection title="Greetings & basics" note="Use tēnā koe / kōrua / koutou for formal settings depending on how many people you're addressing. Kia ora works everywhere, any number.">
             <RefTable rows={[
@@ -448,7 +44,7 @@ export default function TeReoFlashcards() {
                   ['tātou','we all, incl you','plural'],['mātou','we (3+), excl you','plural'],
                   ['koutou','you all (3+)','plural'],['rātou','they (3+)','plural'],
                 ].map(([tr,en,type],i) => (
-                  <tr key={i}><td style={i%2===0?tdStyle:tdAltStyle}>{tr}</td><td style={i%2===0?tdStyle:tdAltStyle}>{en}</td><td style={{...(i%2===0?tdStyle:tdAltStyle),fontSize:13,color:'#555'}}>{type}</td></tr>
+                  <tr key={i}><td style={i%2===0?tdStyle:tdAltStyle}>{tr}</td><td style={i%2===0?tdStyle:tdAltStyle}>{en}</td><td style={{...(i%2===0?tdStyle:tdAltStyle),fontSize:13,color:'var(--soft)'}}>{type}</td></tr>
                 ))}
               </tbody>
             </table>
@@ -460,11 +56,11 @@ export default function TeReoFlashcards() {
               <tbody>
                 {[['Person','ahau / au (I)','koe (you)','ia (them)'],['One thing','tēnei (this)','tēnā (that)','tērā (that over there)'],['Many things','ēnei (these)','ēnā (those)','ērā (those over there)'],['Place','konei (here)','konā (there)','korā (over there)'],
                 ].map(([k,a,b,c],i) => (
-                  <tr key={i}><td style={{...(i%2===0?tdStyle:tdAltStyle),fontSize:13,color:'#555'}}>{k}</td><td style={i%2===0?tdStyle:tdAltStyle}>{a}</td><td style={i%2===0?tdStyle:tdAltStyle}>{b}</td><td style={i%2===0?tdStyle:tdAltStyle}>{c}</td></tr>
+                  <tr key={i}><td style={{...(i%2===0?tdStyle:tdAltStyle),fontSize:13,color:'var(--soft)'}}>{k}</td><td style={i%2===0?tdStyle:tdAltStyle}>{a}</td><td style={i%2===0?tdStyle:tdAltStyle}>{b}</td><td style={i%2===0?tdStyle:tdAltStyle}>{c}</td></tr>
                 ))}
               </tbody>
             </table>
-            <div style={{ fontSize: 13, color: '#555', marginTop: 8, lineHeight: 1.6 }}>Reira works alongside these for &quot;there, the place we just mentioned&quot;: waiho ki reira (leave it there). In use: homai tēnā (give me that, by you), mauria atu ki korā (take it over there).</div>
+            <div style={{ fontSize: 13, color: 'var(--soft)', marginTop: 8, lineHeight: 1.6 }}>Reira works alongside these for &quot;there, the place we just mentioned&quot;: waiho ki reira (leave it there). In use: homai tēnā (give me that, by you), mauria atu ki korā (take it over there).</div>
           </RefSection>
 
           <RefSection title="Question words" note="Questions are formed by putting these at the start of a sentence. He aha = what, Ko wai = who (using ko for identity).">
@@ -543,7 +139,7 @@ export default function TeReoFlashcards() {
                   ['tō māua','our (two, not you)','ō'],['tō tāua','our (two, including you)','ō'],['tō mātou','our (three+, not you)','ō'],['tō tātou','our (all)','ō'],
                   ['tā māua','our (two, not you)','ā'],['tā tāua','our (two, including you)','ā'],['tā mātou','our (three+, not you)','ā'],['tā tātou','our (all)','ā'],
                 ].map(([tr,en,cls],i) => (
-                  <tr key={i}><td style={i%2===0?tdStyle:tdAltStyle}>{tr}</td><td style={i%2===0?tdStyle:tdAltStyle}>{en}</td><td style={{...(i%2===0?tdStyle:tdAltStyle),fontSize:13,color:'#555'}}>{cls}</td></tr>
+                  <tr key={i}><td style={i%2===0?tdStyle:tdAltStyle}>{tr}</td><td style={i%2===0?tdStyle:tdAltStyle}>{en}</td><td style={{...(i%2===0?tdStyle:tdAltStyle),fontSize:13,color:'var(--soft)'}}>{cls}</td></tr>
                 ))}
               </tbody>
             </table>
@@ -602,16 +198,16 @@ export default function TeReoFlashcards() {
               </p>
             </div>
             {DIALOGUES.map(d => (
-              <div key={d.id} style={{ border: '1.5px solid #000', borderRadius: 12, padding: '16px 18px', marginBottom: 16 }}>
-                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#444', marginBottom: 2 }}>{d.title}</div>
-                <div style={{ fontSize: 12, color: '#666', fontStyle: 'italic', marginBottom: 10 }}>{d.scenario}</div>
+              <div key={d.id} style={{ border: '1.5px solid var(--ink)', borderRadius: 12, padding: '16px 18px', marginBottom: 16 }}>
+                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--soft)', marginBottom: 2 }}>{d.title}</div>
+                <div style={{ fontSize: 12, color: 'var(--soft)', fontStyle: 'italic', marginBottom: 10 }}>{d.scenario}</div>
                 {d.lines.map((l, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 10, padding: '7px 0', borderBottom: i < d.lines.length - 1 ? '1px solid #eee' : 'none' }}>
+                  <div key={i} style={{ display: 'flex', gap: 10, padding: '7px 0', borderBottom: i < d.lines.length - 1 ? '1px solid var(--hair)' : 'none' }}>
                     <span style={{ fontWeight: 'bold', width: 20, flexShrink: 0 }}>{l.speaker}:</span>
                     <span style={{ flex: 1 }}>
                       <span style={{ fontWeight: 'bold' }}>{l.tr}</span>
                       <br/>
-                      <span style={{ color: '#444', fontSize: 13, fontStyle: 'italic' }}>{l.en}</span>
+                      <span style={{ color: 'var(--soft)', fontSize: 13, fontStyle: 'italic' }}>{l.en}</span>
                     </span>
                   </div>
                 ))}
@@ -707,30 +303,29 @@ export default function TeReoFlashcards() {
             ]} />
           </RefSection>
 
-        </div>
-      )}
-
-      {tab === 'converse' && <ConversationPractice />}
-    </div>
+    </>
   )
+  const kids = React.Children.toArray((all as React.ReactElement).props.children) as React.ReactElement[]
+  const shown = only ? kids.filter(k => only.includes(k.props?.title)) : kids
+  return <div className="tr-ref">{shown}</div>
 }
 
 const thStyle: React.CSSProperties = {
-  fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#444',
-  padding: '6px 8px', borderBottom: '1.5px solid #000', textAlign: 'left', fontWeight: 'normal',
+  fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--soft)',
+  padding: '6px 8px', borderBottom: '1.5px solid var(--ink)', textAlign: 'left', fontWeight: 'normal',
 }
 const tdStyle: React.CSSProperties = {
-  padding: '9px 8px', borderBottom: '1px solid #ccc', fontSize: 15, verticalAlign: 'top',
+  padding: '9px 8px', borderBottom: '1px solid var(--hair)', fontSize: 15, verticalAlign: 'top',
 }
 const tdAltStyle: React.CSSProperties = {
-  ...tdStyle, background: '#f0f0f0',
+  ...tdStyle, background: 'var(--panel)',
 }
 
 function RefSection({ title, note, children }: { title: string; note?: string; children: React.ReactNode }) {
   return (
     <div style={{ marginBottom: 32 }}>
-      <div style={{ fontSize: 16, fontWeight: 'bold', borderBottom: '2px solid #000', paddingBottom: 6, marginBottom: 4 }}>{title}</div>
-      {note && <div style={{ fontSize: 13, color: '#444', fontStyle: 'italic', marginBottom: 12, lineHeight: 1.6, padding: '8px 0' }}>{note}</div>}
+      <div style={{ fontSize: 16, fontWeight: 'bold', borderBottom: '2px solid var(--ink)', paddingBottom: 6, marginBottom: 4 }}>{title}</div>
+      {note && <div style={{ fontSize: 13, color: 'var(--soft)', fontStyle: 'italic', marginBottom: 12, lineHeight: 1.6, padding: '8px 0' }}>{note}</div>}
       {children}
     </div>
   )
@@ -754,58 +349,58 @@ function RefTable({ rows }: { rows: [string, string][] }) {
 
 function PronounSVG() {
   return (
-    <svg viewBox="0 0 340 440" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', maxWidth: 340, display: 'block', margin: '8px auto 12px' }}>
-      <defs><style>{`.pl{font-family:Georgia,serif;font-size:13px;font-weight:bold;fill:#000}.ps{font-family:Georgia,serif;font-size:10px;fill:#555;font-style:italic}`}</style></defs>
+    <svg viewBox="0 0 340 440" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', maxWidth: 340, display: 'block', margin: '8px auto 12px', color: 'var(--ink)' }}>
+      <defs><style>{`.pl{font-family:var(--font);font-size:13px;font-weight:bold;fill:var(--ink)}.ps{font-family:var(--font);font-size:10px;fill:var(--soft);font-style:italic}`}</style></defs>
       <text x="170" y="14" textAnchor="middle" className="ps">singular</text>
-      <rect x="8" y="20" width="62" height="46" rx="7" fill="none" stroke="#000" strokeWidth="2"/>
+      <rect x="8" y="20" width="62" height="46" rx="7" fill="none" stroke="currentColor" strokeWidth="2"/>
       <circle cx="26" cy="36" r="8" fill="#1a7a4a"/><path d="M18 50 Q26 45 34 50" stroke="#1a7a4a" strokeWidth="1.5" fill="none"/>
       <circle cx="52" cy="36" r="8" fill="#bbb"/><path d="M44 50 Q52 45 60 50" stroke="#bbb" strokeWidth="1.5" fill="none"/>
       <text x="39" y="78" textAnchor="middle" className="pl">au</text>
       <text x="39" y="89" textAnchor="middle" className="ps">I / me</text>
-      <rect x="139" y="20" width="62" height="46" rx="7" fill="none" stroke="#000" strokeWidth="2"/>
+      <rect x="139" y="20" width="62" height="46" rx="7" fill="none" stroke="currentColor" strokeWidth="2"/>
       <circle cx="157" cy="36" r="8" fill="#1a7a4a"/><path d="M149 50 Q157 45 165 50" stroke="#1a7a4a" strokeWidth="1.5" fill="none"/>
       <circle cx="183" cy="36" r="8" fill="#1a6aaa"/><path d="M175 50 Q183 45 191 50" stroke="#1a6aaa" strokeWidth="1.5" fill="none"/>
       <text x="170" y="78" textAnchor="middle" className="pl">koe</text>
       <text x="170" y="89" textAnchor="middle" className="ps">you (one)</text>
-      <rect x="260" y="20" width="62" height="46" rx="7" fill="none" stroke="#000" strokeWidth="2"/>
+      <rect x="260" y="20" width="62" height="46" rx="7" fill="none" stroke="currentColor" strokeWidth="2"/>
       <circle cx="279" cy="36" r="8" fill="#1a7a4a"/><path d="M271 50 Q279 45 287 50" stroke="#1a7a4a" strokeWidth="1.5" fill="none"/>
       <circle cx="304" cy="36" r="8" fill="#888"/><path d="M296 50 Q304 45 312 50" stroke="#888" strokeWidth="1.5" fill="none"/>
       <text x="291" y="78" textAnchor="middle" className="pl">ia</text>
       <text x="291" y="89" textAnchor="middle" className="ps">he/she/they</text>
       <text x="170" y="108" textAnchor="middle" className="ps">dual (two people)</text>
-      <rect x="2" y="114" width="72" height="64" rx="7" fill="none" stroke="#000" strokeWidth="2"/>
+      <rect x="2" y="114" width="72" height="64" rx="7" fill="none" stroke="currentColor" strokeWidth="2"/>
       <circle cx="22" cy="128" r="8" fill="#1a7a4a"/><path d="M14 142 Q22 137 30 142" stroke="#1a7a4a" strokeWidth="1.5" fill="none"/>
       <circle cx="52" cy="128" r="8" fill="#1a6aaa"/><path d="M44 142 Q52 137 60 142" stroke="#1a6aaa" strokeWidth="1.5" fill="none"/>
       <circle cx="37" cy="154" r="8" fill="#bbb"/><path d="M29 168 Q37 163 45 168" stroke="#bbb" strokeWidth="1.5" fill="none"/>
       <text x="38" y="190" textAnchor="middle" className="pl">tāua</text>
       <text x="38" y="201" textAnchor="middle" className="ps">we two (incl)</text>
-      <rect x="94" y="130" width="72" height="46" rx="7" fill="none" stroke="#000" strokeWidth="2"/>
+      <rect x="94" y="130" width="72" height="46" rx="7" fill="none" stroke="currentColor" strokeWidth="2"/>
       <circle cx="114" cy="130" r="8" fill="#1a7a4a"/><path d="M106 144 Q114 139 122 144" stroke="#1a7a4a" strokeWidth="1.5" fill="none"/>
       <circle cx="152" cy="114" r="8" fill="#1a6aaa"/><path d="M144 128 Q152 123 160 128" stroke="#1a6aaa" strokeWidth="1.5" fill="none"/>
       <circle cx="144" cy="154" r="8" fill="#888"/><path d="M136 168 Q144 163 152 168" stroke="#888" strokeWidth="1.5" fill="none"/>
       <text x="130" y="190" textAnchor="middle" className="pl">māua</text>
       <text x="130" y="201" textAnchor="middle" className="ps">we two (excl)</text>
       <circle cx="210" cy="114" r="8" fill="#1a7a4a"/><path d="M202 128 Q210 123 218 128" stroke="#1a7a4a" strokeWidth="1.5" fill="none"/>
-      <rect x="196" y="124" width="72" height="46" rx="7" fill="none" stroke="#000" strokeWidth="2"/>
+      <rect x="196" y="124" width="72" height="46" rx="7" fill="none" stroke="currentColor" strokeWidth="2"/>
       <circle cx="216" cy="140" r="8" fill="#1a6aaa"/><path d="M208 154 Q216 149 224 154" stroke="#1a6aaa" strokeWidth="1.5" fill="none"/>
       <circle cx="248" cy="140" r="8" fill="#1a6aaa"/><path d="M240 154 Q248 149 256 154" stroke="#1a6aaa" strokeWidth="1.5" fill="none"/>
       <text x="232" y="190" textAnchor="middle" className="pl">kōrua</text>
       <text x="232" y="201" textAnchor="middle" className="ps">you two</text>
       <circle cx="305" cy="114" r="8" fill="#1a7a4a"/><path d="M297 128 Q305 123 313 128" stroke="#1a7a4a" strokeWidth="1.5" fill="none"/>
-      <rect x="286" y="124" width="52" height="46" rx="7" fill="none" stroke="#000" strokeWidth="2"/>
+      <rect x="286" y="124" width="52" height="46" rx="7" fill="none" stroke="currentColor" strokeWidth="2"/>
       <circle cx="300" cy="140" r="8" fill="#888"/><path d="M292 154 Q300 149 308 154" stroke="#888" strokeWidth="1.5" fill="none"/>
       <circle cx="324" cy="140" r="8" fill="#888"/><path d="M316 154 Q324 149 332 154" stroke="#888" strokeWidth="1.5" fill="none"/>
       <text x="312" y="190" textAnchor="middle" className="pl">rāua</text>
       <text x="312" y="201" textAnchor="middle" className="ps">they two</text>
       <text x="170" y="220" textAnchor="middle" className="ps">plural (three or more)</text>
-      <rect x="2" y="226" width="72" height="80" rx="7" fill="none" stroke="#000" strokeWidth="2"/>
+      <rect x="2" y="226" width="72" height="80" rx="7" fill="none" stroke="currentColor" strokeWidth="2"/>
       <circle cx="22" cy="242" r="8" fill="#1a7a4a"/><path d="M14 256 Q22 251 30 256" stroke="#1a7a4a" strokeWidth="1.5" fill="none"/>
       <circle cx="52" cy="242" r="8" fill="#1a6aaa"/><path d="M44 256 Q52 251 60 256" stroke="#1a6aaa" strokeWidth="1.5" fill="none"/>
       <circle cx="22" cy="270" r="8" fill="#888"/><path d="M14 284 Q22 279 30 284" stroke="#888" strokeWidth="1.5" fill="none"/>
       <circle cx="52" cy="270" r="8" fill="#888"/><path d="M44 284 Q52 279 60 284" stroke="#888" strokeWidth="1.5" fill="none"/>
       <text x="38" y="320" textAnchor="middle" className="pl">tātou</text>
       <text x="38" y="331" textAnchor="middle" className="ps">we all (incl)</text>
-      <rect x="94" y="242" width="72" height="64" rx="7" fill="none" stroke="#000" strokeWidth="2"/>
+      <rect x="94" y="242" width="72" height="64" rx="7" fill="none" stroke="currentColor" strokeWidth="2"/>
       <circle cx="114" cy="242" r="8" fill="#1a7a4a"/><path d="M106 256 Q114 251 122 256" stroke="#1a7a4a" strokeWidth="1.5" fill="none"/>
       <circle cx="152" cy="226" r="8" fill="#1a6aaa"/><path d="M144 240 Q152 235 160 240" stroke="#1a6aaa" strokeWidth="1.5" fill="none"/>
       <circle cx="114" cy="270" r="8" fill="#888"/><path d="M106 284 Q114 279 122 284" stroke="#888" strokeWidth="1.5" fill="none"/>
@@ -813,24 +408,24 @@ function PronounSVG() {
       <text x="130" y="320" textAnchor="middle" className="pl">mātou</text>
       <text x="130" y="331" textAnchor="middle" className="ps">we (excl)</text>
       <circle cx="210" cy="226" r="8" fill="#1a7a4a"/><path d="M202 240 Q210 235 218 240" stroke="#1a7a4a" strokeWidth="1.5" fill="none"/>
-      <rect x="196" y="236" width="72" height="70" rx="7" fill="none" stroke="#000" strokeWidth="2"/>
+      <rect x="196" y="236" width="72" height="70" rx="7" fill="none" stroke="currentColor" strokeWidth="2"/>
       <circle cx="216" cy="252" r="8" fill="#1a6aaa"/><path d="M208 266 Q216 261 224 266" stroke="#1a6aaa" strokeWidth="1.5" fill="none"/>
       <circle cx="248" cy="252" r="8" fill="#1a6aaa"/><path d="M240 266 Q248 261 256 266" stroke="#1a6aaa" strokeWidth="1.5" fill="none"/>
       <circle cx="232" cy="278" r="8" fill="#1a6aaa"/><path d="M224 292 Q232 287 240 292" stroke="#1a6aaa" strokeWidth="1.5" fill="none"/>
       <text x="232" y="320" textAnchor="middle" className="pl">koutou</text>
       <text x="232" y="331" textAnchor="middle" className="ps">you all</text>
       <circle cx="305" cy="226" r="8" fill="#1a7a4a"/><path d="M297 240 Q305 235 313 240" stroke="#1a7a4a" strokeWidth="1.5" fill="none"/>
-      <rect x="284" y="236" width="54" height="70" rx="7" fill="none" stroke="#000" strokeWidth="2"/>
+      <rect x="284" y="236" width="54" height="70" rx="7" fill="none" stroke="currentColor" strokeWidth="2"/>
       <circle cx="298" cy="252" r="8" fill="#888"/><path d="M290 266 Q298 261 306 266" stroke="#888" strokeWidth="1.5" fill="none"/>
       <circle cx="326" cy="252" r="8" fill="#888"/><path d="M318 266 Q326 261 334 266" stroke="#888" strokeWidth="1.5" fill="none"/>
       <circle cx="312" cy="278" r="8" fill="#888"/><path d="M304 292 Q312 287 320 292" stroke="#888" strokeWidth="1.5" fill="none"/>
       <text x="311" y="320" textAnchor="middle" className="pl">rātou</text>
       <text x="311" y="331" textAnchor="middle" className="ps">they (3+)</text>
-      <rect x="4" y="348" width="332" height="38" rx="6" fill="#f0f0f0"/>
+      <rect x="4" y="348" width="332" height="38" rx="6" fill="none"/>
       <circle cx="22" cy="367" r="6" fill="#1a7a4a"/><text x="32" y="371" className="ps">speaker</text>
       <circle cx="90" cy="367" r="6" fill="#1a6aaa"/><text x="100" y="371" className="ps">listener</text>
       <circle cx="160" cy="367" r="6" fill="#888"/><text x="170" y="371" className="ps">other(s)</text>
-      <rect x="228" y="360" width="18" height="14" rx="3" fill="none" stroke="#000" strokeWidth="2"/>
+      <rect x="228" y="360" width="18" height="14" rx="3" fill="none" stroke="currentColor" strokeWidth="2"/>
       <text x="250" y="371" className="ps">= included</text>
       <text x="170" y="410" textAnchor="middle" className="ps">incl = listener included · excl = listener excluded</text>
     </svg>

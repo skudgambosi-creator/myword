@@ -15,43 +15,47 @@ function shuffle<T>(arr: T[]): T[] {
 // distractors regardless of which dialogue is currently being practiced.
 const ALL_LINES: DialogueLine[] = DIALOGUES.flatMap(d => d.lines)
 
+// Distractors come from the same dialogue first, so the topic alone gives
+// nothing away; other dialogues only top up a short scene.
 function pickOptions(correct: DialogueLine): string[] {
-  const pool = ALL_LINES.filter(l => l.tr !== correct.tr)
-  const distractors = shuffle(pool).slice(0, 3).map(l => l.tr)
+  const home = DIALOGUES.find(d => d.lines.includes(correct))
+  const near = shuffle((home ? home.lines : []).filter(l => l.tr !== correct.tr)).map(l => l.tr)
+  const far = shuffle(ALL_LINES.filter(l => l.tr !== correct.tr && !near.includes(l.tr))).map(l => l.tr)
+  const distractors = Array.from(new Set([...near, ...far])).slice(0, 3)
   return shuffle([correct.tr, ...distractors])
 }
 
 const s = {
-  root: { fontFamily: "Georgia,'Times New Roman',serif", background: '#fff', color: '#000', display: 'flex', flexDirection: 'column' as const, flex: 1, overflowY: 'auto' as const },
+  root: { fontFamily: "var(--font)", background: 'var(--ground)', color: 'var(--ink)', display: 'flex', flexDirection: 'column' as const, flex: 1, overflowY: 'auto' as const },
   pad: { padding: '16px 16px 40px' },
-  pickerIntro: { fontSize: 13, color: '#444', fontStyle: 'italic', lineHeight: 1.6, marginBottom: 20, padding: '4px 0' },
-  cardBtn: { display: 'block', width: '100%', textAlign: 'left' as const, border: '2px solid #000', borderRadius: 12, padding: '16px 18px', marginBottom: 12, background: '#fff', cursor: 'pointer', fontFamily: "Georgia,serif" },
+  pickerIntro: { fontSize: 13, color: 'var(--soft)', fontStyle: 'italic', lineHeight: 1.6, marginBottom: 20, padding: '4px 0' },
+  cardBtn: { display: 'block', width: '100%', textAlign: 'left' as const, border: '2px solid var(--ink)', borderRadius: 12, padding: '16px 18px', marginBottom: 12, background: 'var(--ground)', cursor: 'pointer', fontFamily: "var(--font)" },
   cardTitle: { fontSize: 17, fontWeight: 'bold', marginBottom: 4 },
-  cardScenario: { fontSize: 13, color: '#444', fontStyle: 'italic', lineHeight: 1.5 },
-  cardMeta: { fontSize: 11, color: '#999', marginTop: 8, textTransform: 'uppercase' as const, letterSpacing: '0.06em' },
-  backBtn: { fontSize: 13, color: '#444', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0 16px', fontFamily: "Georgia,serif", textDecoration: 'underline' },
+  cardScenario: { fontSize: 13, color: 'var(--soft)', fontStyle: 'italic', lineHeight: 1.5 },
+  cardMeta: { fontSize: 11, color: 'var(--soft)', marginTop: 8, textTransform: 'uppercase' as const, letterSpacing: '0.06em' },
+  backBtn: { fontSize: 13, color: 'var(--soft)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0 16px', fontFamily: "var(--font)", textDecoration: 'underline' },
   transcript: { marginBottom: 20 },
-  transcriptLine: { display: 'flex', gap: 10, padding: '9px 0', borderBottom: '1px solid #eee' },
+  transcriptLine: { display: 'flex', gap: 10, padding: '9px 0', borderBottom: '1px solid var(--hair)' },
   speakerTag: { fontWeight: 'bold', width: 20, flexShrink: 0 },
   transcriptTr: { fontWeight: 'bold' },
-  transcriptEn: { color: '#444', fontSize: 13, fontStyle: 'italic' },
-  progressWrap: { height: 6, background: '#f0f0f0', marginBottom: 16 },
-  quizPrompt: { fontSize: 11, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#444', marginBottom: 10, fontStyle: 'italic' },
+  transcriptEn: { color: 'var(--soft)', fontSize: 13, fontStyle: 'italic' },
+  progressWrap: { height: 6, background: 'var(--panel)', marginBottom: 16 },
+  quizPrompt: { fontSize: 11, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--soft)', marginBottom: 10, fontStyle: 'italic' },
   quizSpeaker: { fontSize: 13, fontWeight: 'bold', marginBottom: 12 },
   optionBtn: (state: 'idle' | 'correct' | 'wrong' | 'reveal-correct'): React.CSSProperties => ({
     display: 'block', width: '100%', textAlign: 'left' as const, marginBottom: 10,
-    padding: '14px 16px', borderRadius: 10, cursor: 'pointer', fontFamily: "Georgia,serif", fontSize: 15,
-    border: state === 'correct' || state === 'reveal-correct' ? '2px solid #000' : state === 'wrong' ? '2px dashed #000' : '1.5px solid #ccc',
-    background: state === 'correct' || state === 'reveal-correct' ? '#000' : state === 'wrong' ? '#f0f0f0' : '#fff',
-    color: state === 'correct' || state === 'reveal-correct' ? '#fff' : '#000',
+    padding: '14px 16px', borderRadius: 10, cursor: 'pointer', fontFamily: "var(--font)", fontSize: 15,
+    border: state === 'correct' || state === 'reveal-correct' ? '2px solid var(--ink)' : state === 'wrong' ? '2px dashed var(--ink)' : '1.5px solid var(--hair)',
+    background: state === 'correct' || state === 'reveal-correct' ? 'var(--ink)' : state === 'wrong' ? 'var(--panel)' : 'var(--ground)',
+    color: state === 'correct' || state === 'reveal-correct' ? 'var(--ground)' : 'var(--ink)',
   }),
-  feedbackBox: { border: '1.5px solid #000', borderRadius: 10, padding: '12px 14px', marginBottom: 16, fontSize: 14 },
-  feedbackEn: { color: '#444', fontSize: 13, fontStyle: 'italic', marginTop: 4 },
-  continueBtn: { width: '100%', minHeight: 56, border: '2px solid #000', borderRadius: 12, background: '#000', color: '#fff', fontSize: 16, fontFamily: "Georgia,serif", cursor: 'pointer', fontWeight: 'bold', marginBottom: 8 },
+  feedbackBox: { border: '1.5px solid var(--ink)', borderRadius: 10, padding: '12px 14px', marginBottom: 16, fontSize: 14 },
+  feedbackEn: { color: 'var(--soft)', fontSize: 13, fontStyle: 'italic', marginTop: 4 },
+  continueBtn: { width: '100%', minHeight: 56, border: '2px solid var(--ink)', borderRadius: 12, background: 'var(--ink)', color: 'var(--ground)', fontSize: 16, fontFamily: "var(--font)", cursor: 'pointer', fontWeight: 'bold', marginBottom: 8 },
   doneScreen: { textAlign: 'center' as const, padding: '12px 4px 24px' },
   donePct: { fontSize: 56, fontWeight: 'bold', lineHeight: 1, marginBottom: 4 },
-  doneLabel: { fontSize: 13, color: '#444', marginBottom: 24, letterSpacing: '0.04em', textTransform: 'uppercase' as const },
-  secondaryBtn: { width: '100%', minHeight: 52, border: '2px solid #000', borderRadius: 12, background: '#fff', color: '#000', fontSize: 15, fontFamily: "Georgia,serif", cursor: 'pointer', marginBottom: 10 },
+  doneLabel: { fontSize: 13, color: 'var(--soft)', marginBottom: 24, letterSpacing: '0.04em', textTransform: 'uppercase' as const },
+  secondaryBtn: { width: '100%', minHeight: 52, border: '2px solid var(--ink)', borderRadius: 12, background: 'var(--ground)', color: 'var(--ink)', fontSize: 15, fontFamily: "var(--font)", cursor: 'pointer', marginBottom: 10 },
 }
 
 type Phase = 'picker' | 'quiz' | 'summary'
@@ -167,7 +171,7 @@ export default function ConversationPractice() {
       <div style={s.pad}>
         <button style={s.backBtn} onClick={goToPicker}>← Choose another scenario</button>
         <div style={s.progressWrap}>
-          <div style={{ height: '100%', background: '#000', width: `${progress}%`, transition: 'width 0.2s' }} />
+          <div style={{ height: '100%', background: 'var(--ink)', width: `${progress}%`, transition: 'width 0.2s' }} />
         </div>
         <div style={s.transcript}>
           {dialogue.lines.slice(0, lineIndex).map((l, i) => (
