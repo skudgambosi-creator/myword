@@ -365,6 +365,11 @@ export const AUDIO: Record<string, number> = {
   'whakapā': 9707,
   // hoa compounds (Te Aka word IDs)
   'kiritata': 45494, 'hoamahi': 1294, 'hoa rangatira': 39607,
+  // Nov 2026 additions, IDs verified against Te Aka headwords
+  'ahau': 63, 'ēnei': 659, 'ēnā': 657, 'konā': 2904, 'korā': 2974, 'reira': 6687,
+  'hoatu': 1307, 'waiho': 9037, 'turituri': 8782, 'wahanui': 8985, 'tumeke': 8698,
+  'ka mau te wehi': 2129, 'kia tau': 11017, 'kei runga noa atu koe': 11594,
+  'tau kē': 11316, 'he aha hoki': 1010, 'mō āke tonu': 4119,
 }
 
 export function getAudioUrl(tr: string): string | null {
@@ -1312,7 +1317,7 @@ const CARDS_RAW = [
   { en: "don't do that!", tr: 'kaua e mahi pēnā!', cat: 'sentences', sub: 'Praise & exclamations' },
   { en: 'thinks he knows it all / a show-off', tr: 'kāti anō hoki', cat: 'sentences', sub: 'Kīwaha (Hauraki)' },
   { en: 'praising myself / blowing my own trumpet', tr: 'whakamanamana i a au', cat: 'sentences', sub: 'Kīwaha (Hauraki)' },
-  { en: 'so what?', tr: 'he aha hoki?', cat: 'sentences', sub: 'Kīwaha (Hauraki)' },
+  { en: 'so what? / whatever! / no way!', tr: 'he aha hoki?', cat: 'sentences', sub: 'Kīwaha (Hauraki)' },
   { en: "so what's the problem?", tr: 'he aha hoki te hē?', cat: 'sentences', sub: 'Kīwaha (Hauraki)' },
   { en: "simmer down, you didn't need to say that", tr: 'e kare hoki', cat: 'sentences', sub: 'Kīwaha (Hauraki)' },
   { en: 'serves you right!', tr: 'kai toa!', cat: 'sentences', sub: 'Kīwaha (Hauraki)' },
@@ -1346,7 +1351,7 @@ const CARDS_RAW = [
   { en: 'next month', tr: 'ā tērā marama', cat: 'days', sub: 'Time phrases' },
   { en: 'next year', tr: 'ā tērā tau', cat: 'days', sub: 'Time phrases' },
   { en: 'right now / immediately', tr: 'ināianei tonu', cat: 'days', sub: 'Time phrases' },
-  { en: 'forever', tr: 'mō ake tonu', cat: 'days', sub: 'Time phrases' },
+  { en: 'forever', tr: 'mō āke tonu', cat: 'days', sub: 'Time phrases' },
   { en: 'all the time / always', tr: 'i ngā wā katoa', cat: 'days', sub: 'Time phrases' },
   { en: 'every day', tr: 'ia rā ia rā', cat: 'days', sub: 'Time phrases' },
   { en: 'I / me (alternative form, used after ki, i, a)', tr: 'ahau', cat: 'pronouns' },
