@@ -192,7 +192,7 @@ export default function TeReoApp() {
 
       {/* CARD */}
       {screen === 'card' && session && current && (
-        <div className="tr-screen tr-cardscreen">
+        <div className="tr-screen tr-cardscreen tr-cap">
           <div className="tr-row">
             <Mark />
             <span className="tr-mono">{pad(Math.min(session.idx + 1, session.queue.length))} / {pad(session.queue.length)}</span>
@@ -206,7 +206,9 @@ export default function TeReoApp() {
           )}
 
           <div className="tr-face" onClick={() => { if (!session.revealed && !(p.settings.answer === 'type' && dir === 'en')) reveal() }}>
-            <span className="tr-kind"><i />{p.cards[current.id] ? 'review' : 'new'} · {TOPIC_BY_ID[current.topic].name}</span>
+            <span className="tr-kind"><i />{p.cards[current.id] ? 'review' : 'new'} ·{' '}
+              <button className="tr-kind-link" onClick={e => { e.stopPropagation(); stopAudio(); setTopicId(current.topic); setScreen('topic') }}>{TOPIC_BY_ID[current.topic].name}</button>
+            </span>
             {dir === 'en'
               ? <span className="tr-prompt">{current.en}</span>
               : <span className="tr-prompt tr-reo-big"><AudioBtn card={current} play={play} />{current.tr}</span>}
@@ -226,9 +228,10 @@ export default function TeReoApp() {
                 {p.settings.answer === 'type' && dir === 'en' && typed.trim() && (
                   <span className="tr-verdict">{fold(typed) === fold(current.tr) ? 'matches' : `not quite: you typed “${typed.trim()}”`}</span>
                 )}
-                <span className="tr-note">{TOPIC_BY_ID[current.topic].note}{' '}
-                  <button className="tr-link" onClick={e => { e.stopPropagation(); setTopicId(current.topic); setScreen('topic') }}>grammar</button>
-                </span>
+                {/* The topic's grammar line shows once per session, on the first card from that topic. */}
+                {session.queue.findIndex(c => c.topic === current.topic) === session.idx && (
+                  <span className="tr-note">{TOPIC_BY_ID[current.topic].note}</span>
+                )}
               </div>
             )}
             {!session.revealed && !(p.settings.answer === 'type' && dir === 'en') && <span className="tr-hint">say it, then tap</span>}
@@ -255,7 +258,7 @@ export default function TeReoApp() {
         const tomorrow = ITEMS.filter(c => p.cards[c.id] && p.cards[c.id].due <= now + 86_400_000).length
         const empty = !session || firsts.length === 0
         return (
-          <div className="tr-screen">
+          <div className="tr-screen tr-cap">
             <div className="tr-row"><Mark /><span className="tr-mono">{empty ? 'all clear' : `${firsts.length} / ${firsts.length}`}</span></div>
             <span className="tr-big">ka pai.</span>
             <span className="tr-mono tr-gap">{empty ? 'nothing due right now' : `${firsts.length} cards · ${tomorrow} back within a day`}</span>
@@ -466,6 +469,9 @@ const CSS = `
 .tr-credit a{text-decoration:underline;text-underline-offset:3px}
 .tr-app :focus-visible{outline:2px solid var(--acc);outline-offset:3px;border-radius:999px}
 .tr-screen{width:100%;max-width:560px;height:100%;display:flex;flex-direction:column;padding:max(14px,env(safe-area-inset-top)) 18px max(16px,env(safe-area-inset-bottom))}
+/* On tall windows the card and done screens stop at phone height and sit centred, so answer and buttons stay together. */
+.tr-app{align-items:center}
+.tr-cap{max-height:760px}
 .tr-row{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:28px}
 .tr-mono{font:400 11px var(--mono);color:var(--soft);letter-spacing:0}
 .tr-mark,.tr-word{font-weight:600;font-size:13px;letter-spacing:.16em;display:inline-flex;align-items:center;gap:7px;font-stretch:var(--wide)}
@@ -490,6 +496,8 @@ const CSS = `
 .tr-bar{height:3px;background:var(--hair);margin-top:12px}.tr-bar span{display:block;height:3px;background:var(--acc)}
 .tr-face{flex:1;min-height:0;overflow:auto;margin-top:clamp(10px,2.5vh,22px);display:flex;flex-direction:column;gap:8px;cursor:pointer}
 .tr-kind{font:400 10px var(--mono);letter-spacing:.06em;color:var(--soft);display:flex;align-items:center;gap:8px;text-transform:uppercase}
+.tr-kind-link{text-transform:inherit;letter-spacing:inherit;text-decoration:underline;text-decoration-color:var(--hair);text-underline-offset:3px}
+.tr-kind-link:hover{color:var(--ink)}
 .tr-kind i{width:6px;height:6px;border-radius:50%;background:var(--note)}
 .tr-prompt{font-weight:400;font-stretch:var(--narrow);font-size:clamp(22px,4.6vh + 6px,36px);line-height:1.2;display:flex;align-items:center;gap:12px}
 .tr-reo-big{font-weight:700;font-stretch:var(--wide);font-size:clamp(24px,4.6vh + 8px,38px);line-height:1.12;color:var(--reo);text-shadow:var(--tglow);display:flex;align-items:center;gap:12px}
